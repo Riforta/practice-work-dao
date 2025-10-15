@@ -1,0 +1,17 @@
+from fastapi import FastAPI
+from routes import clientes  # Ajusta el import según tu estructura real
+
+app = FastAPI(
+    title="API de Clientes",
+    description="API para gestión de clientes",
+    version="1.0.0"
+)
+
+# Incluye el router de clientes
+app.include_router(clientes.router)
+
+# Opcional: endpoint raíz
+@app.get("/")
+def read_root():
+    return {"msg": "API funcionando"}
+
