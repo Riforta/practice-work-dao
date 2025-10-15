@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import schemas  # Usamos rutas relativas si es necesario
 from databases.sqlconect import SessionLocal
-from cruds.clientes import create as crud_create, list_all as crud_list_all, get_by_dni as crud_get_by_dni
+from cruds.clientes import create as crud_create, list_all as crud_list_all, get_by_dni as crud_get_by_dni, delete_by_dni as crud_delete_by_dni, update_contact as crud_update_cliente
 
 # 1. Crea una instancia de APIRouter
 router = APIRouter(
@@ -34,8 +34,27 @@ def read_clientes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
     return crud_list_all(db, skip=skip, limit=limit)
 
 @router.get("/{dni}", response_model=schemas.Cliente)
-def read_cliente(dni: str, db: Session = Depends(get_db)):
+def read_cliente(dni: int, db: Session = Depends(get_db)):
     db_cliente = crud_get_by_dni(db, dni)
     if db_cliente is None:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
     return db_cliente
+
+@router.delete("/{dni}")
+def delete_cliente(dni: int, db: Session = Depends(get_db)):
+    db_cliente = crud_get_by_dni(db, dni)
+    if db_cliente is None:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    crud_delete_by_dni(db, dni)
+    return {"message": "Cliente eliminado con éxito", "dni": dni}
+
+@router.put("/{dni}", response_model=schemas.Cliente)
+def update_cliente(dni: int, cliente: schemas.ClienteUpdate, db: Session = Depends(get_db)):
+    db_cliente = crud_get_by_dni(db, dni)
+    if db_cliente is None:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    try:
+        # Pasamos los datos del esquema Pydantic al CRUD
+        return crud_update_cliente(db, dni, **cliente.model_dump(exclude_unset=True))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

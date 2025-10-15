@@ -15,7 +15,7 @@ class ClienteBase(BaseModel):
     """Esquema base con los campos comunes para un cliente."""
     Nombre: str
     Apellido: str
-    DNI: str
+    DNI: int
     Telefono: str | None = None
     Email: str | None = None
 
@@ -26,7 +26,9 @@ class ClienteCreate(ClienteBase):
     pass
 
 class ClienteUpdate(BaseModel):
-    """Para actualizar: todos opcionales, NO incluye Fecha_Registro (inmutable)."""
+    """Para actualizar: todos opcionales, solo se actualizan los campos enviados."""
+    Nombre: str | None = None
+    Apellido: str | None = None
     Telefono: str | None = None
     Email: str | None = None
 

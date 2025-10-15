@@ -5,7 +5,7 @@ from models.clientes import Cliente
 from schemas import ClienteCreate
 
 
-def get_by_dni(db: Session, dni: str) -> Optional[Cliente]:
+def get_by_dni(db: Session, dni: int) -> Optional[Cliente]:
     return db.query(Cliente).filter(Cliente.DNI == dni).first()
 
 
@@ -25,21 +25,23 @@ def create(db: Session, data: ClienteCreate) -> Cliente:
     if data.Email and get_by_email(db, data.Email):
         raise ValueError("Email ya registrado")
 
-    obj = Cliente(**data.model_dump())
+    obj = Cliente(**data.model_dump()) # model_dump() convierte pydantic a dict y el ** hace que se pasen de dic a kwargs
     db.add(obj)
     db.commit()
-    db.refresh(obj)
+    db.refresh(obj) # en este caso sirve porque SQLite asigna Fecha_Registro automáticamente
     return obj
 
 
 def update_contact(
     db: Session,
-    dni: str,
+    dni: int,
     *,
+    Nombre: Optional[str] = None,
+    Apellido: Optional[str] = None,
     Telefono: Optional[str] = None,
     Email: Optional[str] = None,
 ) -> Optional[Cliente]:
-    """Actualiza datos de contacto (Telefono/Email) del cliente por DNI.
+    """Actualiza campos del cliente por DNI (solo los que se pasen).
 
     - Valida que el nuevo Email no esté asignado a otro cliente.
     - Devuelve el objeto actualizado o None si no existe.
@@ -47,6 +49,13 @@ def update_contact(
     obj = get_by_dni(db, dni)
     if not obj:
         return None
+    
+    # Actualizamos solo los campos que se pasaron
+    if Nombre is not None:
+        obj.Nombre = Nombre
+    
+    if Apellido is not None:
+        obj.Apellido = Apellido
 
     if Email is not None:
         # Si cambia el email, validar duplicado
@@ -62,7 +71,7 @@ def update_contact(
     return obj
 
 
-def delete_by_dni(db: Session, dni: str) -> bool:
+def delete_by_dni(db: Session, dni: int) -> bool:
     """Elimina un cliente por DNI. Devuelve True si borró, False si no existe."""
     obj = get_by_dni(db, dni)
     if not obj:
