@@ -54,7 +54,14 @@ def update_cliente(dni: int, cliente: schemas.ClienteUpdate, db: Session = Depen
     if db_cliente is None:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
     try:
-        # Pasamos los datos del esquema Pydantic al CRUD
-        return crud_update_cliente(db, dni, **cliente.model_dump(exclude_unset=True))
+        # Validación explícita: No permitir actualizar DNI ni Fecha_Registro
+        body = cliente.model_dump(exclude_unset=True)
+        if "DNI" in body:
+            raise HTTPException(status_code=400, detail="No se permite actualizar el DNI")
+        if "Fecha_Registro" in body:
+            raise HTTPException(status_code=400, detail="No se permite actualizar la Fecha de Registro")
+
+        # Pasamos los datos permitidos al CRUD
+        return crud_update_cliente(db, dni, **body)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

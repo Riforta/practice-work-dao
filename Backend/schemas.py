@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from pydantic import ConfigDict
 from datetime import date, time
 
 # pydantic es una librería para validación de datos y creación de esquemas
@@ -31,9 +32,15 @@ class ClienteUpdate(BaseModel):
     Apellido: str | None = None
     Telefono: str | None = None
     Email: str | None = None
+    # Permitimos DNI y Fecha_Registro para poder interceptarlos en la ruta
+    DNI: int | None = None
+    Fecha_Registro: date | None = None
+    # Rechazar cualquier campo extra (como DNI o Fecha_Registro)
+    model_config = ConfigDict(extra='forbid')
 
 class Cliente(ClienteBase):
     """Esquema para leer/devolver un cliente"""
+    Fecha_Registro: date | None = None
 
     class Config:
         from_attributes = True # permite leer desde objetos ORM (SQLAlchemy)

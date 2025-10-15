@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Date, UniqueConstraint
+from datetime import date
 from sqlalchemy.orm import declarative_base
 
 # Usamos la misma Base que en databases/sqlconect si se importa desde allí.
@@ -18,7 +19,10 @@ class Cliente(Base):
 
 	Telefono = Column(String, nullable=True)
 	Email = Column(String, nullable=True)
-	Fecha_Registro = Column(Date, nullable=True)
+	# Fecha de registro: por defecto se establece a la fecha actual desde Python
+	# Nota: usamos default=date.today (callable) para que SQLAlchemy la asigne al insertar
+	# sin requerir cambios en el esquema de la base de datos existente.
+	Fecha_Registro = Column(Date, nullable=False, default=date.today)
 
 	# Ejemplo de restricción extra si se desea evitar emails duplicados (opcional)
 	__table_args__ = (
