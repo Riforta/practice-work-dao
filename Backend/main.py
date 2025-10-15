@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import clientes  # Ajusta el import según tu estructura real
+from routes import clientes  
 
 app = FastAPI(
     title="API de Clientes",
