@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import schemas  # Usamos rutas relativas si es necesario
 from databases.sqlconect import SessionLocal
-from cruds.clientes import create as crud_create, list_all as crud_list_all, get_by_dni as crud_get_by_dni, delete_by_dni as crud_delete_by_dni, update_contact as crud_update_cliente
+from repository.clientes import create as crud_create, list_all as crud_list_all, get_by_dni as crud_get_by_dni, delete_by_dni as crud_delete_by_dni, update_contact as crud_update_cliente
 
 # 1. Crea una instancia de APIRouter
 router = APIRouter(
