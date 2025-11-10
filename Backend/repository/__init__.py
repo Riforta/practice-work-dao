@@ -9,11 +9,12 @@ from .cliente_repository import ClienteRepository
 from .cancha_repository import CanchaRepository
 from .servicio_adicional_repository import ServicioAdicionalRepository
 from .usuario_repository import UsuarioRepository
+from .torneo_repository import TorneoRepository
 
 __all__ = [
 	'ClienteRepository',
 	'CanchaRepository',
     'ServicioAdicionalRepository',
     'UsuarioRepository',
-
+    'TorneoRepository',
 ]
