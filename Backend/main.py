@@ -2,8 +2,8 @@
 Archivo principal de ejemplo para el sistema de alquiler de canchas.
 """
 
-from models import Cliente, Cancha
-from repository import ClienteRepository
+from models import Cliente, Cancha, ServicioAdicional, Usuario
+from repository import ClienteRepository, ServicioAdicionalRepository, UsuarioRepository
 from database.connection import get_connection
 
 
@@ -63,6 +63,57 @@ def ejemplo_uso_clientes():
         print(f"     - [{c.id}] {c.nombre} {c.apellido} - {c.telefono}")
 
 
+def ejemplo_uso_servicios_adicionales():
+    """Ejemplo de uso del sistema de servicios adicionales"""
+    print("\n" + "="*60)
+    print("🧩 EJEMPLO: Servicios Adicionales")
+    print("="*60)
+
+    # 1. Crear servicio
+    print("\n1️⃣ Creando servicio adicional...")
+    servicio = ServicioAdicional(nombre="Estacionamiento", precio_actual=1500.0, activo=1)
+    try:
+        servicio_id = ServicioAdicionalRepository.crear(servicio)
+        print(f"   ✓ Servicio creado con ID: {servicio_id}")
+    except Exception as e:
+        print(f"   ✗ Error al crear servicio: {e}")
+        return
+
+    # 2. Obtener por ID
+    print("\n2️⃣ Obteniendo servicio por ID...")
+    s = ServicioAdicionalRepository.obtener_por_id(servicio_id)
+    if s:
+        print(f"   ✓ Servicio: {s.nombre} - ${s.precio_actual} (activo={s.activo})")
+
+    # 3. Buscar por nombre
+    print("\n3️⃣ Buscando por nombre 'Estaci' ...")
+    encontrados = ServicioAdicionalRepository.buscar_por_nombre("Estaci")
+    print(f"   ✓ Encontrados: {len(encontrados)}")
+
+    # 4. Actualizar precio
+    print("\n4️⃣ Actualizando precio...")
+    if s:
+        s.precio_actual = 1800.0
+        actualizado = ServicioAdicionalRepository.actualizar(s)
+        print(f"   ✓ Actualizado: {actualizado}")
+
+    # 5. Listar activos
+    print("\n5️⃣ Listando activos...")
+    activos = ServicioAdicionalRepository.obtener_todos(activos=True)
+    print(f"   ✓ Activos: {len(activos)}")
+
+    # 6. Desactivar
+    print("\n6️⃣ Desactivando servicio...")
+    ServicioAdicionalRepository.activar(servicio_id, False)
+    s2 = ServicioAdicionalRepository.obtener_por_id(servicio_id)
+    print(f"   ✓ Estado actual: {'activo' if s2 and s2.activo == 1 else 'inactivo'}")
+
+    # 7. Eliminar
+    print("\n7️⃣ Eliminando servicio...")
+    eliminado = ServicioAdicionalRepository.eliminar(servicio_id)
+    print(f"   ✓ Eliminado: {eliminado}")
+
+
 def ejemplo_consulta_personalizada():
     """Ejemplo de consulta SQL personalizada"""
     print("\n" + "="*60)
@@ -93,6 +144,63 @@ def ejemplo_consulta_personalizada():
             
     finally:
         conn.close()
+
+
+def ejemplo_uso_usuarios():
+    """Ejemplo de uso del sistema de usuarios"""
+    print("\n" + "="*60)
+    print("👤 EJEMPLO: Gestión de Usuarios")
+    print("="*60)
+
+    # 1. Crear usuario
+    print("\n1️⃣ Creando usuario...")
+    usuario = Usuario(
+        nombre_usuario="admin",
+        email="admin@example.com",
+        password_hash="hash_demo",
+        id_rol=1,
+        activo=1,
+    )
+    try:
+        usuario_id = UsuarioRepository.crear(usuario)
+        print(f"   ✓ Usuario creado con ID: {usuario_id}")
+    except Exception as e:
+        print(f"   ✗ Error al crear usuario: {e}")
+        return
+
+    # 2. Obtener por ID
+    print("\n2️⃣ Obtener por ID...")
+    u = UsuarioRepository.obtener_por_id(usuario_id)
+    if u:
+        print(f"   ✓ Usuario: {u.nombre_usuario} ({u.email})")
+
+    # 3. Buscar por email
+    print("\n3️⃣ Buscar por email...")
+    u2 = UsuarioRepository.obtener_por_email("admin@example.com")
+    print(f"   ✓ Encontrado: {bool(u2)}")
+
+    # 4. Actualizar
+    print("\n4️⃣ Actualizar email...")
+    if u:
+        u.email = "administrador@example.com"
+        actualizado = UsuarioRepository.actualizar(u)
+        print(f"   ✓ Actualizado: {actualizado}")
+
+    # 5. Cambiar password
+    print("\n5️⃣ Cambiar password...")
+    UsuarioRepository.cambiar_password(usuario_id, "hash_demo_2")
+    print("   ✓ Password cambiado")
+
+    # 6. Listar activos
+    print("\n6️⃣ Listar activos...")
+    activos = UsuarioRepository.obtener_todos(activos=True)
+    print(f"   ✓ Usuarios activos: {len(activos)}")
+
+    # 7. Desactivar y eliminar
+    print("\n7️⃣ Desactivar y eliminar...")
+    UsuarioRepository.activar(usuario_id, False)
+    eliminado = UsuarioRepository.eliminar(usuario_id)
+    print(f"   ✓ Eliminado: {eliminado}")
 
 
 def verificar_estructura_db():
@@ -138,6 +246,10 @@ def main():
     
     # Ejemplo de uso de clientes
     ejemplo_uso_clientes()
+    # Ejemplo de uso de servicios adicionales
+    ejemplo_uso_servicios_adicionales()
+    # Ejemplo de uso de usuarios
+    ejemplo_uso_usuarios()
     
     # Ejemplo de consulta personalizada
     ejemplo_consulta_personalizada()
