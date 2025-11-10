@@ -10,10 +10,12 @@ from .cancha_repository import CanchaRepository
 from .servicio_adicional_repository import ServicioAdicionalRepository
 from .usuario_repository import UsuarioRepository
 from .torneo_repository import TorneoRepository
+from .equipo_repository import EquipoRepository
 
 __all__ = [
 	'ClienteRepository',
 	'CanchaRepository',
+    'EquipoRepository',
     'ServicioAdicionalRepository',
     'UsuarioRepository',
     'TorneoRepository',
