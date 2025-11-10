@@ -35,7 +35,7 @@ class Cliente(Base):
 			f"Telefono='{self.Telefono}', Email='{self.Email}', Fecha_Registro={self.Fecha_Registro})"
 		)
 
-	@property 
-	def nombre_completo(self) -> str:
+	@property  # property es un decorador que convierte el método en un atributo de solo lectura
+	def nombre_completo(self) -> str: # propiedad calculada que devuelve el nombre completo
 		return f"{self.Nombre} {self.Apellido}"
 
