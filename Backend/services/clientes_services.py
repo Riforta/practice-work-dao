@@ -28,18 +28,23 @@ def _validar_datos_cliente(data: Dict[str, Any], para_actualizar: bool = False) 
 	Lanza ValueError en caso de datos inválidos.
 	"""
 	nombre = data.get('nombre')
+	apellido = data.get('apellido')
 	telefono = data.get('telefono')
 
 	if not para_actualizar:
-		# En creación, nombre y teléfono son obligatorios
+		# En creación, nombre, apellido y teléfono son obligatorios
 		if not nombre or not str(nombre).strip():
 			raise ValueError("El nombre es obligatorio")
+		if not apellido or not str(apellido).strip():
+			raise ValueError("El apellido es obligatorio")
 		if not telefono or not str(telefono).strip():
 			raise ValueError("El teléfono es obligatorio")
 	else:
 		# En actualización, si se suministran campos requeridos, validar que no sean vacíos
 		if 'nombre' in data and (not data.get('nombre') or not str(data.get('nombre')).strip()):
 			raise ValueError("El nombre no puede estar vacío si se proporciona")
+		if 'apellido' in data and (not data.get('apellido') or not str(data.get('apellido')).strip()):
+			raise ValueError("El apellido no puede estar vacío si se proporciona")
 		if 'telefono' in data and (not data.get('telefono') or not str(data.get('telefono')).strip()):
 			raise ValueError("El teléfono no puede estar vacío si se proporciona")
 
