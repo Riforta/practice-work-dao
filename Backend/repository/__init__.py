@@ -11,6 +11,7 @@ from .servicio_adicional_repository import ServicioAdicionalRepository
 from .usuario_repository import UsuarioRepository
 from .torneo_repository import TorneoRepository
 from .equipo_repository import EquipoRepository
+from .tarifa_repository import TarifaRepository
 
 __all__ = [
 	'ClienteRepository',
@@ -19,4 +20,5 @@ __all__ = [
     'ServicioAdicionalRepository',
     'UsuarioRepository',
     'TorneoRepository',
+    'TarifaRepository',
 ]
