@@ -8,7 +8,12 @@ from models.partido import Partido
 from database.connection import get_connection
 
 class PartidoRepository:
-    """Repositorio para operaciones CRUD de Partido"""
+    """Repositorio para operaciones CRUD de Partido.
+
+    Modelo Partido (models/partido.py):
+    - id_torneo, id_turno, id_equipo_local, id_equipo_visitante,
+      id_equipo_ganador, ronda, marcador_local, marcador_visitante, estado
+    """
 
     @staticmethod
     def crear(partido: Partido) -> int:
@@ -28,10 +33,20 @@ class PartidoRepository:
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute(""" INSERT INTO Partido (torneo_id, equipo_local, equipo_visitante, 
-                        fecha_hora, cancha_id, estado) VALUES (?, ?, ?, ?, ?, ?)""",
-                            (partido.torneo_id, partido.equipo_local, partido.equipo_visitante,
-                            partido.fecha_hora, partido.cancha_id, partido.estado))
+            cursor.execute(
+                """
+                INSERT INTO Partido (
+                    id_torneo, id_turno, id_equipo_local, id_equipo_visitante,
+                    id_equipo_ganador, ronda, marcador_local, marcador_visitante, estado
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    partido.id_torneo, partido.id_turno, partido.id_equipo_local,
+                    partido.id_equipo_visitante, partido.id_equipo_ganador,
+                    partido.ronda, partido.marcador_local, partido.marcador_visitante,
+                    partido.estado,
+                ),
+            )
             conn.commit()
             return cursor.lastrowid
         except Exception as e:
@@ -54,13 +69,20 @@ class PartidoRepository:
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute("""
-                UPDATE Partido
-                SET torneo_id = ?, equipo_local = ?, equipo_visitante = ?, 
-                    fecha_hora = ?, cancha_id = ?, estado = ?
+            cursor.execute(
+                """
+                UPDATE Partido SET
+                    id_torneo = ?, id_turno = ?, id_equipo_local = ?, id_equipo_visitante = ?,
+                    id_equipo_ganador = ?, ronda = ?, marcador_local = ?, marcador_visitante = ?, estado = ?
                 WHERE id = ?
-            """, (partido.torneo_id, partido.equipo_local, partido.equipo_visitante,
-                partido.fecha_hora, partido.cancha_id, partido.estado, partido.id))
+                """,
+                (
+                    partido.id_torneo, partido.id_turno, partido.id_equipo_local,
+                    partido.id_equipo_visitante, partido.id_equipo_ganador,
+                    partido.ronda, partido.marcador_local, partido.marcador_visitante,
+                    partido.estado, partido.id,
+                ),
+            )
             conn.commit()
         except Exception as e:
             conn.rollback()
@@ -146,7 +168,7 @@ class PartidoRepository:
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Partido WHERE torneo_id = ?", (torneo_id,))
+            cursor.execute("SELECT * FROM Partido WHERE id_torneo = ?", (torneo_id,))
             rows = cursor.fetchall()
             
             partidos = [Partido.from_db_row(row) for row in rows]

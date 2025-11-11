@@ -8,7 +8,14 @@ from models.tarifa import Tarifa
 from database.connection import get_connection
 
 class TarifaRepository:
-    """Repositorio para operaciones CRUD de Tarifa"""
+    """Repositorio para operaciones CRUD de Tarifa.
+
+    Modelo Tarifa esperado (models/tarifa.py):
+    - id
+    - id_cancha
+    - descripcion
+    - precio_hora
+    """
 
     @staticmethod
     def crear(tarifa: Tarifa) -> int:
@@ -28,9 +35,13 @@ class TarifaRepository:
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute(""" INSERT INTO Tarifa (descripcion, monto, tipo_deporte, vigente) 
-                            VALUES (?, ?, ?, ?)""",
-                            (tarifa.descripcion, tarifa.monto, tarifa.tipo_deporte, tarifa.vigente))
+            cursor.execute(
+                """
+                INSERT INTO Tarifa (id_cancha, descripcion, precio_hora)
+                VALUES (?, ?, ?)
+                """,
+                (tarifa.id_cancha, tarifa.descripcion, tarifa.precio_hora),
+            )
             conn.commit()
             return cursor.lastrowid
         except Exception as e:
@@ -53,11 +64,14 @@ class TarifaRepository:
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE Tarifa
-                SET descripcion = ?, monto = ?, tipo_deporte = ?, vigente = ?
+                SET id_cancha = ?, descripcion = ?, precio_hora = ?
                 WHERE id = ?
-            """, (tarifa.descripcion, tarifa.monto, tarifa.tipo_deporte, tarifa.vigente, tarifa.id))
+                """,
+                (tarifa.id_cancha, tarifa.descripcion, tarifa.precio_hora, tarifa.id),
+            )
             conn.commit()
         except Exception as e:
             conn.rollback()
