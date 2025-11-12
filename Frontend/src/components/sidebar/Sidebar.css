@@ -1,0 +1,12 @@
+.mi-boton {
+    background-color: grey;
+    font-size: 25px;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+}
+
+.mi-boton:hover {
+    text-shadow: lg/30px 30px 30px rgba(0, 0, 0, 0.3);
+  cursor: pointer; /* Cambia el cursor a una mano */
+}
