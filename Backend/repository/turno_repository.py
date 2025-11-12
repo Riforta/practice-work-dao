@@ -202,3 +202,51 @@ class TurnoRepository:
             return [Turno.from_db_row(row) for row in rows]
         finally:
             conn.close()
+    
+    @staticmethod
+    def obtener_todos_filtrados(
+        id_cancha: Optional[int] = None,
+        estado: Optional[str] = None,
+        id_cliente: Optional[int] = None
+    ) -> List[Turno]:
+        """
+        Obtiene una lista de turnos, permitiendo filtrar por cancha,
+        estado y/o cliente.
+        """
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            
+            # Construcción dinámica de la consulta SQL
+            sql = "SELECT * FROM Turno"
+            params = []
+            conditions = []
+
+            if id_cancha is not None:
+                conditions.append("id_cancha = ?")
+                params.append(id_cancha)
+            
+            if estado is not None:
+                conditions.append("estado = ?")
+                params.append(estado)
+                
+            if id_cliente is not None:
+                conditions.append("id_cliente = ?")
+                params.append(id_cliente)
+
+            # Si hay filtros, los añadimos al SQL
+            if conditions:
+                sql += " WHERE " + " AND ".join(conditions)
+            
+            # Siempre es buena idea ordenar los turnos
+            sql += " ORDER BY fecha_hora_inicio"
+            
+            cursor.execute(sql, tuple(params))
+            rows = cursor.fetchall()
+            
+            # Convertimos cada fila en un objeto Turno
+            return [Turno.from_db_row(row) for row in rows]
+        except Exception as e:
+            raise Exception(f"Error al obtener turnos filtrados: {e}")
+        finally:
+            conn.close()
