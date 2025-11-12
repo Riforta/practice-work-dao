@@ -1,27 +1,25 @@
 # Backend - Sistema de Alquiler de Canchas Deportivas
 # Dependencias de Python
 
-# Base de datos (SQLite viene incluido con Python, no requiere instalación)
-# sqlite3
+# Base de datos (SQLite viene incluido con Python)
+# sqlite3 está incluido
 
-# Desarrollo y testing (descomentar si decides usarlas)
-# pytest>=7.4.0
-# pytest-cov>=4.1.0
+# API Framework - FastAPI (REQUERIDO)
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
 
-# API Framework (descomentar si decides usar FastAPI o Flask)
-# fastapi>=0.104.0
-# uvicorn[standard]>=0.24.0
-# pydantic>=2.5.0
-
-# flask>=3.0.0
-# flask-cors>=4.0.0
-
-# Seguridad
-# bcrypt>=4.1.0
-# python-jose[cryptography]>=3.3.0
+# Seguridad (para autenticación futura)
+bcrypt>=4.1.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
 
 # Variables de entorno
-# python-dotenv>=1.0.0
+python-dotenv>=1.0.0
 
 # Validación de datos
-# email-validator>=2.1.0
+email-validator>=2.1.0
+
+# Desarrollo y testing (opcional)
+# pytest>=7.4.0
+# pytest-cov>=4.1.0

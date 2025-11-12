@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite DB
+database.db
+*.sqlite3
+
+# Env files
+.env
+.env.*
+
+# Editor/OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Uvicorn reload logs
+*.log
