@@ -4,11 +4,13 @@ Sistema de gestión para alquiler de canchas deportivas, incluyendo gestión de 
 
 ## ✅ Estado Actual
 
-- ✅ **Base de datos SQLite creada** con todas las tablas definidas
+- ✅ **Base de datos SQLite inicializada** con 17 tablas y datos seed
 - ✅ **16 modelos de entidad** implementados como dataclasses
-- ✅ **Repository Pattern** implementado (ejemplo: ClienteRepository)
-- ✅ **Sistema de conexión** a base de datos configurado
-- ✅ **Scripts de prueba** y ejemplos funcionales
+- ✅ **14 Repositories completos** con patrón DAO (CRUD completo)
+- ✅ **13 Services** de lógica de negocio implementados
+- ✅ **13 Routers FastAPI** con endpoints REST
+- ✅ **Sistema de conexión** a base de datos configurado con foreign keys
+- ✅ **Script de inicialización** automático con verificación de integridad
 
 ## 🚀 Inicio Rápido
 
@@ -16,65 +18,100 @@ Sistema de gestión para alquiler de canchas deportivas, incluyendo gestión de 
 # Navegar al backend
 cd Backend
 
-# Crear la base de datos
+# Inicializar la base de datos (recomendado)
+cd database
+python init_database.py
+
+# O usar el método alternativo
+cd ..
 python database/connection.py
 
-# Verificar la instalación
-python test_setup.py
-
-# Ver ejemplo de uso
-python main.py
+# Iniciar el servidor FastAPI
+uvicorn api.main:app --reload
 ```
 
-📖 **Para más detalles**, consulta [`Backend/GETTING_STARTED.md`](Backend/GETTING_STARTED.md)
+🌐 **API disponible en**: `http://localhost:8000`  
+📖 **Documentación Swagger**: `http://localhost:8000/docs`  
+📋 **Documentación ReDoc**: `http://localhost:8000/redoc`
+
+### 🔐 Credenciales por Defecto
+
+- **Usuario**: `admin`
+- **Email**: `admin@tpdao.com`
+- **Password**: `admin123`
+
+📖 **Para más detalles**, consulta [`Backend/database/README_INIT.md`](Backend/database/README_INIT.md) y [`Backend/GETTING_STARTED.md`](Backend/GETTING_STARTED.md)
 
 ## 📂 Estructura del Proyecto
 
 ```
 Backend/
-├── database/              # ✅ Gestión de conexión a SQLite
-│   └── connection.py
-├── models/               # ✅ 16 modelos de entidad implementados
+├── api/                  # ✅ API REST con FastAPI
+│   ├── main.py          # ✅ Configuración principal FastAPI
+│   └── routers/         # ✅ 13 routers implementados
+│       ├── clientes.py
+│       ├── canchas.py
+│       ├── usuarios.py
+│       └── ... (10 más)
+├── database/            # ✅ Gestión de base de datos
+│   ├── connection.py    # ✅ Conexión SQLite
+│   ├── init_database.py # ✅ Script de inicialización
+│   └── README_INIT.md   # ✅ Documentación DB
+├── models/              # ✅ 16 modelos implementados
 │   ├── cliente.py
 │   ├── cancha.py
 │   ├── turno.py
 │   └── ... (13 más)
-├── repository/           # 🔄 En desarrollo
-│   └── cliente_repository.py
-├── services/             # ⏳ Pendiente
-├── routes/               # ⏳ Pendiente (FastAPI/Flask)
+├── repository/          # ✅ 14 repositories completos
+│   ├── cliente_repository.py
+│   ├── cancha_repository.py
+│   ├── usuario_repository.py
+│   └── ... (11 más)
+├── services/            # ✅ 13 services implementados
+│   ├── clientes_services.py
+│   ├── canchas_services.py
+│   └── ... (11 más)
 ├── database.db          # ✅ Base de datos SQLite
-└── DER_TP_DAO_V2.sql   # ✅ Esquema de base de datos
+└── database_inicializar.sql  # ✅ Schema con datos seed
 ```
 
-## 🏗️ Arquitectura Propuesta
+## 🏗️ Arquitectura Implementada
 
 ### Estructura Monolítica con Organización por Capas (Layered Architecture)
 
-#### 1. **Presentación** (📁 `/Backend/routes`)
-*   APIs REST - Todos los endpoints para comunicación con las entidades
-*   Implementación con **FastAPI** o **Flask**
-*   Delegación a la lógica de negocio con validaciones mínimas
-*   **Estado**: ⏳ Pendiente
+#### 1. **Presentación** (📁 `/Backend/api/routers`)
+*   APIs REST con **FastAPI** ✅
+*   13 routers implementados (clientes, canchas, usuarios, equipos, torneos, etc.)
+*   Validación de entrada y serialización JSON
+*   Documentación automática con Swagger/ReDoc
+*   **Estado**: ✅ Completado
 
 #### 2. **Lógica de Negocio** (📁 `/Backend/services`)
-*   Trabaja exclusivamente con Python: recibe Python, devuelve Python
+*   13 servicios implementados
+*   Manejo de transacciones y validaciones
 *   Creación de instancias de entidades
-*   Manejo de excepciones
-*   Implementación de transacciones
-*   Llamadas a los CRUD para inserción en BD
-*   **Estado**: ⏳ Pendiente
+*   Orquestación entre múltiples repositories
+*   Manejo centralizado de excepciones
+*   **Estado**: ✅ Completado
 
 #### 3. **Acceso a Datos** (📁 `/Backend/repository`)
-*   Implementación del patrón DAO (Data Access Object)
-*   CRUD para todas las entidades del dominio
-*   **Sin lógica de negocio**, solo operaciones de persistencia
-*   **Estado**: 🔄 En desarrollo (ClienteRepository implementado como ejemplo)
+*   Patrón DAO (Data Access Object) completo
+*   14 repositories con CRUD implementado:
+    - ClienteRepository, CanchaRepository, UsuarioRepository
+    - TorneoRepository, EquipoRepository, RolRepository
+    - TarifaRepository, PartidoRepository, InscripcionRepository
+    - PedidoRepository, PedidoItemRepository, PagoRepository
+    - EquipoMiembroRepository, ServicioAdicionalRepository
+*   Sin lógica de negocio, solo operaciones de persistencia
+*   **Estado**: ✅ Completado
 
 #### 4. **Persistencia/Datos** (📁 `/Backend/models` y `/Backend/database`)
-*   Modelos de entidades (dataclasses)
-*   Configuración y gestión de la base de datos SQLite
-*   **Estado**: ✅ Completado (16 entidades implementadas)
+*   16 modelos de entidades como dataclasses
+*   Base de datos SQLite con 17 tablas
+*   Foreign keys habilitadas y verificadas
+*   Script de inicialización con datos seed
+*   Sistema de índices para optimización
+*   **Estado**: ✅ Completado
 
 ## 📊 Entidades del Dominio
 
@@ -106,19 +143,51 @@ Backend/
 
 ## 🛠️ Tecnologías
 
-- **Base de datos**: SQLite3
-- **Lenguaje**: Python 3
+- **Base de datos**: SQLite3 con foreign keys habilitadas
+- **Backend**: Python 3.8+
+- **Framework API**: FastAPI con Uvicorn
 - **Patrón**: DAO (Data Access Object) + Layered Architecture
-- **API** (propuesto): FastAPI o Flask
-- **Frontend**: React + TypeScript + Vite
+- **Documentación**: Swagger UI / ReDoc (automático)
+- **Frontend**: React + TypeScript + Vite (en desarrollo)
+
+## 🎯 Funcionalidades Implementadas
+
+### Backend Completo
+- ✅ **CRUD completo** para todas las entidades
+- ✅ **API REST** con 13 routers y ~65+ endpoints
+- ✅ **Gestión de usuarios** con roles (Admin, Operador, Cliente)
+- ✅ **Gestión de canchas** con tarifas y servicios adicionales
+- ✅ **Sistema de reservas** (turnos) con disponibilidad
+- ✅ **Gestión de torneos** con equipos, inscripciones y partidos
+- ✅ **Sistema de pedidos** con items y pagos
+- ✅ **Validación de integridad** con foreign keys
+- ✅ **Documentación automática** de la API
+
+### Datos Iniciales (Seed Data)
+- ✅ 3 Roles predefinidos
+- ✅ Usuario administrador
+- ✅ 3 Canchas de ejemplo
+- ✅ 3 Tarifas configuradas
+- ✅ 3 Servicios adicionales
+- ✅ Cliente y Torneo de prueba
 
 ## 📝 Próximos Pasos
 
-1. ⏳ Implementar repositories para todas las entidades
-2. ⏳ Crear servicios de lógica de negocio
-3. ⏳ Desarrollar API REST con FastAPI/Flask
-4. ⏳ Implementar autenticación y autorización
-5. ⏳ Conectar con el frontend React
+1. 🔄 **Conectar frontend React** con el backend FastAPI
+2. ⏳ Implementar **autenticación JWT** y sistema de login
+3. ⏳ Desarrollar **interfaz de usuario** para todas las funcionalidades
+4. ⏳ Agregar **validaciones avanzadas** en la capa de servicios
+5. ⏳ Implementar **sistema de notificaciones**
+6. ⏳ Agregar **reportes y estadísticas**
+7. ⏳ Configurar **CORS** para producción
+8. ⏳ Implementar **testing unitario e integración**
+
+## 📚 Documentación Adicional
+
+- **Inicialización de BD**: [`Backend/database/README_INIT.md`](Backend/database/README_INIT.md)
+- **Guía de inicio**: [`Backend/GETTING_STARTED.md`](Backend/GETTING_STARTED.md)
+- **Documentación completa**: [`Backend/README.md`](Backend/README.md)
+- **API Docs (en ejecución)**: `http://localhost:8000/docs`
 
 ## 👥 Equipo
 
@@ -126,4 +195,20 @@ Backend/
 
 ---
 
-📖 **Documentación completa**: Ver [`Backend/README.md`](Backend/README.md) y [`Backend/GETTING_STARTED.md`](Backend/GETTING_STARTED.md)
+## � Estado del Proyecto
+
+| Componente | Estado | Progreso |
+|------------|--------|----------|
+| Modelos (16) | ✅ Completado | 100% |
+| Repositories (14) | ✅ Completado | 100% |
+| Services (13) | ✅ Completado | 100% |
+| API Routers (13) | ✅ Completado | 100% |
+| Base de Datos | ✅ Inicializada | 100% |
+| Documentación API | ✅ Automática | 100% |
+| Frontend React | 🔄 En desarrollo | 30% |
+| Autenticación | ⏳ Pendiente | 0% |
+| Testing | ⏳ Pendiente | 0% |
+
+---
+
+�📖 **Documentación completa**: Ver [`Backend/README.md`](Backend/README.md) y [`Backend/database/README_INIT.md`](Backend/database/README_INIT.md)

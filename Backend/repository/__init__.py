@@ -13,6 +13,14 @@ from .torneo_repository import TorneoRepository
 from .equipo_repository import EquipoRepository
 from .tarifa_repository import TarifaRepository
 from .partido_repository import PartidoRepository
+from .equipo_miembro_repository import EquipoMiembroRepository
+from .inscripcion_repository import InscripcionRepository
+from .pedido_repository import PedidoRepository
+from .pedido_item_repository import PedidoItemRepository
+from .pago_repository import PagoRepository
+from .rol_repository import RolRepository
+from .turno_repository import TurnoRepository
+from .turno_servicio_repository import TurnoXServicioRepository
 
 __all__ = [
 	'ClienteRepository',
@@ -23,4 +31,12 @@ __all__ = [
     'TorneoRepository',
     'TarifaRepository',
     'PartidoRepository',
+    'EquipoMiembroRepository',
+    'InscripcionRepository',
+    'PedidoRepository',
+    'PedidoItemRepository',
+    'PagoRepository',
+    'RolRepository',
+    'TurnoRepository',
+    'TurnoXServicioRepository',
 ]

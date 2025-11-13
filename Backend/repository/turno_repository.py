@@ -250,3 +250,22 @@ class TurnoRepository:
             raise Exception(f"Error al obtener turnos filtrados: {e}")
         finally:
             conn.close()
+    
+    @staticmethod
+    def eliminar(turno_id: int) -> bool:
+        """Elimina un turno.
+        
+        Args:
+            turno_id: ID del turno a eliminar
+            
+        Returns:
+            True si se eliminó correctamente
+        """
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DELETE FROM Turno WHERE id = ?", (turno_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            conn.close()

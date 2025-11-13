@@ -17,10 +17,10 @@ class RolRepository:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO Rol (nombre, descripcion)
+                INSERT INTO Rol (nombre_rol, descripcion)
                 VALUES (?, ?)
                 """,
-                (rol.nombre, rol.descripcion),
+                (rol.nombre_rol, rol.descripcion),
             )
 
             conn.commit()
@@ -38,7 +38,7 @@ class RolRepository:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT id, nombre, descripcion FROM Rol WHERE id = ?",
+                "SELECT id, nombre_rol, descripcion FROM Rol WHERE id = ?",
                 (rol_id,),
             )
             row = cursor.fetchone()
@@ -56,7 +56,7 @@ class RolRepository:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT id, nombre, descripcion FROM Rol ORDER BY nombre"
+                "SELECT id, nombre_rol, descripcion FROM Rol ORDER BY nombre_rol"
             )
             rows = cursor.fetchall()
 
@@ -76,10 +76,10 @@ class RolRepository:
             cursor.execute(
                 """
                 UPDATE Rol
-                SET nombre = ?, descripcion = ?
+                SET nombre_rol = ?, descripcion = ?
                 WHERE id = ?
                 """,
-                (rol.nombre, rol.descripcion, rol.id),
+                (rol.nombre_rol, rol.descripcion, rol.id),
             )
 
             conn.commit()
