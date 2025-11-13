@@ -48,14 +48,6 @@ export default function Sidebar() {
   return (
     <div className="flex h-full min-h-screen w-72 flex-col bg-gray-900 text-white">
       {/* Encabezado del Sidebar (Logo/Título) */}
-      <div className="flex h-16 shrink-0 items-center px-6">
-        <img
-          className="h-12 w-auto object-contain"
-          src={logo}
-          alt="DeporteX"
-        />
-        <span className="ml-3 text-xl font-semibold">DeporteX</span>
-      </div>
 
       {/* Contenido principal del Sidebar */}
       <div className="flex flex-1 flex-col overflow-y-auto">
