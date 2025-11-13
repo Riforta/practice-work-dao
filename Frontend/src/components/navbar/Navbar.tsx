@@ -23,6 +23,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, PhoneIcon, PlayCircleIcon } from '@heroicons/react/20/solid'
 import worldcup from './wc_si.png'
+import inicio from '../inicio/Inicio.tsx'
 
 const products = [
   { name: 'Analytics', description: 'Get a better understanding of your traffic', href: '#', icon: ChartPieIcon },
@@ -43,7 +44,7 @@ export default function Navbar() {
     <header className="bg-gray-900">
       <nav aria-label="Global" className="mx-auto relative flex max-w-7xl items-center justify-between p-6 lg:px-8">
         <div className="flex lg:flex-1 align-items-left">
-          <a href="#" className="-ml-24 sm:-ml-0 p-0">
+          <a href="/" className="-ml-24 sm:-ml-0 p-0">
             <img
               alt=""
               src={worldcup}
