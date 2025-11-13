@@ -15,6 +15,7 @@ from api.routers import (
     torneos,
     roles,
     usuarios,
+    auth,
     turnos,
 )
 
@@ -53,6 +54,7 @@ app.include_router(tarifas.router)
 app.include_router(torneos.router)
 app.include_router(roles.router)
 app.include_router(usuarios.router)
+app.include_router(auth.router)
 app.include_router(turnos.router)
 
 @app.get("/")

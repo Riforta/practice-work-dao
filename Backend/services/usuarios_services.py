@@ -2,13 +2,41 @@ from typing import List, Dict, Any
 
 from models.usuario import Usuario
 from repository.usuario_repository import UsuarioRepository
+from passlib.hash import pbkdf2_sha256
 
 
 def crear_usuario(data: Dict[str, Any]) -> Usuario:
-    if not data.get('username') and not data.get('email'):
+    """
+    Crea un nuevo usuario con validación mínima y hashing de contraseña.
+    Acepta keys flexibles: 'username' o 'nombre_usuario' para el nombre, y 'password' para la contraseña.
+    """
+    username = data.get('username') or data.get('nombre_usuario') or data.get('nombreUsuario')
+    email = data.get('email')
+    password = data.get('password') or data.get('password_hash')
+
+    if not username and not email:
         raise ValueError('Se requiere username o email para crear un usuario')
 
-    usuario = Usuario.from_dict(data)
+    if not password:
+        raise ValueError('Se requiere contraseña')
+
+    # validar unicidad
+    if username and UsuarioRepository.existe_nombre_usuario(username):
+        raise ValueError('El nombre de usuario ya existe')
+    if email and UsuarioRepository.existe_email(email):
+        raise ValueError('El email ya está registrado')
+
+    # hashear la contraseña (usamos pbkdf2_sha256 para evitar dependencias de bcrypt nativas)
+    hashed = pbkdf2_sha256.hash(password)
+
+    usuario = Usuario(
+        nombre_usuario=username or '',
+        email=email or '',
+        password_hash=hashed,
+        id_rol=data.get('id_rol'),
+        activo=data.get('activo', 1),
+    )
+
     try:
         usuario.id = UsuarioRepository.crear(usuario)
         return usuario
