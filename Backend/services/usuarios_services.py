@@ -14,8 +14,11 @@ def crear_usuario(data: Dict[str, Any]) -> Usuario:
     email = data.get('email')
     password = data.get('password') or data.get('password_hash')
 
-    if not username and not email:
-        raise ValueError('Se requiere username o email para crear un usuario')
+    # Require both username and email to match DB constraints (both NOT NULL in schema)
+    if not username:
+        raise ValueError('Se requiere nombre de usuario (username)')
+    if not email:
+        raise ValueError('Se requiere email')
 
     if not password:
         raise ValueError('Se requiere contraseña')
