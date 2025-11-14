@@ -10,7 +10,9 @@ router = APIRouter()
 def crear_usuario(payload: Dict[str, Any]):
     try:
         u = usuarios_services.crear_usuario(payload)
-        return u.to_dict()
+        d = u.to_dict()
+        d.pop('password_hash', None)
+        return d
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -20,14 +22,21 @@ def crear_usuario(payload: Dict[str, Any]):
 @router.get("/usuarios/", response_model=List[Dict[str, Any]])
 def listar_usuarios():
     items = usuarios_services.listar_usuarios()
-    return [i.to_dict() for i in items]
+    results = []
+    for i in items:
+        d = i.to_dict()
+        d.pop('password_hash', None)
+        results.append(d)
+    return results
 
 
 @router.get("/usuarios/{usuario_id}", response_model=Dict[str, Any])
 def obtener_usuario(usuario_id: int):
     try:
         u = usuarios_services.obtener_usuario_por_id(usuario_id)
-        return u.to_dict()
+        d = u.to_dict()
+        d.pop('password_hash', None)
+        return d
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

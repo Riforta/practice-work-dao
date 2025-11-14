@@ -47,6 +47,52 @@ Este comando:
 - Crea una nueva base de datos SQLite
 - Ejecuta el script SQL para crear todas las tablas
 
+### Levantar el backend (desarrollo)
+
+Hay dos entradas distintas en este repositorio:
+
+- `api/main.py` — la aplicación FastAPI principal (la que debe usar `uvicorn`).
+- `scripts/demo_main.py` — script de ejemplos y demo movido desde `Backend/main.py` para evitar confusiones.
+
+Para arrancar el servidor HTTP (FastAPI) en desarrollo usa el Python del virtualenv y `uvicorn` desde la carpeta `Backend`:
+
+PowerShell (recomendado):
+```powershell
+cd 'C:\ruta\a\tu\proyecto\Backend'
+..\.venv\Scripts\python.exe -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Si prefieres usar el script de ayuda (`start-backend.ps1` o `start-backend.bat`) creado en el proyecto, puedes ejecutarlo desde la carpeta `Backend`:
+
+PowerShell:
+```powershell
+cd 'C:\ruta\a\tu\proyecto\Backend'
+.\start-backend.ps1 -Port 8000
+```
+
+CMD (.bat):
+```
+cd /d C:\ruta\a\tu\proyecto\Backend
+start-backend.bat
+```
+
+Verifica que el servidor está arriba abriendo `http://127.0.0.1:8000/docs` en el navegador o:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8000/health
+```
+
+### Script de ejemplo / demo
+
+El antiguo `Backend/main.py` que contenía ejemplos se movió a `Backend/scripts/demo_main.py` para evitar conflictos con la aplicación FastAPI (`api/main.py`). Ejecuta el demo con:
+
+```powershell
+cd 'C:\ruta\a\tu\proyecto\Backend'
+python .\scripts\demo_main.py
+```
+
+El script añade automáticamente el path del paquete para que las importaciones relativas funcionen (igual que `scripts/test_register2.py`).
+
 ## 📊 Modelo de Datos
 
 ### Entidades Principales
