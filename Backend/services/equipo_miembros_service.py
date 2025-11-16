@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.equipo_miembro import EquipoMiembro
-from repository.equipo_miembro_repository import EquipoMiembroRepository
+from repositories.equipo_miembro_repository import EquipoMiembroRepository
 
 
 def agregar_miembro(data: Dict[str, Any]) -> None:

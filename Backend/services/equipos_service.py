@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.equipo import Equipo
-from repository.equipo_repository import EquipoRepository
+from repositories.equipo_repository import EquipoRepository
 
 
 def crear_equipo(data: Dict[str, Any]) -> Equipo:

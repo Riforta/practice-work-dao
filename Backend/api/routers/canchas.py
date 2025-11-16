@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List, Dict, Any
 
-from services import canchas_services
+from services import canchas_service
 
 router = APIRouter()
 
@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post("/canchas/", status_code=status.HTTP_201_CREATED)
 def crear_cancha(payload: Dict[str, Any]):
     try:
-        cancha = canchas_services.crear_cancha(payload)
+        cancha = canchas_service.crear_cancha(payload)
         return cancha.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -19,14 +19,14 @@ def crear_cancha(payload: Dict[str, Any]):
 
 @router.get("/canchas/", response_model=List[Dict[str, Any]])
 def listar_canchas():
-    canchas = canchas_services.listar_canchas()
+    canchas = canchas_service.listar_canchas()
     return [c.to_dict() for c in canchas]
 
 
 @router.get("/canchas/{cancha_id}", response_model=Dict[str, Any])
 def obtener_cancha(cancha_id: int):
     try:
-        cancha = canchas_services.obtener_cancha_por_id(cancha_id)
+        cancha = canchas_service.obtener_cancha_por_id(cancha_id)
         return cancha.to_dict()
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -35,7 +35,7 @@ def obtener_cancha(cancha_id: int):
 @router.put("/canchas/{cancha_id}", response_model=Dict[str, Any])
 def actualizar_cancha(cancha_id: int, payload: Dict[str, Any]):
     try:
-        cancha = canchas_services.actualizar_cancha(cancha_id, payload)
+        cancha = canchas_service.actualizar_cancha(cancha_id, payload)
         return cancha.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -48,7 +48,7 @@ def actualizar_cancha(cancha_id: int, payload: Dict[str, Any]):
 @router.delete("/canchas/{cancha_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_cancha(cancha_id: int):
     try:
-        canchas_services.eliminar_cancha(cancha_id)
+        canchas_service.eliminar_cancha(cancha_id)
         return None
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))

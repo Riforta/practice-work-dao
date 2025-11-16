@@ -7,8 +7,8 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from models.turno import Turno
-from repository.turno_repository import TurnoRepository
-from repository.turno_servicio_repository import TurnoXServicioRepository
+from repositories.turno_repository import TurnoRepository
+from repositories.turno_servicio_repository import TurnoXServicioRepository
 
 
 def _validar_datos_turno(data: Dict[str, Any], para_actualizar: bool = False) -> None:
@@ -76,27 +76,30 @@ def obtener_turno_por_id(turno_id: int) -> Turno:
 
 def listar_turnos() -> List[Turno]:
     """Lista todos los turnos."""
-    return TurnoRepository.listar_todos()
+    return TurnoRepository.obtener_todos_filtrados()
 
 
 def listar_turnos_por_cancha(id_cancha: int) -> List[Turno]:
     """Lista turnos de una cancha específica."""
-    return TurnoRepository.listar_por_cancha(id_cancha)
+    return TurnoRepository.obtener_por_cancha(id_cancha)
 
 
 def listar_turnos_por_cliente(id_cliente: int) -> List[Turno]:
     """Lista turnos de un cliente específico."""
-    return TurnoRepository.listar_por_cliente(id_cliente)
+    return TurnoRepository.obtener_por_cliente(id_cliente)
 
 
 def listar_turnos_por_estado(estado: str) -> List[Turno]:
     """Lista turnos por estado."""
-    return TurnoRepository.listar_por_estado(estado)
+    return TurnoRepository.obtener_todos_filtrados(estado=estado)
 
 
 def buscar_disponibles(id_cancha: int, fecha_inicio: str, fecha_fin: str) -> List[Turno]:
     """Busca turnos disponibles en un rango de fechas."""
-    return TurnoRepository.buscar_disponibles(id_cancha, fecha_inicio, fecha_fin)
+    # Filtrar por cancha y estado disponible, luego filtrar por fechas
+    turnos = TurnoRepository.obtener_por_cancha(id_cancha, estado='disponible')
+    # Filtrar por rango de fechas (simplificado)
+    return [t for t in turnos if fecha_inicio <= t.fecha_hora_inicio <= fecha_fin]
 
 
 def actualizar_turno(turno_id: int, data: Dict[str, Any]) -> Turno:

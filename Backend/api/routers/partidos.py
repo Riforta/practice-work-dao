@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List, Dict, Any
 
-from services import partidos_services
+from services import partidos_service
 
 router = APIRouter()
 
@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post("/partidos/", status_code=status.HTTP_201_CREATED)
 def crear_partido(payload: Dict[str, Any]):
     try:
-        partido = partidos_services.crear_partido(payload)
+        partido = partidos_service.crear_partido(payload)
         return partido.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -19,14 +19,14 @@ def crear_partido(payload: Dict[str, Any]):
 
 @router.get("/partidos/", response_model=List[Dict[str, Any]])
 def listar_partidos():
-    partidos = partidos_services.listar_partidos()
+    partidos = partidos_service.listar_partidos()
     return [p.to_dict() for p in partidos]
 
 
 @router.get("/partidos/{partido_id}", response_model=Dict[str, Any])
 def obtener_partido(partido_id: int):
     try:
-        partido = partidos_services.obtener_partido_por_id(partido_id)
+        partido = partidos_service.obtener_partido_por_id(partido_id)
         return partido.to_dict()
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -35,7 +35,7 @@ def obtener_partido(partido_id: int):
 @router.put("/partidos/{partido_id}", response_model=Dict[str, Any])
 def actualizar_partido(partido_id: int, payload: Dict[str, Any]):
     try:
-        partido = partidos_services.actualizar_partido(partido_id, payload)
+        partido = partidos_service.actualizar_partido(partido_id, payload)
         return partido.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -48,7 +48,7 @@ def actualizar_partido(partido_id: int, payload: Dict[str, Any]):
 @router.delete("/partidos/{partido_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_partido(partido_id: int):
     try:
-        partidos_services.eliminar_partido(partido_id)
+        partidos_service.eliminar_partido(partido_id)
         return None
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))

@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.rol import Rol
-from repository.rol_repository import RolRepository
+from repositories.rol_repository import RolRepository
 
 
 def crear_rol(data: Dict[str, Any]) -> Rol:

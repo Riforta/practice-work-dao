@@ -2,7 +2,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from routes.turno_routes import router as turno_router
+from api.routers.turnos import router as turno_router
 from models.turno import Turno
 
 app = FastAPI()
@@ -10,7 +10,7 @@ app.include_router(turno_router, prefix="/api")
 client = TestClient(app)
 
 # Simulación simple de repositorios usando monkeypatch
-from repository import turno_repository, cliente_repository, usuario_repository
+from repositories import turno_repository, cliente_repository, usuario_repository
 
 # Estado en memoria para un turno
 _turno_mem = Turno(

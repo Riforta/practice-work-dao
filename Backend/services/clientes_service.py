@@ -19,7 +19,7 @@ excepciones (`ValueError` para validaciones, `LookupError` para no encontrado,
 from typing import List, Optional, Dict, Any
 
 from models.cliente import Cliente
-from repository.cliente_repository import ClienteRepository
+from repositories.cliente_repository import ClienteRepository
 
 
 def _validar_datos_cliente(data: Dict[str, Any], para_actualizar: bool = False) -> None:

@@ -1,17 +1,20 @@
 """
-Servicio de lógica de negocio para Turnos/Reservas.
+Servicio de lógica de negocio para Reservas de Turnos.
+
+Este servicio maneja específicamente las operaciones de reservas (CU-1 a CU-4):
+registrar, consultar, modificar y cancelar reservas con validaciones de negocio.
 """
 
 from typing import Optional, List
 from models.turno import Turno
-from repository.turno_repository import TurnoRepository
-from repository.cliente_repository import ClienteRepository
-from repository.usuario_repository import UsuarioRepository
+from repositories.turno_repository import TurnoRepository
+from repositories.cliente_repository import ClienteRepository
+from repositories.usuario_repository import UsuarioRepository
 from datetime import datetime
 
 
-class TurnoService:
-    """Servicio para la lógica de negocio de turnos"""
+class ReservasService:
+    """Servicio para la lógica de negocio de reservas de turnos (CU-1 a CU-4)"""
 
     @staticmethod
     def registrar_reserva(
@@ -136,7 +139,7 @@ class TurnoService:
             raise ValueError(f"El estado '{estado}' no es válido. Valores permitidos: {ESTADOS_VALIDOS}")
 
         if id_cliente is not None:
-            return TurnoService.listar_reservas_cliente(
+            return ReservasService.listar_reservas_cliente(
                 id_cliente=id_cliente,
                 id_cancha=id_cancha,
                 estado=estado

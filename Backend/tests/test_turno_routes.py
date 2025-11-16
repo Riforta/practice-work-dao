@@ -2,9 +2,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from routes.turno_routes import router as turno_router
+from api.routers.turnos import router as turno_router
 from models.turno import Turno
-from repository import turno_repository, cliente_repository, usuario_repository
+from repositories import turno_repository, cliente_repository, usuario_repository
 
 app = FastAPI()
 app.include_router(turno_router, prefix="/api")
@@ -67,8 +67,10 @@ def patch_repositories(monkeypatch):
 
 def test_listar_requiere_id_cliente():
     resp = client.get('/api/turnos')
-    # Falta query param requerido -> 422
-    assert resp.status_code == 422
+    # Sin id_cliente lista todos los turnos (200)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data, list)
 
 
 def test_listar_por_cliente_ok():

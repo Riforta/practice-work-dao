@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 
 from models.servicio_adicional import ServicioAdicional
-from repository.servicio_adicional_repository import ServicioAdicionalRepository
+from repositories.servicio_adicional_repository import ServicioAdicionalRepository
 
 
 def crear_servicio(data: Dict[str, Any]) -> ServicioAdicional:

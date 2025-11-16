@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.inscripcion import Inscripcion
-from repository.inscripcion_repository import InscripcionRepository
+from repositories.inscripcion_repository import InscripcionRepository
 
 
 def crear_inscripcion(data: Dict[str, Any]) -> Inscripcion:

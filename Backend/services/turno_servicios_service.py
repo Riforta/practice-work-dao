@@ -3,8 +3,8 @@
 from typing import List, Dict, Any
 
 from models.turno_servicio import TurnoServicio
-from repository.turno_servicio_repository import TurnoXServicioRepository
-from repository.servicio_adicional_repository import ServicioAdicionalRepository
+from repositories.turno_servicio_repository import TurnoXServicioRepository
+from repositories.servicio_adicional_repository import ServicioAdicionalRepository
 
 
 def agregar_servicio_a_turno(data: Dict[str, Any]) -> TurnoServicio:

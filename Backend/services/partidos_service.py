@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.partido import Partido
-from repository.partido_repository import PartidoRepository
+from repositories.partido_repository import PartidoRepository
 
 
 def crear_partido(data: Dict[str, Any]) -> Partido:

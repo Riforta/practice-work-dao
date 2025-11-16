@@ -1,23 +1,16 @@
+import sys
+from pathlib import Path
+
+# Agregar el directorio Backend al path ANTES de cualquier import relativo
+backend_dir = Path(__file__).parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
-from api.routers import (
-    clientes,
-    canchas,
-    equipos,
-    equipo_miembros,
-    partidos,
-    pedidos,
-    pagos,
-    inscripciones,
-    servicios_adicionales,
-    tarifas,
-    torneos,
-    roles,
-    usuarios,
-    auth,
-    turnos,
-)
+from api.routers import register_routers
 
 
 app = FastAPI(
@@ -40,22 +33,8 @@ app.add_middleware(
     allow_headers=["*"],  # Permite todos los headers
 )
 
-# Routers: the individual router modules already define their own path prefixes
-app.include_router(clientes.router)
-app.include_router(canchas.router)
-app.include_router(equipos.router)
-app.include_router(equipo_miembros.router)
-app.include_router(partidos.router)
-app.include_router(pedidos.router)
-app.include_router(pagos.router)
-app.include_router(inscripciones.router)
-app.include_router(servicios_adicionales.router)
-app.include_router(tarifas.router)
-app.include_router(torneos.router)
-app.include_router(roles.router)
-app.include_router(usuarios.router)
-app.include_router(auth.router)
-app.include_router(turnos.router)
+# Registrar todos los routers (cada uno ya define su propio prefix)
+register_routers(app)
 
 @app.get("/")
 def root():
@@ -69,3 +48,7 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+# Línea final para ejecutar la app
+if __name__ == "__main__":
+    uvicorn.run("api.main:app", host="127.0.0.1", port=8000, reload=True)

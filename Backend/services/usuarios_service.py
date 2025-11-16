@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.usuario import Usuario
-from repository.usuario_repository import UsuarioRepository
+from repositories.usuario_repository import UsuarioRepository
 from passlib.hash import pbkdf2_sha256
 
 

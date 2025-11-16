@@ -1,4 +1,4 @@
-from services.usuarios_services import crear_usuario
+from Backend.services.usuarios_service import crear_usuario
 
 if __name__ == '__main__':
     payload = {

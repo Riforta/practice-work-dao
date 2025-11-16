@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.pago import Pago
-from repository.pago_repository import PagoRepository
+from repositories.pago_repository import PagoRepository
 
 
 def crear_pago(data: Dict[str, Any]) -> Pago:

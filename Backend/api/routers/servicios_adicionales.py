@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List, Dict, Any
 
-from services import servicios_adicionales_services
+from services import servicios_adicionales_service
 
 router = APIRouter()
 
@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post("/servicios_adicionales/", status_code=status.HTTP_201_CREATED)
 def crear_servicio(payload: Dict[str, Any]):
     try:
-        s = servicios_adicionales_services.crear_servicio_adicional(payload)
+        s = servicios_adicionales_service.crear_servicio_adicional(payload)
         return s.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -19,14 +19,14 @@ def crear_servicio(payload: Dict[str, Any]):
 
 @router.get("/servicios_adicionales/", response_model=List[Dict[str, Any]])
 def listar_servicios():
-    items = servicios_adicionales_services.listar_servicios()
+    items = servicios_adicionales_service.listar_servicios()
     return [i.to_dict() for i in items]
 
 
 @router.get("/servicios_adicionales/{servicio_id}", response_model=Dict[str, Any])
 def obtener_servicio(servicio_id: int):
     try:
-        s = servicios_adicionales_services.obtener_servicio_por_id(servicio_id)
+        s = servicios_adicionales_service.obtener_servicio_por_id(servicio_id)
         return s.to_dict()
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -35,7 +35,7 @@ def obtener_servicio(servicio_id: int):
 @router.put("/servicios_adicionales/{servicio_id}", response_model=Dict[str, Any])
 def actualizar_servicio(servicio_id: int, payload: Dict[str, Any]):
     try:
-        s = servicios_adicionales_services.actualizar_servicio(servicio_id, payload)
+        s = servicios_adicionales_service.actualizar_servicio(servicio_id, payload)
         return s.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -48,7 +48,7 @@ def actualizar_servicio(servicio_id: int, payload: Dict[str, Any]):
 @router.delete("/servicios_adicionales/{servicio_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_servicio(servicio_id: int):
     try:
-        servicios_adicionales_services.eliminar_servicio(servicio_id)
+        servicios_adicionales_service.eliminar_servicio(servicio_id)
         return None
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))

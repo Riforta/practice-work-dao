@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import Dict, Any
-from repository.usuario_repository import UsuarioRepository
+from repositories.usuario_repository import UsuarioRepository
 from passlib.hash import pbkdf2_sha256
 from jose import jwt
 from datetime import datetime, timedelta

@@ -1,7 +1,7 @@
 import pytest
 from models.turno import Turno
-from services.turno_service import TurnoService
-from repository import turno_repository, cliente_repository, usuario_repository
+from services.reservas_service import ReservasService
+from repositories import turno_repository, cliente_repository, usuario_repository
 from datetime import datetime
 
 # --- Infra mínima de BD simulada usando monkeypatch ---
@@ -70,7 +70,7 @@ def patch_repositories(monkeypatch):
 # --- Tests registrar_reserva ---
 
 def test_registrar_reserva_ok():
-    turno = TurnoService.registrar_reserva(1, id_cliente=1, id_usuario_registro=10)
+    turno = ReservasService.registrar_reserva(1, id_cliente=1, id_usuario_registro=10)
     assert turno.estado == 'reservado'
     assert turno.id_cliente == 1
     assert turno.id_usuario_registro == 10
@@ -78,28 +78,28 @@ def test_registrar_reserva_ok():
 
 def test_registrar_reserva_turno_no_disponible():
     with pytest.raises(ValueError):
-        TurnoService.registrar_reserva(2, id_cliente=1, id_usuario_registro=10)
+        ReservasService.registrar_reserva(2, id_cliente=1, id_usuario_registro=10)
 
 
 def test_registrar_reserva_cliente_no_existe():
     with pytest.raises(ValueError):
-        TurnoService.registrar_reserva(1, id_cliente=999, id_usuario_registro=10)
+        ReservasService.registrar_reserva(1, id_cliente=999, id_usuario_registro=10)
 
 # --- Tests consultar_turno_por_id ---
 
 def test_consultar_turno_pertenencia_ok():
-    t = TurnoService.consultar_turno_por_id(2, id_cliente=1)
+    t = ReservasService.consultar_turno_por_id(2, id_cliente=1)
     assert t.id == 2
 
 
 def test_consultar_turno_pertenencia_incorrecta():
     with pytest.raises(PermissionError):
-        TurnoService.consultar_turno_por_id(2, id_cliente=2)
+        ReservasService.consultar_turno_por_id(2, id_cliente=2)
 
 # --- Tests modificar_reserva ---
 
 def test_modificar_reserva_ok():
-    turno = TurnoService.modificar_reserva(2, {'precio_final': 1500, 'id_cliente': 1}, id_usuario_mod=10)
+    turno = ReservasService.modificar_reserva(2, {'precio_final': 1500, 'id_cliente': 1}, id_usuario_mod=10)
     assert turno.precio_final == 1500
     assert turno.id_cliente == 1
     assert turno.id_usuario_registro == 10
@@ -107,22 +107,22 @@ def test_modificar_reserva_ok():
 
 def test_modificar_reserva_estado_invalido():
     with pytest.raises(ValueError):
-        TurnoService.modificar_reserva(1, {'precio_final': 1500}, id_usuario_mod=10)
+        ReservasService.modificar_reserva(1, {'precio_final': 1500}, id_usuario_mod=10)
 
 
 def test_modificar_reserva_cliente_inexistente():
     with pytest.raises(ValueError):
-        TurnoService.modificar_reserva(2, {'id_cliente': 999}, id_usuario_mod=10)
+        ReservasService.modificar_reserva(2, {'id_cliente': 999}, id_usuario_mod=10)
 
 
 def test_modificar_reserva_sin_cambios():
     with pytest.raises(ValueError):
-        TurnoService.modificar_reserva(2, {}, id_usuario_mod=10)
+        ReservasService.modificar_reserva(2, {}, id_usuario_mod=10)
 
 # --- Tests cancelar_reserva ---
 
 def test_cancelar_reserva_ok():
-    turno = TurnoService.cancelar_reserva(2, id_usuario_cancelacion=10)
+    turno = ReservasService.cancelar_reserva(2, id_usuario_cancelacion=10)
     assert turno.estado == 'disponible'
     assert turno.id_cliente is None
     assert turno.id_usuario_registro is None
@@ -131,26 +131,26 @@ def test_cancelar_reserva_ok():
 
 def test_cancelar_reserva_estado_invalido():
     with pytest.raises(ValueError):
-        TurnoService.cancelar_reserva(1, id_usuario_cancelacion=10)
+        ReservasService.cancelar_reserva(1, id_usuario_cancelacion=10)
 
 # --- Tests listado ---
 
 def test_listar_reservas_cliente_ok():
-    turnos = TurnoService.listar_reservas_cliente(1)
+    turnos = ReservasService.listar_reservas_cliente(1)
     assert all(t.id_cliente == 1 for t in turnos)
 
 
 def test_listar_reservas_cliente_estado_invalido():
     with pytest.raises(ValueError):
-        TurnoService.listar_reservas_cliente(1, estado='no_valido')
+        ReservasService.listar_reservas_cliente(1, estado='no_valido')
 
 
 def test_listar_turnos_wrapper_general():
     # Sin id_cliente devuelve todos
-    turnos = TurnoService.listar_turnos()
+    turnos = ReservasService.listar_turnos()
     assert len(turnos) == 3
 
 
 def test_listar_turnos_wrapper_con_cliente():
-    turnos = TurnoService.listar_turnos(id_cliente=2)
+    turnos = ReservasService.listar_turnos(id_cliente=2)
     assert all(t.id_cliente == 2 for t in turnos)

@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.torneo import Torneo
-from repository.torneo_repository import TorneoRepository
+from repositories.torneo_repository import TorneoRepository
 
 
 def crear_torneo(data: Dict[str, Any]) -> Torneo:

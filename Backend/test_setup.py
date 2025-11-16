@@ -3,7 +3,7 @@ Script de prueba para verificar la creación de la base de datos y los modelos.
 """
 
 from models import Cliente, Cancha, Rol, Usuario
-from repository.cliente_repository import ClienteRepository
+from repositories.cliente_repository import ClienteRepository
 from database.connection import get_connection
 
 

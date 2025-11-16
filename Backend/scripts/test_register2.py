@@ -8,7 +8,7 @@ ROOT = os.path.abspath(os.path.join(HERE, '..'))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from services.usuarios_services import crear_usuario
+from Backend.services.usuarios_service import crear_usuario
 
 
 if __name__ == '__main__':

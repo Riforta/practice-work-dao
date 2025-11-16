@@ -2,9 +2,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from routes.turno_routes import router as turno_router
+from api.routers.turnos import router as turno_router
 from models.turno import Turno
-from repository import turno_repository, cliente_repository, usuario_repository
+from repositories import turno_repository, cliente_repository, usuario_repository
 
 app = FastAPI()
 app.include_router(turno_router, prefix="/api")

@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 
 from models.tarifa import Tarifa
-from repository.tarifa_repository import TarifaRepository
+from repositories.tarifa_repository import TarifaRepository
 
 
 def crear_tarifa(data: Dict[str, Any]) -> Tarifa:

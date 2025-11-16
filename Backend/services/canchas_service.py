@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.cancha import Cancha
-from repository.cancha_repository import CanchaRepository
+from repositories.cancha_repository import CanchaRepository
 
 
 def crear_cancha(data: Dict[str, Any]) -> Cancha:

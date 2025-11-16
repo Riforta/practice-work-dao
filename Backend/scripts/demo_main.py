@@ -14,7 +14,7 @@ Movido desde Backend/main.py para evitar conflicto con api/main.py (FastAPI app)
 """
 
 from models import Cliente, Cancha, ServicioAdicional, Usuario
-from repository import ClienteRepository, ServicioAdicionalRepository, UsuarioRepository
+from repositories import ClienteRepository, ServicioAdicionalRepository, UsuarioRepository
 from database.connection import get_connection
 
 

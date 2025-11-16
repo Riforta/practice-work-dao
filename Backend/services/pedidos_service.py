@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from models.pedido import Pedido
-from repository.pedido_repository import PedidoRepository
+from repositories.pedido_repository import PedidoRepository
 
 
 def crear_pedido(data: Dict[str, Any]) -> Pedido:
