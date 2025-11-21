@@ -27,12 +27,12 @@ export default function Sidebar() {
         { name: 'Products', href: '#' },
       ],
     },
-    { name: 'Canchas', href: '#', icon: InboxIcon, current: false, count: '14' },
-    { name: 'Equipos', href: '#', icon: UserCircleIcon, current: false },
-    { name: 'Pagos', href: '#', icon: BanknotesIcon, current: false },
-    { name: 'Torneos', href: '#', icon: UserCircleIcon, current: false },
-    { name: 'Servicios', href: '#', icon: UserCircleIcon, current: false },
-    { name: 'Turnos', href: '#', icon: UserCircleIcon, current: false },
+    { name: 'Canchas', href: '/canchas', icon: InboxIcon, current: false, count: '14' },
+    { name: 'Equipos', href: '/equipos', icon: UserCircleIcon, current: false },
+    { name: 'Pagos', href: '/pagos', icon: BanknotesIcon, current: false },
+    { name: 'Torneos', href: '/torneos', icon: UserCircleIcon, current: false },
+    { name: 'Servicios', href: '/servicios', icon: UserCircleIcon, current: false },
+    { name: 'Turnos', href: '/turnos', icon: UserCircleIcon, current: false },
 
   ];
 
