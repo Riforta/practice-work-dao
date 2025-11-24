@@ -64,10 +64,16 @@ const putCanchaBasquet = async (id: number, payload: any) => {
     return response.data;
 }
 
+const creatCanchaBasquet = async (payload: any) => {
+    const response = await axios.post(`${api_url}/`, payload);
+    return response.data;
+}
+
 export default {
     getAllCanchasBasquet,
     getCanchaBasquetByName,
     deleteCanchaBasquet,
     getByIdBasquet,
-    actualizarCancha: putCanchaBasquet
+    actualizarCancha: putCanchaBasquet,
+    creatCanchaBasquet
 };

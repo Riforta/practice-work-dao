@@ -19,6 +19,7 @@ export default function ModificarCanchaBasquet() {
 
   const id = params.id || params.Id || params.Id_Cancha;
 
+  // Carga inicial de datos
   useEffect(() => {
     if (!id) return;
     const fetchCancha = async () => {
@@ -26,7 +27,6 @@ export default function ModificarCanchaBasquet() {
         const data: any = await service.getByIdBasquet(Number(id));
         if (!data) return;
         
-        // Asignamos valores
         setValue("nombre", data.nombre ?? data.Nombre ?? "");
         setValue("tipo_deporte", (data.tipo_deporte ?? data.deporte ?? "").toString().toLowerCase());
         setValue("descripcion", data.descripcion ?? "");
@@ -41,7 +41,31 @@ export default function ModificarCanchaBasquet() {
   }, [id]);
 
   const onSubmit = async (form: FormData) => {
+    // Limpiamos errores previos
+    setErrorMessage("");
+
     try {
+      // --- PASO 1: VERIFICACIÓN DE NOMBRE DUPLICADO ---
+      
+      // Buscamos si ya existe alguien con ese nombre
+      // (Asumiendo que tienes este método en tu servicio, lo vimos antes)
+      const canchasConEseNombre = await service.getCanchaBasquetByName(form.nombre);
+      
+      // Revisamos si encontramos alguna cancha QUE NO SEA la actual
+      // (Comparamos IDs: si el ID es distinto pero el nombre es igual, es un duplicado)
+      const existeDuplicado = canchasConEseNombre.some((c: any) => 
+        // Asegúrate de comparar usando el nombre exacto y excluyendo el ID actual
+        c.nombre.toLowerCase() === form.nombre.toLowerCase() && 
+        (c.id || c.Id) !== Number(id)
+      );
+
+      if (existeDuplicado) {
+        setErrorMessage("⚠️ Ya existe otra cancha con ese nombre. Por favor elija uno distinto.");
+        return; // <--- AQUÍ DETENEMOS LA EJECUCIÓN
+      }
+
+      // --- PASO 2: ACTUALIZACIÓN ---
+
       const payload = {
         nombre: form.nombre,
         tipo_deporte: form.tipo_deporte,
@@ -49,16 +73,15 @@ export default function ModificarCanchaBasquet() {
         activa: form.activa,
       };
       
-      // 1. Esperamos a que el backend responda
       await service.actualizarCancha(Number(id), payload);
       
-      // 2. SI todo salió bien, entonces navegamos
-      // Cambié la ruta a '/canchas/basquet' para coincidir con tu intención original
+      // --- PASO 3: REDIRECCIÓN ---
+      // Si llegamos acá es que no hubo error en el await anterior
       navigate("/canchas/basquet"); 
       
     } catch (err) {
       console.error(err);
-      setErrorMessage("Error al actualizar la cancha. Verifique los datos.");
+      setErrorMessage("Error al actualizar la cancha. Verifique los datos o la conexión.");
     }
   };
 
@@ -77,7 +100,13 @@ export default function ModificarCanchaBasquet() {
         className="bg-white/10 backdrop-blur-md text-white rounded-lg p-6 w-full max-w-lg shadow-lg"
       >
         <h3 className="text-2xl mb-4">Modificar Cancha</h3>
-        {errorMessage && <div className="text-red-400 mb-4">{errorMessage}</div>}
+        
+        {/* Mensaje de error destacado */}
+        {errorMessage && (
+            <div className="bg-red-500/20 border border-red-500 text-red-100 p-3 rounded mb-4 text-sm text-center">
+                {errorMessage}
+            </div>
+        )}
 
         <label className="block mb-2 text-sm">Nombre</label>
         <input
@@ -91,10 +120,7 @@ export default function ModificarCanchaBasquet() {
           {...register("tipo_deporte", { required: "Seleccione un deporte" })}
           className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
         >
-            <option value="" className="bg-gray-700">-- Seleccione --</option>
-          <option value="futbol" className="bg-gray-700">Futbol</option>
-          <option value="padel" className="bg-gray-700">Padel</option>
-          <option value="basquet" className="bg-gray-700">Basquet</option>
+        <option value="basquet" className="bg-gray-700">Basquet</option>
         </select>
         {errors.tipo_deporte && <p className="text-red-400 text-sm mb-2">{errors.tipo_deporte.message}</p>}
 
@@ -115,8 +141,6 @@ export default function ModificarCanchaBasquet() {
         </label>
 
         <div className="flex justify-center gap-3 mt-4">
-          
-          {/* CORRECCIÓN: Quitamos el Link que envolvía al botón */}
           <button
             type="submit"
             className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white"
@@ -126,7 +150,7 @@ export default function ModificarCanchaBasquet() {
           
           <button
             type="button"
-            onClick={() => { reset(); }}
+            onClick={() => { reset(); setErrorMessage(""); }}
             className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded text-white"
           >
             Limpiar

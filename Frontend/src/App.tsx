@@ -7,6 +7,7 @@ import Inicio from './components/inicio/Inicio.tsx'
 import Cancha from './components/cancha/Cancha.tsx'
 import ConsultarCanchaBasquet from './components/cancha/basquet/ConsultarCanchaBasquet.tsx'
 import ModificarCanchaBasquet from './components/cancha/basquet/ModificarCanchaBasquet.tsx'
+import RegistrarCanchaBasquet from './components/cancha/basquet/RegistrarCanchaBasquet.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -48,8 +49,9 @@ function App() {
                   {/* Canchas de Basquet */}
                   <Route path="/canchas/basquet" element={<ConsultarCanchaBasquet/>} />
                   <Route path="/canchas/basquet/ModificarCanchaBasquet/:id" element={<ModificarCanchaBasquet/>} />
+                  <Route path="/canchas/basquet/RegistrarCancha" element={<RegistrarCanchaBasquet/>} />
                   {/* />
-                  <Route path="/canchas/basquet/crear" element={<CrearCanchaBasquet/>} />
+                  
                   <Route path="/canchas/basquet/eliminar" element={<EliminarCanchaBasquet/>} />
                   <Route path="/canchas/basquet/modificar" element={<ModificarCanchaBasquet/>} />
                   {/* Canchas de Padel */}
