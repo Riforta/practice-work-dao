@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { register as authRegister } from '../../services/auth'
+import { register as authRegister } from '../../services/auth.service'
 import { useModal } from '../../contexts/ModalContext'
 import { useAuth } from '../../contexts/AuthContext'
 

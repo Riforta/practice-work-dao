@@ -1,0 +1,36 @@
+/* Reset and ensure no unexpected page scroll from margins */
+html, body, #root {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+/* Make box-sizing predictable to avoid accidental overflow */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Prevent horizontal overflow which often produces a scrollbar */
+body {
+	overflow-x: hidden;
+}
+
+/* Ensure the component image wrapper covers the viewport without tiling */
+.basquet-root,
+.basquet-root > .image-wrapper,
+.w-full.h-screen {
+	height: 100vh; /* force viewport height */
+	width: 100%;
+	background-size: cover !important;
+	background-position: center !important;
+	background-repeat: no-repeat !important;
+	overflow: hidden; /* avoid inner elements causing scroll */
+}
+
+/* Ensure left-buttons can't push past the viewport height */
+.left-buttons {
+	max-height: calc(100vh - 2rem);
+	overflow: auto;
+}
+
+/* Make sure left buttons don't push layout out of the viewport */
+.left-buttons { box-sizing: border-box; }
+

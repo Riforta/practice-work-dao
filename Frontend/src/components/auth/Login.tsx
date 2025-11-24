@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login as authLogin } from '../../services/auth'
+import { login as authLogin } from '../../services/auth.service'
 import { useModal } from '../../contexts/ModalContext'
 import { useAuth } from '../../contexts/AuthContext'
 

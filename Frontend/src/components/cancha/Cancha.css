@@ -1,0 +1,145 @@
+.inicio {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+
+.inicio > * {
+  margin-left: 0%; /* ensure children have no left margin so they stay 'pegados' */
+}
+button {
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+
+.holographic-container {
+  /* keep container full height but allow grid layout to apply */
+  height: 100%;
+  background: transparent;
+}
+
+.holographic-card {
+
+  background: #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s ease;
+}
+
+.holographic-card h2 {
+  color: #0ff;
+  font-size: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+.holographic-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    0deg, 
+    transparent, 
+    transparent 30%, 
+    rgba(0,255,255,0.3)
+  );
+  transform: rotate(-45deg);
+  transition: all 0.5s ease;
+  opacity: 0;
+}
+
+.holographic-card:hover {
+  box-shadow: 0 0 20px rgba(0,255,255,0.5);
+}
+
+.holographic-card:hover::before {
+  opacity: 1;
+  transform: rotate(-45deg) translateY(100%);
+}
+
+
+.liquid-morph-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  background: transparent;
+}
+
+.liquid-morph-element {
+  /* larger square */
+  width: 200px;
+  height: 80px;
+  background: rgba(10,35,66,0.92);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 20;
+  pointer-events: auto;
+  /* base position: slightly down on mobile */
+  transform: translateY(70px);
+}
+
+.liquid-morph-element span {
+  color: #fff;
+  font-size: 1rem;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.liquid-morph-element::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: conic-gradient(
+    #0ff 0deg, 
+    #0a2342 120deg, 
+    #0ff 240deg
+  );
+  transition: all 0.6s ease;
+  opacity: 0;
+  transform: scale(0);
+}
+
+.liquid-morph-element:hover {
+  border-radius: 12px;
+  transform: translateY(70px) rotate(6deg) scale(1.03);
+}
+
+/* Responsive adjustments: increase offset on larger screens */
+@media (min-width: 640px) {
+  .liquid-morph-element { transform: translateY(80px); }
+  .liquid-morph-element:hover { transform: translateY(80px) rotate(6deg) scale(1.03); }
+}
+
+@media (min-width: 1024px) {
+  .liquid-morph-element { transform: translateY(120px); }
+  .liquid-morph-element:hover { transform: translateY(120px) rotate(6deg) scale(1.03); }
+}
+
+.liquid-morph-element:hover::before {
+  opacity: 0.5;
+  transform: scale(2);
+}
