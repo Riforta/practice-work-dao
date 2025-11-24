@@ -57,7 +57,7 @@ function App() {
                   {/* Canchas de Padel */}
                   <Route path="/canchas/padel" element={<ConsultarCanchaPadel/>} />
                   <Route path="/canchas/padel/RegistrarCancha" element={<RegistrarCanchaPadel/>} />
-                  <Route path="/canchas/padel/ModificarCanchaBasquet/:id" element={<ModificarCanchaPadel/>} />
+                  <Route path="/canchas/padel/ModificarCanchaPadel/:id" element={<ModificarCanchaPadel/>} />
                 </Routes>
               </Suspense>
             </main>
