@@ -4,7 +4,7 @@ import service from '../../../services/canchas.service';
 import { Link, useNavigate } from 'react-router-dom';
 import backgroundImage from "./imagenes/cancha_bas.jpg";
 
-export default function SearchBar() {
+export default function ConsultarCanchaBasquet() {
   const [rows, setRows] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(false); // Estado para mostrar "Cargando..."

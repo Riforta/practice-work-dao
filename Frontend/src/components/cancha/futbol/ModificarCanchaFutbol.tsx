@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import service from "../../../services/canchas.service";
-import backgroundImage from "./imagenes/tapia.webp";
+import backgroundImage from "./imagenes/robben.jpg";
 
 type FormData = {
   nombre: string;
@@ -11,7 +11,7 @@ type FormData = {
   activa: boolean;
 };
 
-export default function ModificarCanchaPadel() {
+export default function ModificarCanchaFutbol() {
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm<FormData>();
   const params = useParams();
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ export default function ModificarCanchaPadel() {
     if (!id) return;
     const fetchCancha = async () => {
       try {
-        const data: any = await service.getByIdPadel(Number(id));
+        const data: any = await service.getByIdFutbol(Number(id));
         if (!data) return;
         
         setValue("nombre", data.nombre ?? data.Nombre ?? "");
@@ -49,7 +49,7 @@ export default function ModificarCanchaPadel() {
       
       // Buscamos si ya existe alguien con ese nombre
       // (Asumiendo que tienes este método en tu servicio, lo vimos antes)
-      const canchasConEseNombre = await service.getCanchaPadelByName(form.nombre);
+      const canchasConEseNombre = await service.getCanchaFutbolByName(form.nombre);
       
       // Revisamos si encontramos alguna cancha QUE NO SEA la actual
       // (Comparamos IDs: si el ID es distinto pero el nombre es igual, es un duplicado)
@@ -77,7 +77,7 @@ export default function ModificarCanchaPadel() {
       
       // --- PASO 3: REDIRECCIÓN ---
       // Si llegamos acá es que no hubo error en el await anterior
-      navigate("/canchas/padel"); 
+      navigate("/canchas/futbol"); 
       
     } catch (err) {
       console.error(err);
@@ -120,7 +120,7 @@ export default function ModificarCanchaPadel() {
           {...register("tipo_deporte", { required: "Seleccione un deporte" })}
           className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
         >
-        <option value="Padel" className="bg-gray-700">Padel</option>
+        <option value="Futbol" className="bg-gray-700">Futbol</option>
         </select>
         {errors.tipo_deporte && <p className="text-red-400 text-sm mb-2">{errors.tipo_deporte.message}</p>}
 
@@ -156,7 +156,7 @@ export default function ModificarCanchaPadel() {
             Limpiar
           </button>
           
-          <Link to="/canchas/padel" className="px-4 py-2 bg-black/60 hover:bg-black/80 rounded text-white flex items-center">
+          <Link to="/canchas/futbol" className="px-4 py-2 bg-black/60 hover:bg-black/80 rounded text-white flex items-center">
             Volver
           </Link>
         </div>
