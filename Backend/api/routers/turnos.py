@@ -1,39 +1,26 @@
 """Router FastAPI para gestión de Turnos y Reservas."""
 
 from fastapi import APIRouter, HTTPException, status, Query
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Optional, Dict, Any
 
+from api.schemas.turnos import (
+    TurnoResponse,
+    TurnoCreateRequest,
+    TurnoUpdateRequest,
+    ReservaRequest,
+    ReservaModificarRequest,
+    ReservaCancelarRequest
+)
 from services import turnos_service, turno_servicios_service, reservas_service
 
 router = APIRouter()
-
-
-# ===== Modelos Pydantic para Reservas =====
-
-class ReservaRequest(BaseModel):
-    """Request body para registrar una reserva"""
-    id_cliente: int
-    id_usuario_registro: int
-
-
-class ReservaModificarRequest(BaseModel):
-    """Request body para modificar una reserva"""
-    id_cliente: Optional[int] = None
-    precio_final: Optional[float] = None
-    id_usuario_mod: int
-
-
-class ReservaCancelarRequest(BaseModel):
-    """Request body para cancelar una reserva"""
-    id_usuario_cancelacion: int
 
 
 # ====================================================
 # ENDPOINTS DE RESERVAS (CU-1 a CU-4)
 # ====================================================
 
-@router.post("/turnos/{turno_id}/reservar", status_code=status.HTTP_200_OK)
+@router.post("/turnos/{turno_id}/reservar", response_model=TurnoResponse, status_code=status.HTTP_200_OK)
 def reservar_turno_endpoint(turno_id: int, request: ReservaRequest):
     """CU-1: Registra una reserva sobre un turno disponible."""
     try:
@@ -42,7 +29,7 @@ def reservar_turno_endpoint(turno_id: int, request: ReservaRequest):
             id_cliente=request.id_cliente,
             id_usuario_registro=request.id_usuario_registro
         )
-        return turno.to_dict()
+        return TurnoResponse.model_validate(turno)
     except ValueError as ve:
         raise HTTPException(status_code=409, detail=str(ve))
     except LookupError as le:
@@ -51,7 +38,7 @@ def reservar_turno_endpoint(turno_id: int, request: ReservaRequest):
         raise HTTPException(status_code=500, detail=f"Error interno: {e}")
 
 
-@router.get("/turnos/{turno_id}/detalle")
+@router.get("/turnos/{turno_id}/detalle", response_model=TurnoResponse)
 def consultar_reserva_endpoint(
     turno_id: int,
     id_cliente: Optional[int] = Query(None, description="Validar pertenencia al cliente")
@@ -59,7 +46,7 @@ def consultar_reserva_endpoint(
     """CU-2a: Consulta un turno/reserva por ID con validación opcional de cliente."""
     try:
         turno = reservas_service.ReservasService.consultar_turno_por_id(turno_id, id_cliente=id_cliente)
-        return turno.to_dict()
+        return TurnoResponse.model_validate(turno)
     except PermissionError as pe:
         raise HTTPException(status_code=403, detail=str(pe))
     except LookupError as le:
@@ -68,7 +55,7 @@ def consultar_reserva_endpoint(
         raise HTTPException(status_code=500, detail=f"Error interno: {e}")
 
 
-@router.get("/turnos/reservas/cliente")
+@router.get("/turnos/reservas/cliente", response_model=List[TurnoResponse])
 def listar_reservas_cliente_endpoint(
     id_cliente: int = Query(..., description="ID del cliente (obligatorio)"),
     id_cancha: Optional[int] = Query(None, description="Filtrar por cancha"),
@@ -81,15 +68,15 @@ def listar_reservas_cliente_endpoint(
             id_cancha=id_cancha,
             estado=estado
         )
-        return [t.to_dict() for t in turnos]
+        return [TurnoResponse.model_validate(t) for t in turnos]
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno: {e}")
 
 
-@router.patch("/turnos/{turno_id}/reserva")
-@router.patch("/turnos/{turno_id}")  # Alias para compatibilidad con tests
+@router.patch("/turnos/{turno_id}/reserva", response_model=TurnoResponse)
+@router.patch("/turnos/{turno_id}", response_model=TurnoResponse)  # Alias para compatibilidad con tests
 def modificar_reserva_endpoint(turno_id: int, request: ReservaModificarRequest):
     """CU-3: Modifica una reserva existente."""
     try:
@@ -98,21 +85,12 @@ def modificar_reserva_endpoint(turno_id: int, request: ReservaModificarRequest):
         if not nuevos_datos:
             raise HTTPException(status_code=400, detail="Debe enviar al menos un campo modificable")
         
-        if "precio_final" in nuevos_datos and nuevos_datos["precio_final"] is not None:
-            try:
-                precio_val = float(nuevos_datos["precio_final"])
-            except (TypeError, ValueError):
-                raise HTTPException(status_code=400, detail="precio_final debe ser un número válido")
-            if precio_val < 0:
-                raise HTTPException(status_code=400, detail="precio_final debe ser >= 0")
-            nuevos_datos["precio_final"] = precio_val
-        
         turno = reservas_service.ReservasService.modificar_reserva(
             turno_id=turno_id,
             nuevos_datos=nuevos_datos,
             id_usuario_mod=request.id_usuario_mod
         )
-        return turno.to_dict()
+        return TurnoResponse.model_validate(turno)
     except HTTPException:
         raise
     except ValueError as ve:
@@ -123,8 +101,8 @@ def modificar_reserva_endpoint(turno_id: int, request: ReservaModificarRequest):
         raise HTTPException(status_code=500, detail=f"Error interno: {e}")
 
 
-@router.post("/turnos/{turno_id}/cancelar-reserva")
-@router.post("/turnos/{turno_id}/cancelar")  # Alias para compatibilidad
+@router.post("/turnos/{turno_id}/cancelar-reserva", response_model=TurnoResponse)
+@router.post("/turnos/{turno_id}/cancelar", response_model=TurnoResponse)  # Alias para compatibilidad
 def cancelar_reserva_endpoint(turno_id: int, request: ReservaCancelarRequest):
     """CU-4: Cancela una reserva y devuelve el turno a disponible."""
     try:
@@ -132,7 +110,7 @@ def cancelar_reserva_endpoint(turno_id: int, request: ReservaCancelarRequest):
             turno_id=turno_id,
             id_usuario_cancelacion=request.id_usuario_cancelacion
         )
-        return turno.to_dict()
+        return TurnoResponse.model_validate(turno)
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except LookupError as le:
@@ -146,55 +124,56 @@ def cancelar_reserva_endpoint(turno_id: int, request: ReservaCancelarRequest):
 # ====================================================
 
 
-@router.post("/turnos/", status_code=status.HTTP_201_CREATED)
-def crear_turno(payload: Dict[str, Any]):
+@router.post("/turnos/", response_model=TurnoResponse, status_code=status.HTTP_201_CREATED)
+def crear_turno(turno_data: TurnoCreateRequest):
     """Crea un nuevo turno/slot de cancha."""
     try:
+        payload = turno_data.model_dump()
         turno = turnos_service.crear_turno(payload)
-        return turno.to_dict()
+        return TurnoResponse.model_validate(turno)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/turnos/", response_model=List[Dict[str, Any]])
+@router.get("/turnos/", response_model=List[TurnoResponse])
 def listar_turnos(id_cliente: Optional[int] = Query(None, description="Filtrar por cliente (legacy)")):
     """Lista turnos. Si se proporciona id_cliente, lista reservas de ese cliente."""
     if id_cliente is not None:
         # Delegar a la lógica de reservas para mantener compatibilidad con tests
         try:
             turnos = reservas_service.ReservasService.listar_reservas_cliente(id_cliente=id_cliente)
-            return [t.to_dict() for t in turnos]
+            return [TurnoResponse.model_validate(t) for t in turnos]
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
     
     turnos = turnos_service.listar_turnos()
-    return [t.to_dict() for t in turnos]
+    return [TurnoResponse.model_validate(t) for t in turnos]
 
 
-@router.get("/turnos/cancha/{id_cancha}", response_model=List[Dict[str, Any]])
+@router.get("/turnos/cancha/{id_cancha}", response_model=List[TurnoResponse])
 def listar_turnos_por_cancha(id_cancha: int):
     """Lista turnos de una cancha específica."""
     turnos = turnos_service.listar_turnos_por_cancha(id_cancha)
-    return [t.to_dict() for t in turnos]
+    return [TurnoResponse.model_validate(t) for t in turnos]
 
 
-@router.get("/turnos/cliente/{id_cliente}", response_model=List[Dict[str, Any]])
+@router.get("/turnos/cliente/{id_cliente}", response_model=List[TurnoResponse])
 def listar_turnos_por_cliente(id_cliente: int):
     """Lista turnos de un cliente específico."""
     turnos = turnos_service.listar_turnos_por_cliente(id_cliente)
-    return [t.to_dict() for t in turnos]
+    return [TurnoResponse.model_validate(t) for t in turnos]
 
 
-@router.get("/turnos/estado/{estado}", response_model=List[Dict[str, Any]])
+@router.get("/turnos/estado/{estado}", response_model=List[TurnoResponse])
 def listar_turnos_por_estado(estado: str):
     """Lista turnos por estado (disponible, reservado, bloqueado, cancelado, finalizado)."""
     turnos = turnos_service.listar_turnos_por_estado(estado)
-    return [t.to_dict() for t in turnos]
+    return [TurnoResponse.model_validate(t) for t in turnos]
 
 
-@router.get("/turnos/disponibles", response_model=List[Dict[str, Any]])
+@router.get("/turnos/disponibles", response_model=List[TurnoResponse])
 def buscar_turnos_disponibles(
     id_cancha: int = Query(..., description="ID de la cancha"),
     fecha_inicio: str = Query(..., description="Fecha/hora inicio (ISO format)"),
@@ -202,10 +181,10 @@ def buscar_turnos_disponibles(
 ):
     """Busca turnos disponibles en un rango de fechas para una cancha."""
     turnos = turnos_service.buscar_disponibles(id_cancha, fecha_inicio, fecha_fin)
-    return [t.to_dict() for t in turnos]
+    return [TurnoResponse.model_validate(t) for t in turnos]
 
 
-@router.get("/turnos/{turno_id}", response_model=Dict[str, Any])
+@router.get("/turnos/{turno_id}", response_model=TurnoResponse)
 def obtener_turno(turno_id: int, id_cliente: Optional[int] = Query(None, description="Validar pertenencia (opcional)")):
     """Obtiene un turno por su ID. Si se proporciona id_cliente, valida pertenencia."""
     try:
@@ -214,7 +193,7 @@ def obtener_turno(turno_id: int, id_cliente: Optional[int] = Query(None, descrip
             turno = reservas_service.ReservasService.consultar_turno_por_id(turno_id, id_cliente=id_cliente)
         else:
             turno = turnos_service.obtener_turno_por_id(turno_id)
-        return turno.to_dict()
+        return TurnoResponse.model_validate(turno)
     except PermissionError as pe:
         raise HTTPException(status_code=403, detail=str(pe))
     except LookupError as e:
@@ -231,12 +210,13 @@ def calcular_precio_total(turno_id: int):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.put("/turnos/{turno_id}", response_model=Dict[str, Any])
-def actualizar_turno(turno_id: int, payload: Dict[str, Any]):
+@router.put("/turnos/{turno_id}", response_model=TurnoResponse)
+def actualizar_turno(turno_id: int, turno_data: TurnoUpdateRequest):
     """Actualiza un turno existente."""
     try:
+        payload = turno_data.model_dump(exclude_unset=True)
         turno = turnos_service.actualizar_turno(turno_id, payload)
-        return turno.to_dict()
+        return TurnoResponse.model_validate(turno)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except LookupError as e:

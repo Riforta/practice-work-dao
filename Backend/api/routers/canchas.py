@@ -1,42 +1,49 @@
 from fastapi import APIRouter, HTTPException, status
-from typing import List, Dict, Any
+from typing import List
 
+from api.schemas.canchas import (
+    CanchaResponse,
+    CanchaCreateRequest,
+    CanchaUpdateRequest
+)
 from services import canchas_service
 
 router = APIRouter()
 
 
-@router.post("/canchas/", status_code=status.HTTP_201_CREATED)
-def crear_cancha(payload: Dict[str, Any]):
+@router.post("/canchas/", response_model=CanchaResponse, status_code=status.HTTP_201_CREATED)
+def crear_cancha(cancha_data: CanchaCreateRequest):
     try:
+        payload = cancha_data.model_dump()
         cancha = canchas_service.crear_cancha(payload)
-        return cancha.to_dict()
+        return CanchaResponse.model_validate(cancha)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/canchas/", response_model=List[Dict[str, Any]])
+@router.get("/canchas/", response_model=List[CanchaResponse])
 def listar_canchas():
     canchas = canchas_service.listar_canchas()
-    return [c.to_dict() for c in canchas]
+    return [CanchaResponse.model_validate(c) for c in canchas]
 
 
-@router.get("/canchas/{cancha_id}", response_model=Dict[str, Any])
+@router.get("/canchas/{cancha_id}", response_model=CanchaResponse)
 def obtener_cancha(cancha_id: int):
     try:
         cancha = canchas_service.obtener_cancha_por_id(cancha_id)
-        return cancha.to_dict()
+        return CanchaResponse.model_validate(cancha)
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.put("/canchas/{cancha_id}", response_model=Dict[str, Any])
-def actualizar_cancha(cancha_id: int, payload: Dict[str, Any]):
+@router.put("/canchas/{cancha_id}", response_model=CanchaResponse)
+def actualizar_cancha(cancha_id: int, cancha_data: CanchaUpdateRequest):
     try:
+        payload = cancha_data.model_dump(exclude_unset=True)
         cancha = canchas_service.actualizar_cancha(cancha_id, payload)
-        return cancha.to_dict()
+        return CanchaResponse.model_validate(cancha)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except LookupError as e:

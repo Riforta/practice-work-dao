@@ -43,7 +43,7 @@ __all__ = [
 ]
 
 
-def register_routers(app: FastAPI, prefix: str = "") -> None:
+def register_routers(app: FastAPI, prefix: str = "/api") -> None:
 	"""Incluye todos los routers en la app.
 
 	Args:
