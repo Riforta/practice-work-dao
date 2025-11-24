@@ -31,6 +31,13 @@ def obtener_cancha(cancha_id: int):
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+@router.get("/canchas/{nombre}", response_model=Dict[str, Any])
+def obtener_cancha_por_nombre(nombre: str):
+    try:
+        cancha = canchas_service.obtner_cancha_por_nombre(nombre)
+        return cancha.to_dict()
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.put("/canchas/{cancha_id}", response_model=Dict[str, Any])
 def actualizar_cancha(cancha_id: int, payload: Dict[str, Any]):
