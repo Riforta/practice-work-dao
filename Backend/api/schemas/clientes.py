@@ -13,6 +13,7 @@ class ClienteCreateRequest(BaseModel):
     dni: Optional[str] = Field(None, max_length=20, description="DNI del cliente")
     telefono: str = Field(..., min_length=1, max_length=20, description="Teléfono del cliente")
     email: Optional[EmailStr] = Field(None, description="Email del cliente")
+    id_usuario: Optional[int] = Field(None, description="ID del usuario asociado al cliente")
     
     model_config = ConfigDict(
         json_schema_extra={
@@ -21,7 +22,8 @@ class ClienteCreateRequest(BaseModel):
                 "apellido": "Pérez",
                 "dni": "12345678",
                 "telefono": "3512345678",
-                "email": "juan.perez@example.com"
+                "email": "juan.perez@example.com",
+                "id_usuario": None
             }
         }
     )
@@ -34,6 +36,7 @@ class ClienteUpdateRequest(BaseModel):
     dni: Optional[str] = Field(None, max_length=20)
     telefono: Optional[str] = Field(None, min_length=1, max_length=20)
     email: Optional[EmailStr] = None
+    id_usuario: Optional[int] = None
 
 
 # ===== Response Schemas =====
@@ -46,5 +49,6 @@ class ClienteResponse(BaseModel):
     dni: Optional[str] = None
     telefono: str
     email: Optional[str] = None
+    id_usuario: Optional[int] = None
     
     model_config = ConfigDict(from_attributes=True)
