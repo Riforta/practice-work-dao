@@ -1,0 +1,7 @@
+# Archivos locales y base de datos
+.venv/
+Backend/database.db
+database.db
+
+# Dependencias de node
+Frontend/node_modules/
