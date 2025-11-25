@@ -2,13 +2,6 @@
 
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Dict, Any
-from api.schemas.auth import (
-    LoginRequest,
-    RegisterRequest,
-    UsuarioResponse,
-    LoginResponse,
-    RegisterResponse
-)
 from services.auth_service import AuthService
 from api.dependencies.auth import get_current_user
 from models.usuario import Usuario
@@ -18,8 +11,8 @@ router = APIRouter()
 
 # ===== Endpoints =====
 
-@router.post("/login", response_model=LoginResponse, summary="Login de usuario")
-def login(credentials: LoginRequest):
+@router.post("/login", summary="Login de usuario")
+def login(credentials: Dict[str, Any]):
     """
     Autentica un usuario y devuelve un token JWT.
     Al hacer login, el usuario se marca como activo.
@@ -33,8 +26,8 @@ def login(credentials: LoginRequest):
     """
     # Delega la lógica al servicio
     user = AuthService.autenticar_usuario(
-        usuario_field=credentials.usuario,
-        password=credentials.password
+        usuario_field=credentials.get("usuario"),
+        password=credentials.get("password")
     )
     
     if not user:
@@ -50,15 +43,22 @@ def login(credentials: LoginRequest):
     # Genera el token
     token = AuthService.generar_token(user)
     
-    # Prepara la respuesta usando schema Pydantic
-    return LoginResponse(
-        token=token,
-        user=UsuarioResponse.model_validate(user)
-    )
+    # Prepara la respuesta como dict
+    return {
+        "token": token,
+        "user": {
+            "id": user.id,
+            "nombre_usuario": user.nombre_usuario,
+            "email": user.email,
+            "id_rol": user.id_rol,
+            "activo": user.activo,
+            "fecha_creacion": user.fecha_creacion
+        }
+    }
 
 
-@router.post("/register", response_model=RegisterResponse, summary="Registrar nuevo usuario")
-def register(data: RegisterRequest):
+@router.post("/register", summary="Registrar nuevo usuario")
+def register(data: Dict[str, Any]):
     """
     Registra un nuevo usuario en el sistema y devuelve un token JWT.
     
@@ -75,21 +75,28 @@ def register(data: RegisterRequest):
     try:
         # Delega la lógica al servicio
         nuevo_usuario = AuthService.registrar_usuario(
-            nombre_usuario=data.nombre_usuario,
-            email=data.email,
-            password=data.password,
-            id_rol=data.id_rol
+            nombre_usuario=data.get("nombre_usuario"),
+            email=data.get("email"),
+            password=data.get("password"),
+            id_rol=data.get("id_rol", 2)
         )
         
         # Genera el token automáticamente
         token = AuthService.generar_token(nuevo_usuario)
         
-        # Prepara la respuesta usando schema Pydantic
-        return RegisterResponse(
-            token=token,
-            user=UsuarioResponse.model_validate(nuevo_usuario),
-            message="Usuario registrado exitosamente"
-        )
+        # Prepara la respuesta como dict
+        return {
+            "token": token,
+            "user": {
+                "id": nuevo_usuario.id,
+                "nombre_usuario": nuevo_usuario.nombre_usuario,
+                "email": nuevo_usuario.email,
+                "id_rol": nuevo_usuario.id_rol,
+                "activo": nuevo_usuario.activo,
+                "fecha_creacion": nuevo_usuario.fecha_creacion
+            },
+            "message": "Usuario registrado exitosamente"
+        }
     
     except ValueError as e:
         # Errores de validación o duplicados
