@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-import React from 'react';
 import "./Basquet.css"
 import curry from './imagenes/curry_hd_si.jpg';
 
@@ -33,4 +31,3 @@ export default function Basquet() {
 		</div>
         )
 }
-
