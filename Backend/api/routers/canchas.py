@@ -7,9 +7,9 @@ router = APIRouter()
 
 
 @router.post("/canchas/", status_code=status.HTTP_201_CREATED)
-def crear_cancha(payload: Dict[str, Any]):
+def crear_cancha(cancha_data: Dict[str, Any]):
     try:
-        cancha = canchas_service.crear_cancha(payload)
+        cancha = canchas_service.crear_cancha(cancha_data)
         return cancha.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -17,13 +17,13 @@ def crear_cancha(payload: Dict[str, Any]):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/canchas/", response_model=List[Dict[str, Any]])
+@router.get("/canchas/")
 def listar_canchas():
     canchas = canchas_service.listar_canchas()
     return [c.to_dict() for c in canchas]
 
 
-@router.get("/canchas/{cancha_id}", response_model=Dict[str, Any])
+@router.get("/canchas/{cancha_id}")
 def obtener_cancha(cancha_id: int):
     try:
         cancha = canchas_service.obtener_cancha_por_id(cancha_id)
@@ -39,10 +39,10 @@ def obtener_cancha_por_nombre(nombre: str):
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.put("/canchas/{cancha_id}", response_model=Dict[str, Any])
-def actualizar_cancha(cancha_id: int, payload: Dict[str, Any]):
+@router.put("/canchas/{cancha_id}")
+def actualizar_cancha(cancha_id: int, cancha_data: Dict[str, Any]):
     try:
-        cancha = canchas_service.actualizar_cancha(cancha_id, payload)
+        cancha = canchas_service.actualizar_cancha(cancha_id, cancha_data)
         return cancha.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -9,6 +9,7 @@ from importlib import import_module
 from typing import Any
 
 __all__ = [
+    "auth_service",
     "canchas_services",
     "clientes_service",
     "equipo_miembros_services",
