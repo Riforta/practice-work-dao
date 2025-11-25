@@ -14,6 +14,10 @@ import RegistrarCanchaFutbol from './components/cancha/futbol/RegistrarCanchaFut
 import ConsultarCanchaPadel from './components/cancha/padel/ConsultarCanchaPadel.tsx'
 import ModificarCanchaPadel from './components/cancha/padel/ModificarCanchaPadel.tsx'
 import RegistrarCanchaPadel from './components/cancha/padel/RegistrarCanchaPadel.tsx'
+import Equipo from './components/equipo/Equipo.tsx'
+import ConsultarEquipo from './components/equipo/ConsultarEquipo.tsx'
+import ModificarEquipo from './components/equipo/ModificarEquipo.tsx'
+import RegistrarEquipo from './components/equipo/RegistrarEquipo.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -58,6 +62,11 @@ function App() {
                   <Route path="/canchas/padel" element={<ConsultarCanchaPadel/>} />
                   <Route path="/canchas/padel/RegistrarCancha" element={<RegistrarCanchaPadel/>} />
                   <Route path="/canchas/padel/ModificarCanchaPadel/:id" element={<ModificarCanchaPadel/>} />
+                  {/* Equipo */}
+                  <Route path="/equipos" element={<Equipo/>} />
+                  <Route path="/equipos/ConsultarEquipo" element={<ConsultarEquipo/>} />
+                  <Route path="/equipos/RegistrarEquipo" element={<RegistrarEquipo/>} />
+                  <Route path="/equipos/ModificarEquipo/:id" element={<ModificarEquipo/>} />
                 </Routes>
               </Suspense>
             </main>
