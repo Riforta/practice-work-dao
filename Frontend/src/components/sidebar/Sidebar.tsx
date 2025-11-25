@@ -36,9 +36,7 @@ export default function Sidebar() {
 
   ];
 
-  const secondaryNavigation = [
-    { name: 'Log Out', href: '#', icon: ArrowRightStartOnRectangleIcon },
-  ];
+
 
   // Función de utilidad para clases condicionales
   function classNames(...classes: (string | boolean | null | undefined)[]) {
@@ -117,23 +115,6 @@ export default function Sidebar() {
               </Disclosure>
             )
           )}
-        </nav>
-
-        {/* Navegación Secundaria (abajo) */}
-        <nav className="mt-auto space-y-1 px-4 py-4">
-          {secondaryNavigation.map((item) => (
-            <a
-              key={item.name}
-              href={item.href}
-              className="group -mx-2 flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white"
-            >
-              <item.icon
-                className="size-6 shrink-0 text-gray-500 group-hover:text-white"
-                aria-hidden="true"
-              />
-              <span>{item.name}</span>
-            </a>
-          ))}
         </nav>
       </div>
     </div>

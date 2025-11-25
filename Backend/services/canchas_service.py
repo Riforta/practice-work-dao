@@ -15,6 +15,11 @@ def crear_cancha(data: Dict[str, Any]) -> Cancha:
     except Exception as e:
         raise Exception(f'Error al crear cancha: {e}')
 
+def obtener_cancha_por_nombre(nombre: str) -> Cancha:
+    cancha = CanchaRepository.obtener_por_nombre(nombre)
+    if cancha is None:
+        raise LookupError(f'Cancha con nombre {nombre} no encontrada')
+    return cancha
 
 def obtener_cancha_por_id(cancha_id: int) -> Cancha:
     cancha = CanchaRepository.obtener_por_id(cancha_id)

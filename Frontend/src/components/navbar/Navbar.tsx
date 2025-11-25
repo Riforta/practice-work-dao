@@ -14,6 +14,9 @@ export default function Navbar() {
     <header className="bg-gray-900">
       <nav aria-label="Global" className="mx-auto relative flex max-w-7xl items-center justify-between p-6 lg:px-8">
         <div className="flex lg:flex-1 align-items-left">
+          <div className="size-20 perspective-dramatic ...">
+          <div className="translate-z-12 rotate-x-0 bg-sky-300/75 ...">
+        </div>
           <a href="/" className="-ml-24 sm:-ml-0 p-0">
             <img
               alt=""
@@ -21,6 +24,7 @@ export default function Navbar() {
               className="h-16 w-auto object-contain"
             />
           </a>
+        </div>
         </div>
         {/* Centered title */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
