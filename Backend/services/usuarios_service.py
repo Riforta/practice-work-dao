@@ -5,6 +5,62 @@ from repositories.usuario_repository import UsuarioRepository
 from passlib.hash import pbkdf2_sha256
 
 
+def registrar_usuario(data: Dict[str, Any]) -> Usuario:
+    """
+    Registra un nuevo usuario en el sistema.
+    
+    Args:
+        data: Diccionario con datos de usuario:
+            - nombre_usuario: Nombre de usuario único (mínimo 3 caracteres)
+            - email: Email válido y único
+            - password: Contraseña en texto plano (mínimo 6 caracteres)
+            - id_rol: ID del rol a asignar (opcional, default: 2 = Cliente)
+    
+    Returns:
+        Usuario creado con su ID asignado
+    
+    Raises:
+        ValueError: Si hay errores de validación o datos duplicados
+    """
+    # Extraer y validar datos
+    nombre_usuario = data.get('nombre_usuario')
+    email = data.get('email')
+    password = data.get('password')
+    id_rol = data.get('id_rol', 2)  # Por defecto rol cliente
+    
+    # Validar campos requeridos
+    if not nombre_usuario or len(nombre_usuario) < 3:
+        raise ValueError('El nombre de usuario debe tener al menos 3 caracteres')
+    if not email or '@' not in email:
+        raise ValueError('Email inválido')
+    if not password or len(password) < 6:
+        raise ValueError('La contraseña debe tener al menos 6 caracteres')
+    
+    # Verificar unicidad
+    if UsuarioRepository.existe_nombre_usuario(nombre_usuario):
+        raise ValueError(f'El nombre de usuario "{nombre_usuario}" ya está en uso')
+    if UsuarioRepository.existe_email(email):
+        raise ValueError(f'El email "{email}" ya está registrado')
+    
+    # Crear usuario
+    hashed = pbkdf2_sha256.hash(password)
+    usuario = Usuario(
+        nombre_usuario=nombre_usuario,
+        email=email,
+        password_hash=hashed,
+        id_rol=id_rol,
+        activo=1,  # Activo al registrarse
+    )
+    
+    try:
+        # Guardar usuario
+        usuario.id = UsuarioRepository.crear(usuario)
+        return usuario
+        
+    except Exception as e:
+        raise Exception(f'Error al registrar usuario: {e}')
+
+
 def crear_usuario(data: Dict[str, Any]) -> Usuario:
     """
     Crea un nuevo usuario con validación mínima y hashing de contraseña.

@@ -158,61 +158,25 @@ class AuthService:
         user_dict.pop('password_hash', None)
         return user_dict
     
-    @staticmethod
-    def registrar_usuario(
-        nombre_usuario: str,
-        email: str,
-        password: str,
-        id_rol: int = 2  # Por defecto rol 2 (Cliente)
-    ) -> Usuario:
-        """
-        Registra un nuevo usuario en el sistema.
-        
-        Args:
-            nombre_usuario: Nombre de usuario único
-            email: Email único
-            password: Contraseña en texto plano (será hasheada)
-            id_rol: ID del rol a asignar (default 2 = Cliente)
-            
-        Returns:
-            Usuario recién creado
-            
-        Raises:
-            ValueError: Si el email o nombre de usuario ya existen, o si hay errores de validación
-        """
-        # Validaciones
-        if not nombre_usuario or len(nombre_usuario) < 3:
-            raise ValueError("El nombre de usuario debe tener al menos 3 caracteres")
-        
-        if not email or '@' not in email:
-            raise ValueError("Email inválido")
-        
-        if not password or len(password) < 6:
-            raise ValueError("La contraseña debe tener al menos 6 caracteres")
-        
-        # Verificar si ya existe
-        if UsuarioRepository.existe_nombre_usuario(nombre_usuario):
-            raise ValueError(f"El nombre de usuario '{nombre_usuario}' ya está en uso")
-        
-        if UsuarioRepository.existe_email(email):
-            raise ValueError(f"El email '{email}' ya está registrado")
-        
-        # Crear usuario
-        password_hash = AuthService.hash_password(password)
-        
-        nuevo_usuario = Usuario(
-            nombre_usuario=nombre_usuario,
-            email=email,
-            password_hash=password_hash,
-            id_rol=id_rol,
-            activo=1  # Por defecto activo al registrarse
-        )
-        
-        # Guardar en BD
-        usuario_id = UsuarioRepository.crear(nuevo_usuario)
-        nuevo_usuario.id = usuario_id
-        
-        return nuevo_usuario
+    # ===== MÉTODO DE REGISTRO MOVIDO A usuarios_service.py =====
+    # El registro de usuarios ahora se maneja en usuarios_service.registrar_usuario_cliente()
+    # que registra Usuario + Cliente en una sola transacción.
+    # Ver: services/usuarios_service.py -> registrar_usuario_cliente()
+    
+    # @staticmethod
+    # def registrar_usuario(
+    #     nombre_usuario: str,
+    #     email: str,
+    #     password: str,
+    #     id_rol: int = 2
+    # ) -> Usuario:
+    #     """
+    #     DEPRECADO: Usar usuarios_service.registrar_usuario_cliente() en su lugar.
+    #     
+    #     Este método solo registraba el Usuario sin crear el perfil de Cliente.
+    #     Ahora se requiere que todo cliente tenga un Usuario asociado.
+    #     """
+    #     pass
     
     @staticmethod
     def marcar_activo(usuario_id: int, activo: bool = True) -> bool:

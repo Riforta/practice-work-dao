@@ -1,11 +1,14 @@
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
 
+from Backend.api.dependencies.auth import require_admin
+from Backend.models.usuario import Usuario
 from services import clientes_service
 
 router = APIRouter()
 
 
+'''
 @router.post("/clientes/", status_code=status.HTTP_201_CREATED)
 def crear_cliente(cliente_data: Dict[str, Any]):
     try:
@@ -15,7 +18,7 @@ def crear_cliente(cliente_data: Dict[str, Any]):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+'''
 
 @router.get("/clientes/")
 def listar_clientes():
@@ -54,7 +57,7 @@ def actualizar_cliente(cliente_id: int, cliente_data: Dict[str, Any]):
 
 
 @router.delete("/clientes/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_cliente(cliente_id: int):
+def eliminar_cliente(cliente_id: int, current_user: Usuario = Depends(require_admin)):
     try:
         clientes_service.eliminar_cliente(cliente_id)
         return None
