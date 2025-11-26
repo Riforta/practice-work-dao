@@ -44,7 +44,7 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="flex h-full min-h-screen w-72 flex-col bg-gray-900 text-white">
+    <div className="flex h-full w-72 flex-col bg-gray-900 text-white">
       {/* Encabezado del Sidebar (Logo/Título) */}
 
       {/* Contenido principal del Sidebar */}
