@@ -14,6 +14,7 @@ from .partido import Partido
 from .pedido import Pedido
 from .pedido_item import PedidoItem
 from .pago import Pago
+from .tarifa import Tarifa
 
 __all__ = [
     'Rol',
@@ -30,5 +31,6 @@ __all__ = [
     'Partido',
     'Pedido',
     'PedidoItem',
-    'Pago'
+    'Pago',
+    'Tarifa'
 ]

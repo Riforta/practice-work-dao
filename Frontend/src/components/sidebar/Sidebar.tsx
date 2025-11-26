@@ -14,7 +14,7 @@ export default function Sidebar() {
   // const currentItem = 'Reservas'; // ⬆️ ELIMINÉ ESTA LÍNEA
 
   const navigation = [
-    { name: 'Reservas', href: '#', icon: RectangleStackIcon}, // 'current: true' ahora controla el estado activo
+    { name: 'Reservas', href: '/reservas', icon: RectangleStackIcon}, // 'current: true' ahora controla el estado activo
     {
       name: 'Clientes',
       icon: ShoppingCartIcon,

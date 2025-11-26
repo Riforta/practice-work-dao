@@ -87,6 +87,20 @@ class ClienteRepository:
             return None
         finally:
             conn.close()
+
+    @staticmethod
+    def obtener_por_id_usuario(id_usuario: int) -> Optional[Cliente]:
+        """
+        Obtiene un cliente asociado a un usuario dado.
+        """
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Cliente WHERE id_usuario = ?", (id_usuario,))
+            row = cursor.fetchone()
+            return Cliente.from_db_row(row) if row else None
+        finally:
+            conn.close()
     
     @staticmethod
     def obtener_todos() -> List[Cliente]:
