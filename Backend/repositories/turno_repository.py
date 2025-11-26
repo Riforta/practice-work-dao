@@ -4,6 +4,7 @@ Maneja todas las operaciones de base de datos relacionadas con turnos/reservas.
 """
 
 from typing import List, Optional
+from datetime import datetime
 from models.turno import Turno
 from database.connection import get_connection
 
@@ -250,6 +251,22 @@ class TurnoRepository:
             raise Exception(f"Error al obtener turnos filtrados: {e}")
         finally:
             conn.close()
+
+    @staticmethod
+    def marcar_pasados_no_disponible(now_iso: Optional[str] = None) -> int:
+        """Marca como 'no_disponible' los turnos disponibles cuya fecha/hora fin ya pasó."""
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            now_value = now_iso or datetime.now().isoformat(timespec="minutes")
+            cursor.execute(
+                "UPDATE Turno SET estado = 'no_disponible' WHERE estado = 'disponible' AND fecha_hora_fin < ?",
+                (now_value,),
+            )
+            conn.commit()
+            return cursor.rowcount
+        finally:
+            conn.close()
     
     @staticmethod
     def eliminar(turno_id: int) -> bool:
@@ -265,6 +282,21 @@ class TurnoRepository:
         cursor = conn.cursor()
         try:
             cursor.execute("DELETE FROM Turno WHERE id = ?", (turno_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            conn.close()
+
+    @staticmethod
+    def cambiar_estado(turno_id: int, nuevo_estado: str) -> bool:
+        """Actualiza solo el estado de un turno."""
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE Turno SET estado = ? WHERE id = ?",
+                (nuevo_estado, turno_id),
+            )
             conn.commit()
             return cursor.rowcount > 0
         finally:

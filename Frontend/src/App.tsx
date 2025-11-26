@@ -24,6 +24,8 @@ import ModificarServicios from './components/servicios/ModificarServicios.tsx'
 import ConsultarTurnos from './components/turnos/ConsultarTurnos.tsx'
 import RegistrarTurnos from './components/turnos/RegistrarTurnos.tsx'
 import ModificarTurnos from './components/turnos/ModificarTurnos.tsx'
+import ReservasCliente from './components/turnos/ReservasCliente.tsx'
+import PagoReserva from './components/turnos/PagoReserva.tsx'
 import Torneo from './components/torneo/torneo.tsx'
 //import ConsultarTorneo from './components/torneo/ConsultarTorneo.tsx'
 //import RegistrarTorneo from './components/torneo/RegistrarTorneo.tsx'
@@ -90,6 +92,8 @@ function App() {
                   <Route path="/turnos" element={<ConsultarTurnos />} />
                   <Route path="/turnos/nuevo" element={<RegistrarTurnos />} />
                   <Route path="/turnos/:id/editar" element={<ModificarTurnos />} />
+                  <Route path="/reservas" element={<ReservasCliente />} />
+                  <Route path="/reservas/pago" element={<PagoReserva />} />
                 </Routes>
               </Suspense>
             </main>

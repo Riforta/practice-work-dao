@@ -142,8 +142,9 @@ export default function RegistrarTurnos() {
         (max, curr) => (curr.precio_actual > max.precio_actual ? curr : max),
         lucesActivas[0]
       );
-      total += luzMayor.precio_actual;
-      luzMonto = luzMayor.precio_actual;
+      const luzTotal = durationHours * luzMayor.precio_actual;
+      total += luzTotal;
+      luzMonto = luzTotal;
     }
 
     setLuzAplicada({ aplicada: luzMonto > 0, monto: luzMonto });
@@ -157,11 +158,13 @@ export default function RegistrarTurnos() {
       const { fecha, hora_inicio, hora_fin, ...rest } = values;
       const fechaInicio = fecha && hora_inicio ? `${fecha}T${hora_inicio}` : '';
       const fechaFin = fecha && hora_fin ? `${fecha}T${hora_fin}` : '';
+      const idCliente = Number(values.id_cliente);
+      const clienteValido = Number.isFinite(idCliente) && idCliente > 0;
       const payload = {
         ...rest,
         fecha_hora_inicio: fechaInicio,
         fecha_hora_fin: fechaFin,
-        id_cliente: Number.isFinite(values.id_cliente) ? values.id_cliente : undefined,
+        id_cliente: clienteValido ? idCliente : undefined,
       };
       if (!fechaInicio || !fechaFin) {
         setError('Completa fecha, hora inicio y hora fin.');
@@ -172,6 +175,15 @@ export default function RegistrarTurnos() {
       const end = new Date(fechaFin).getTime();
       if (Number.isNaN(start) || Number.isNaN(end) || end <= start) {
         setError('La hora fin debe ser posterior a la hora inicio.');
+        return;
+      }
+      const now = Date.now();
+      if (start < now) {
+        setError('No se puede crear un turno en una fecha/hora pasada.');
+        return;
+      }
+      if (values.estado === 'reservado' && !clienteValido) {
+        setError('Debes seleccionar un cliente para un turno reservado.');
         return;
       }
       if (!rest.precio_final || rest.precio_final <= 0) {

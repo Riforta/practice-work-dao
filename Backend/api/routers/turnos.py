@@ -102,14 +102,18 @@ def modificar_reserva_endpoint(turno_id: int, request: Dict[str, Any], current_u
 
 @router.post("/turnos/{turno_id}/cancelar-reserva")
 @router.post("/turnos/{turno_id}/cancelar")  # Alias para compatibilidad
-def cancelar_reserva_endpoint(turno_id: int, request: Dict[str, Any], current_user: Usuario = Depends(require_role("cliente")),
+def cancelar_reserva_endpoint(turno_id: int, request: Optional[Dict[str, Any]] = None, current_user: Usuario = Depends(require_role("cliente")),
                             admin_check: Usuario = Depends(require_admin())):
     """CU-4: Cancela una reserva y devuelve el turno a disponible."""
     try:
-        turno = reservas_service.ReservasService.cancelar_reserva(
-            turno_id=turno_id,
-            id_usuario_cancelacion=request.get("id_usuario_cancelacion")
-        )
+        id_usuario_cancelacion = request.get("id_usuario_cancelacion") if request else None
+        if id_usuario_cancelacion:
+            turno = reservas_service.ReservasService.cancelar_reserva(
+                turno_id=turno_id,
+                id_usuario_cancelacion=id_usuario_cancelacion
+            )
+        else:
+            turno = turnos_service.cancelar_reserva(turno_id)
         return turno.to_dict()
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
