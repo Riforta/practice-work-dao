@@ -21,6 +21,7 @@ from .servicios_adicionales import router as servicios_adicionales_router
 from .torneos import router as torneos_router
 from .turnos import router as turnos_router
 from .usuarios import router as usuarios_router
+from .tarifas import router as tarifas_router
 
 __all__ = [
 	"auth_router",
@@ -37,6 +38,7 @@ __all__ = [
 	"torneos_router",
 	"turnos_router",
 	"usuarios_router",
+    "tarifas_router",
 	"register_routers",
 ]
 
@@ -62,3 +64,4 @@ def register_routers(app: FastAPI, prefix: str = "/api") -> None:
 	app.include_router(roles_router, prefix=prefix)
 	app.include_router(usuarios_router, prefix=prefix)
 	app.include_router(turnos_router, prefix=prefix)
+	app.include_router(tarifas_router, prefix=prefix)

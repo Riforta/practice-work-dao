@@ -10,21 +10,22 @@ from typing import Any
 
 __all__ = [
     "auth_service",
-    "canchas_services",
+    "canchas_service",
     "clientes_service",
-    "equipo_miembros_services",
-    "equipos_services",
-    "inscripciones_services",
-    "pagos_services",
-    "partidos_services",
-    "pedidos_services",
+    "equipo_miembros_service",
+    "equipos_service",
+    "inscripciones_service",
+    "pagos_service",
+    "partidos_service",
+    "pedidos_service",
     "reservas_service",
-    "roles_services",
-    "servicios_adicionales_services",
-    "torneos_services",
+    "roles_service",
+    "servicios_adicionales_service",
+    "tarifas_service",
+    "torneos_service",
     "turno_servicios_service",
     "turnos_service",
-    "usuarios_services",
+    "usuarios_service",
 ]
 
 
