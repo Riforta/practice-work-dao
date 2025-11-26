@@ -30,6 +30,7 @@ export default function Sidebar() {
     { name: 'Torneos', href: '/torneos', icon: UserCircleIcon, current: false },
     { name: 'Servicios', href: '/servicios', icon: UserCircleIcon, current: false },
     { name: 'Turnos', href: '/turnos', icon: UserCircleIcon, current: false },
+    { name: 'Reportes', href: '/reportes', icon: RectangleStackIcon, current: false },
 
   ];
 

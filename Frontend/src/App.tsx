@@ -24,6 +24,7 @@ import ModificarServicios from './components/servicios/ModificarServicios.tsx'
 import ConsultarTurnos from './components/turnos/ConsultarTurnos.tsx'
 import RegistrarTurnos from './components/turnos/RegistrarTurnos.tsx'
 import ModificarTurnos from './components/turnos/ModificarTurnos.tsx'
+import Reportes from './components/reportes/Reportes.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -86,6 +87,8 @@ function App() {
                   <Route path="/turnos" element={<ConsultarTurnos />} />
                   <Route path="/turnos/nuevo" element={<RegistrarTurnos />} />
                   <Route path="/turnos/:id/editar" element={<ModificarTurnos />} />
+                  {/* Reportes */}
+                  <Route path="/reportes" element={<Reportes />} />
                 </Routes>
               </Suspense>
             </main>
