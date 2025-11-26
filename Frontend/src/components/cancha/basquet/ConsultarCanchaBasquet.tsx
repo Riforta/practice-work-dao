@@ -4,7 +4,7 @@ import service from '../../../services/canchas.service';
 import { Link, useNavigate } from 'react-router-dom';
 import backgroundImage from "./imagenes/cancha_bas.jpg";
 
-export default function SearchBar() {
+export default function ConsultarCanchaBasquet() {
   const [rows, setRows] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(false); // Estado para mostrar "Cargando..."
@@ -73,7 +73,7 @@ export default function SearchBar() {
       <div className="w-full max-w-6xl mx-auto px-6 py-12">
         <div className="flex justify-between items-center mb-6">
           <h2 className="bg-white text-red-900 px-6 py-3 rounded hover:bg-gray-100 shadow text-4xl md:text-5xl font-extrabold" >Gestión de Canchas</h2>
-          <Link to="/canchas/registrarCancha" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <Link to="/canchas/basquet/RegistrarCancha" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             + Nueva Cancha
           </Link>
         </div>
@@ -98,6 +98,7 @@ export default function SearchBar() {
                         <th className="px-6 py-3">Deporte</th>
                         <th className="px-6 py-3">Descripción</th>
                         <th className="px-6 py-3">Estado</th>
+                        <th className="px-6 py-3">Acciones</th>
                     </tr>
                 </thead>
                 <tbody className="text-center">

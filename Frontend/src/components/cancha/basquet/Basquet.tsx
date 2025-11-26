@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-import React from 'react';
 import "./Basquet.css"
 import curry from './imagenes/curry_hd_si.jpg';
 
@@ -7,8 +5,7 @@ import curry from './imagenes/curry_hd_si.jpg';
 
 export default function Basquet() {
         return (
-                                <div className="w-full h-screen bg-no-repeat bg-cover bg-center"
-  					style={{ backgroundImage: `url(${curry})` }}>
+                <div className="w-full h-screen bg-no-repeat bg-cover bg-center" style={{ backgroundImage: `url(${curry})` }}>
                 <div className="basquet-root">
                         <div className="image-wrapper">
 
@@ -33,4 +30,3 @@ export default function Basquet() {
 		</div>
         )
 }
-

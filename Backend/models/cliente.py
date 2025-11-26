@@ -49,6 +49,8 @@ class Cliente:
     @classmethod
     def from_db_row(cls, row):
         """Crea un objeto Cliente desde una fila de la base de datos"""
+        # sqlite3.Row no implementa .get(), por eso validamos la clave manualmente
+        has_id_usuario = 'id_usuario' in row.keys()
         return cls(
             id=row['id'],
             nombre=row['nombre'],
@@ -56,5 +58,5 @@ class Cliente:
             dni=row['dni'],
             telefono=row['telefono'],
             email=row['email'],
-            id_usuario=row.get('id_usuario')
+            id_usuario=row['id_usuario'] if has_id_usuario else None
         )

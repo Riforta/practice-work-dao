@@ -269,3 +269,39 @@ class TurnoRepository:
             return cursor.rowcount > 0
         finally:
             conn.close()
+
+    @staticmethod
+    def existe_solapado(
+        id_cancha: int,
+        fecha_hora_inicio: str,
+        fecha_hora_fin: str,
+        excluir_id: Optional[int] = None
+    ) -> bool:
+        """
+        Verifica si existe algún turno en la misma cancha cuyo rango [inicio, fin)
+        se solape con el rango proporcionado.
+
+        Se considera solape si:
+        nuevo_inicio < existente_fin AND nuevo_fin > existente_inicio
+        """
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            sql = """
+                SELECT COUNT(*) as c
+                FROM Turno
+                WHERE id_cancha = ?
+                  AND fecha_hora_inicio < ?
+                  AND fecha_hora_fin > ?
+            """
+            params = [id_cancha, fecha_hora_fin, fecha_hora_inicio]
+
+            if excluir_id is not None:
+                sql += " AND id != ?"
+                params.append(excluir_id)
+
+            cursor.execute(sql, tuple(params))
+            row = cursor.fetchone()
+            return (row[0] if row else 0) > 0
+        finally:
+            conn.close()
