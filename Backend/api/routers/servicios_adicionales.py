@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post("/servicios_adicionales/", status_code=status.HTTP_201_CREATED)
 def crear_servicio(payload: Dict[str, Any]):
     try:
-        s = servicios_adicionales_service.crear_servicio_adicional(payload)
+        s = servicios_adicionales_service.crear_servicio(payload)
         return s.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -7,6 +7,12 @@ import Inicio from './components/inicio/Inicio.tsx'
 import Cancha from './components/cancha/Cancha.tsx'
 import ConsultarCanchaBasquet from './components/cancha/basquet/ConsultarCanchaBasquet.tsx'
 import ModificarCanchaBasquet from './components/cancha/basquet/ModificarCanchaBasquet.tsx'
+import ConsultarServicios from './components/servicios/ConsultarServicios.tsx'
+import RegistrarServicios from './components/servicios/RegistrarServicios.tsx'
+import ModificarServicios from './components/servicios/ModificarServicios.tsx'
+import ConsultarTurnos from './components/turnos/ConsultarTurnos.tsx'
+import RegistrarTurnos from './components/turnos/RegistrarTurnos.tsx'
+import ModificarTurnos from './components/turnos/ModificarTurnos.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -58,6 +64,14 @@ function App() {
                   <Route path="/canchas/padel/crear" element={<CrearCanchaPadel/>} />
                   <Route path="/canchas/padel/eliminar" element={<EliminarCanchaPadel/>} />
                   <Route path="/canchas/padel/modificar" element={<ModificarCanchaPadel/>} />*/}
+                  {/* Servicios adicionales */}
+                  <Route path="/servicios" element={<ConsultarServicios />} />
+                  <Route path="/servicios/nuevo" element={<RegistrarServicios />} />
+                  <Route path="/servicios/:id/editar" element={<ModificarServicios />} />
+                  {/* Turnos */}
+                  <Route path="/turnos" element={<ConsultarTurnos />} />
+                  <Route path="/turnos/nuevo" element={<RegistrarTurnos />} />
+                  <Route path="/turnos/:id/editar" element={<ModificarTurnos />} />
                 </Routes>
               </Suspense>
             </main>

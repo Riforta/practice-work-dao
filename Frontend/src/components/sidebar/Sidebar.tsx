@@ -1,5 +1,3 @@
-import React from 'react';
-import logo from './Logo.png';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import {
   RectangleStackIcon,
@@ -7,7 +5,6 @@ import {
   ChevronDownIcon,
   InboxIcon,
   UserCircleIcon,
-  ArrowRightStartOnRectangleIcon,
   BanknotesIcon,
 } from '@heroicons/react/24/outline';
 
