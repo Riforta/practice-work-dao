@@ -1,5 +1,5 @@
 import axios from 'axios';
-const api_url =  'http://127.0.0.1:8000/canchas'
+const api_url =  'http://127.0.0.1:8000/api/canchas'
 
 // BASQUET SERVICE
 const getAllCanchasBasquet = async () => {

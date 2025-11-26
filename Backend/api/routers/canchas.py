@@ -34,7 +34,7 @@ def obtener_cancha(cancha_id: int):
 @router.get("/canchas/{nombre}", response_model=Dict[str, Any])
 def obtener_cancha_por_nombre(nombre: str):
     try:
-        cancha = canchas_service.obtner_cancha_por_nombre(nombre)
+        cancha = canchas_service.obtener_cancha_por_nombre(nombre)
         return cancha.to_dict()
     except LookupError as e:
         raise HTTPException(status_code=404, detail=str(e))
