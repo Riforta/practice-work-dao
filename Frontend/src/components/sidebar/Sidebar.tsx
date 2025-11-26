@@ -1,5 +1,3 @@
-import React from 'react';
-import logo from './Logo.png';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import {
   RectangleStackIcon,
@@ -7,7 +5,6 @@ import {
   ChevronDownIcon,
   InboxIcon,
   UserCircleIcon,
-  ArrowRightStartOnRectangleIcon,
   BanknotesIcon,
 } from '@heroicons/react/24/outline';
 
@@ -44,7 +41,7 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="flex h-full min-h-screen w-72 flex-col bg-gray-900 text-white">
+    <div className="flex h-full w-72 flex-col bg-gray-900 text-white">
       {/* Encabezado del Sidebar (Logo/Título) */}
 
       {/* Contenido principal del Sidebar */}

@@ -35,6 +35,15 @@ def obtener_equipo(equipo_id: int):
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@router.get("/equipos/nombre/{nombre}", response_model=Dict[str, Any])
+def obtener_equipo_por_nombre(nombre: str):
+    try:
+        equipo = equipos_service.obtener_equipo_por_nombre(nombre)
+        return equipo.to_dict()
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @router.put("/equipos/{equipo_id}", response_model=Dict[str, Any])
 def actualizar_equipo(equipo_id: int, payload: Dict[str, Any]):
     try:

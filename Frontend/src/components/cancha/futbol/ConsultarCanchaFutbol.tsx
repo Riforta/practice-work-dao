@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 // Asegúrate de que la ruta sea correcta
 import service from '../../../services/canchas.service'; 
 import { Link, useNavigate } from 'react-router-dom';
-import backgroundImage from "./imagenes/cancha_padel.jpg";
+import backgroundImage from "./imagenes/campnou.jpg";
 
-export default function ConsultarCanchaPadel() {
+export default function ConsultarCanchaFutbol() {
   const [rows, setRows] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(false); // Estado para mostrar "Cargando..."
@@ -17,10 +17,10 @@ export default function ConsultarCanchaPadel() {
       let data;
       if (searchTerm) {
         // Si hay texto, buscamos por nombre
-        data = await service.getCanchaPadelByName(searchTerm);
+        data = await service.getCanchaFutbolByName(searchTerm);
       } else {
         // Si está vacío, traemos todas
-        data = await service.getAllCanchasPadel();
+        data = await service.getAllCanchasFutbol();
       }
       setRows(data);
     } catch (error) {
@@ -51,7 +51,7 @@ export default function ConsultarCanchaPadel() {
     if(!window.confirm("¿Seguro que quieres eliminar esta cancha?")) return;
     
     try {
-      await service.deleteCanchaPadel(id);
+      await service.deleteCanchaFutbol(id);
       // Recargamos la lista actual manteniendo el filtro
       await fetchCanchas(filter); 
     } catch (error) {
@@ -73,7 +73,7 @@ export default function ConsultarCanchaPadel() {
       <div className="w-full max-w-6xl mx-auto px-6 py-12">
         <div className="flex justify-between items-center mb-6">
           <h2 className="bg-white text-red-900 px-6 py-3 rounded hover:bg-gray-100 shadow text-4xl md:text-5xl font-extrabold" >Gestión de Canchas</h2>
-          <Link to="/canchas/padel/RegistrarCancha" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <Link to="/canchas/futbol/RegistrarCancha" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             + Nueva Cancha
           </Link>
         </div>
@@ -119,7 +119,7 @@ export default function ConsultarCanchaPadel() {
                                 </td>
                                 <td className="px-6 py-4 space-x-2">
                                     <button
-                                        onClick={() => navigate(`/canchas/padel/ModificarCanchaPadel/${item.Id || item.id}`)}
+                                        onClick={() => navigate(`/canchas/futbol/ModificarCanchaFutbol/${item.Id || item.id}`)}
                                         className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs">
                                         Editar
                                     </button>

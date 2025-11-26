@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from 'react';
 // Asegúrate de que la ruta sea correcta
-import service from '../../../services/canchas.service'; 
+import service from '../../services/equipos.service'; 
 import { Link, useNavigate } from 'react-router-dom';
-import backgroundImage from "./imagenes/cancha_padel.jpg";
+import backgroundImage from "./imagenes/cancha_bas.jpg";
 
-export default function ConsultarCanchaPadel() {
+export default function ConsultarEquipo() {
   const [rows, setRows] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(false); // Estado para mostrar "Cargando..."
   const navigate = useNavigate();
 
   // Función unificada para cargar datos
-  const fetchCanchas = async (searchTerm = '') => {
+  const fetchEquipos = async (searchTerm = '') => {
     setLoading(true);
     try {
       let data;
       if (searchTerm) {
         // Si hay texto, buscamos por nombre
-        data = await service.getCanchaPadelByName(searchTerm);
+        data = await service.getEquipoByName(searchTerm);
       } else {
         // Si está vacío, traemos todas
-        data = await service.getAllCanchasPadel();
+        data = await service.getAllEquipos();
       }
       setRows(data);
     } catch (error) {
-      console.error('Error cargando canchas:', error);
+      console.error('Error cargando Equipos:', error);
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,8 @@ export default function ConsultarCanchaPadel() {
   useEffect(() => {
     // 1. Configuramos el temporizador (500ms)
     const timerId = setTimeout(() => {
-      fetchCanchas(filter);
+      fetchEquipos
+      (filter);
     }, 500);
 
     // 2. Limpieza: Si el usuario escribe antes de 500ms, cancelamos el timer anterior
@@ -48,12 +49,13 @@ export default function ConsultarCanchaPadel() {
   };
 
   const handleDeleteUser = async (id: number) => {
-    if(!window.confirm("¿Seguro que quieres eliminar esta cancha?")) return;
+    if(!window.confirm("¿Seguro que quieres eliminar esta equipo?")) return;
     
     try {
-      await service.deleteCanchaPadel(id);
+      await service.deleteEquipo(id);
       // Recargamos la lista actual manteniendo el filtro
-      await fetchCanchas(filter); 
+      await fetchEquipos
+      (filter); 
     } catch (error) {
       console.error('Error al eliminar:', error);
     }
@@ -72,9 +74,11 @@ export default function ConsultarCanchaPadel() {
       {/* Wrapper centrado horizontalmente y con espacio superior */}
       <div className="w-full max-w-6xl mx-auto px-6 py-12">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="bg-white text-red-900 px-6 py-3 rounded hover:bg-gray-100 shadow text-4xl md:text-5xl font-extrabold" >Gestión de Canchas</h2>
-          <Link to="/canchas/padel/RegistrarCancha" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            + Nueva Cancha
+          <h2 className="bg-white text-red-900 px-6 py-3 rounded hover:bg-gray-100 shadow text-4xl md:text-5xl font-extrabold" >Gestión de Equipos
+
+          </h2>
+          <Link to="/equipos/RegistrarEquipo" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            + Nueva equipo
           </Link>
         </div>
 
@@ -95,9 +99,6 @@ export default function ConsultarCanchaPadel() {
                 <thead className="text-xs text-gray-700 uppercase bg-gray-100 text-center">
                     <tr>
                         <th className="px-6 py-3">Nombre</th>
-                        <th className="px-6 py-3">Deporte</th>
-                        <th className="px-6 py-3">Descripción</th>
-                        <th className="px-6 py-3">Estado</th>
                         <th className="px-6 py-3">Acciones</th>
                     </tr>
                 </thead>
@@ -105,21 +106,15 @@ export default function ConsultarCanchaPadel() {
                     {loading ? (
                         <tr><td colSpan={5} className="py-4">Cargando...</td></tr>
                     ) : rows.length === 0 ? (
-                        <tr><td colSpan={5} className="py-4">No se encontraron canchas</td></tr>
+                        <tr><td colSpan={5} className="py-4">No se encontraron Equipos
+                        </td></tr>
                     ) : (
                         rows.map((item: any) => (
                             <tr key={item.Id || item.id} className="border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">{item.nombre}</td>
-                                <td className="px-6 py-4">{item.tipo_deporte}</td>
-                                <td className="px-6 py-4">{item.descripcion}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 rounded-full text-xs ${item.activa ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                        {item.activa ? 'Activa' : 'Inactiva'}
-                                    </span>
-                                </td>
+                                <td className="px-6 py-4 font-medium text-gray-900">{item.nombre_equipo}</td>
                                 <td className="px-6 py-4 space-x-2">
                                     <button
-                                        onClick={() => navigate(`/canchas/padel/ModificarCanchaPadel/${item.Id || item.id}`)}
+                                        onClick={() => navigate(`/equipos/ModificarEquipo/${item.Id || item.id}`)}
                                         className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs">
                                         Editar
                                     </button>

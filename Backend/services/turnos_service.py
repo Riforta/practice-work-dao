@@ -11,7 +11,7 @@ from repositories.turno_repository import TurnoRepository
 from repositories.turno_servicio_repository import TurnoXServicioRepository
 
 
-def _validar_datos_turno(data: Dict[str, Any], para_actualizar: bool = False) -> None:
+def _validar_datos_turno(data: Dict[str, Any], para_actualizar: bool = False, turno_id: Optional[int] = None) -> None:
     """Valida los campos para crear/actualizar un turno."""
     if not para_actualizar:
         if not data.get('id_cancha'):
@@ -25,6 +25,16 @@ def _validar_datos_turno(data: Dict[str, Any], para_actualizar: bool = False) ->
     if data.get('fecha_hora_inicio') and data.get('fecha_hora_fin'):
         if data['fecha_hora_inicio'] >= data['fecha_hora_fin']:
             raise ValueError("La fecha de fin debe ser posterior a la fecha de inicio")
+
+    # Validar solapamiento de turnos en la misma cancha
+    if data.get('id_cancha') and data.get('fecha_hora_inicio') and data.get('fecha_hora_fin'):
+        if TurnoRepository.existe_solapado(
+            id_cancha=data['id_cancha'],
+            fecha_hora_inicio=data['fecha_hora_inicio'],
+            fecha_hora_fin=data['fecha_hora_fin'],
+            excluir_id=turno_id
+        ):
+            raise ValueError("Ya existe un turno en esa cancha que se solapa con el horario indicado")
 
 
 def crear_turno(data: Dict[str, Any]) -> Turno:
@@ -112,7 +122,7 @@ def actualizar_turno(turno_id: int, data: Dict[str, Any]) -> Turno:
     Returns:
         Instancia de Turno actualizado
     """
-    _validar_datos_turno(data, para_actualizar=True)
+    _validar_datos_turno(data, para_actualizar=True, turno_id=turno_id)
     
     turno = obtener_turno_por_id(turno_id)
     
