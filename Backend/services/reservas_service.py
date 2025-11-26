@@ -245,17 +245,19 @@ class ReservasService:
             raise LookupError(f"El turno con ID {turno_id} no existe.")
 
         # 3. Validar Lógica de Negocio (Estado)
-        if turno_a_cancelar.estado != 'reservado':
-            raise ValueError(f"Solo se pueden cancelar turnos que estén 'reservados' (Estado actual: {turno_a_cancelar.estado}).")
+        if turno_a_cancelar.estado not in ['reservado', 'bloqueado']:
+            raise ValueError(f"Solo se pueden cancelar turnos reservados o bloqueados (Estado actual: {turno_a_cancelar.estado}).")
 
-        # 4. Aplicar la "cancelación" (Resetear el turno)
+        # 4. Aplicar la \"cancelación\" (Resetear el turno)
         # Volvemos el estado a 'disponible'
         turno_a_cancelar.estado = 'disponible'
         
-        # MUY IMPORTANTE: Limpiamos los campos de la reserva
+        # MUY IMPORTANTE: Limpiamos los campos de la reserva/bloqueo
         turno_a_cancelar.id_cliente = None
         turno_a_cancelar.id_usuario_registro = None
         turno_a_cancelar.reserva_created_at = None
+        turno_a_cancelar.id_usuario_bloqueo = None
+        turno_a_cancelar.motivo_bloqueo = None
 
         # 5. Persistir el cambio en la base de datos
         try:

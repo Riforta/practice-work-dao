@@ -234,7 +234,7 @@ def reservar_turno(turno_id: int, id_cliente: int, id_usuario_registro: Optional
 
 
 def cancelar_reserva(turno_id: int) -> Turno:
-    """Cancela una reserva, devolviendo el turno a disponible.
+    """Cancela una reserva, devolviendo el turno a disponible y liberando el cliente.
     
     Args:
         turno_id: ID del turno
@@ -244,10 +244,19 @@ def cancelar_reserva(turno_id: int) -> Turno:
     """
     turno = obtener_turno_por_id(turno_id)
     
+    # Si ya está disponible o cancelado, devolverlo idempotente
+    if turno.estado in ['disponible', 'cancelado']:
+        return turno
+
     if turno.estado not in ['reservado', 'bloqueado']:
         raise ValueError(f"Solo se pueden cancelar turnos reservados o bloqueados (estado actual: {turno.estado})")
     
-    turno.estado = 'cancelado'
+    turno.estado = 'disponible'
+    turno.id_cliente = None
+    turno.id_usuario_registro = None
+    turno.reserva_created_at = None
+    turno.id_usuario_bloqueo = None
+    turno.motivo_bloqueo = None
     TurnoRepository.actualizar(turno)
     return turno
 
