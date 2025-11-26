@@ -48,7 +48,12 @@ def registrar_usuario_cliente(payload: Dict[str, Any]):
         }
         
         # 2. Registrar usuario (usuarios_service)
-        usuario = usuarios_service.registrar_usuario(usuario_data)
+        usuario = usuarios_service.registrar_usuario(usuario_data) 
+
+        # 2.5 Activar usuario recién creado (por logueo automático)
+        AuthService.marcar_activo(usuario.id, activo=True)
+        # Actualizar objeto en memoria
+        usuario.activo = 1
         
         # 3. Preparar datos de cliente vinculado al usuario
         # OJO VER ACA
