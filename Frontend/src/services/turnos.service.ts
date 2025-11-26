@@ -1,6 +1,13 @@
 import axios from 'axios';
 
-export type TurnoEstado = 'disponible' | 'reservado' | 'bloqueado' | 'cancelado' | 'finalizado' | string;
+export type TurnoEstado =
+  | 'disponible'
+  | 'reservado'
+  | 'bloqueado'
+  | 'cancelado'
+  | 'finalizado'
+  | 'no_disponible'
+  | string;
 
 export interface Turno {
   id?: number;

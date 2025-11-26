@@ -96,13 +96,20 @@ def modificar_reserva_endpoint(turno_id: int, request: Dict[str, Any]):
 
 @router.post("/turnos/{turno_id}/cancelar-reserva")
 @router.post("/turnos/{turno_id}/cancelar")  # Alias para compatibilidad
-def cancelar_reserva_endpoint(turno_id: int, request: Dict[str, Any]):
-    """CU-4: Cancela una reserva y devuelve el turno a disponible."""
+def cancelar_reserva_endpoint(turno_id: int, request: Optional[Dict[str, Any]] = None):
+    """CU-4: Cancela una reserva y devuelve el turno a disponible.
+
+    Si no se envía id_usuario_cancelacion, se usa la cancelación simple.
+    """
     try:
-        turno = reservas_service.ReservasService.cancelar_reserva(
-            turno_id=turno_id,
-            id_usuario_cancelacion=request.get("id_usuario_cancelacion")
-        )
+        id_usuario_cancelacion = request.get("id_usuario_cancelacion") if request else None
+        if id_usuario_cancelacion:
+            turno = reservas_service.ReservasService.cancelar_reserva(
+                turno_id=turno_id,
+                id_usuario_cancelacion=id_usuario_cancelacion
+            )
+        else:
+            turno = turnos_service.cancelar_reserva(turno_id)
         return turno.to_dict()
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
@@ -243,18 +250,6 @@ def reservar_turno_simple(turno_id: int, payload: Dict[str, Any]):
         
         id_usuario_registro = payload.get('id_usuario_registro')
         turno = turnos_service.reservar_turno(turno_id, id_cliente, id_usuario_registro)
-        return turno.to_dict()
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except LookupError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
-@router.post("/turnos/{turno_id}/cancelar")
-def cancelar_turno_simple(turno_id: int):
-    """Cancela una reserva (versión legacy sin body)."""
-    try:
-        turno = turnos_service.cancelar_reserva(turno_id)
         return turno.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

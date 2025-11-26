@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Dict, Any
 from services.auth_service import AuthService
+from repositories.cliente_repository import ClienteRepository
 from api.dependencies.auth import get_current_user
 from models.usuario import Usuario
 
@@ -42,6 +43,8 @@ def login(credentials: Dict[str, Any]):
     
     # Genera el token
     token = AuthService.generar_token(user)
+
+    cliente = ClienteRepository.obtener_por_id_usuario(user.id)
     
     # Prepara la respuesta como dict
     return {
@@ -52,7 +55,7 @@ def login(credentials: Dict[str, Any]):
             "email": user.email,
             "id_rol": user.id_rol,
             "activo": user.activo,
-            "fecha_creacion": user.fecha_creacion
+            "id_cliente": cliente.id if cliente else None
         }
     }
 

@@ -29,10 +29,10 @@ class ClienteRepository:
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO Cliente (nombre, apellido, dni, telefono, email)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO Cliente (nombre, apellido, dni, telefono, email, id_usuario)
+                VALUES (?, ?, ?, ?, ?, ?)
             """, (cliente.nombre, cliente.apellido, cliente.dni, 
-                cliente.telefono, cliente.email))
+                cliente.telefono, cliente.email, cliente.id_usuario))
             
             conn.commit()
             return cursor.lastrowid
@@ -85,6 +85,20 @@ class ClienteRepository:
             if row:
                 return Cliente.from_db_row(row)
             return None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def obtener_por_id_usuario(id_usuario: int) -> Optional[Cliente]:
+        """
+        Obtiene un cliente asociado a un usuario dado.
+        """
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Cliente WHERE id_usuario = ?", (id_usuario,))
+            row = cursor.fetchone()
+            return Cliente.from_db_row(row) if row else None
         finally:
             conn.close()
     
@@ -157,7 +171,7 @@ class ClienteRepository:
                 SET nombre = ?, apellido = ?, dni = ?, telefono = ?, email = ?
                 WHERE id = ?
             """, (cliente.nombre, cliente.apellido, cliente.dni, 
-                  cliente.telefono, cliente.email, cliente.id))
+                cliente.telefono, cliente.email, cliente.id))
             
             conn.commit()
             return cursor.rowcount > 0

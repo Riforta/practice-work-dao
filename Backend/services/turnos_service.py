@@ -9,22 +9,39 @@ from datetime import datetime
 from models.turno import Turno
 from repositories.turno_repository import TurnoRepository
 from repositories.turno_servicio_repository import TurnoXServicioRepository
+from repositories.cliente_repository import ClienteRepository
+
+
+def _expirar_turnos_pasados() -> None:
+    """Marca como no disponibles los turnos vencidos que sigan en estado disponible."""
+    TurnoRepository.marcar_pasados_no_disponible()
 
 
 def _validar_datos_turno(data: Dict[str, Any], para_actualizar: bool = False, turno_id: Optional[int] = None) -> None:
     """Valida los campos para crear/actualizar un turno."""
-    if not para_actualizar:
-        if not data.get('id_cancha'):
-            raise ValueError("El campo 'id_cancha' es requerido")
-        if not data.get('fecha_hora_inicio'):
-            raise ValueError("El campo 'fecha_hora_inicio' es requerido")
-        if not data.get('fecha_hora_fin'):
-            raise ValueError("El campo 'fecha_hora_fin' es requerido")
-    
-    # Validar que fecha_fin sea posterior a fecha_inicio
-    if data.get('fecha_hora_inicio') and data.get('fecha_hora_fin'):
-        if data['fecha_hora_inicio'] >= data['fecha_hora_fin']:
-            raise ValueError("La fecha de fin debe ser posterior a la fecha de inicio")
+    if not data.get('id_cancha'):
+        raise ValueError("El campo 'id_cancha' es requerido")
+    if not data.get('fecha_hora_inicio'):
+        raise ValueError("El campo 'fecha_hora_inicio' es requerido")
+    if not data.get('fecha_hora_fin'):
+        raise ValueError("El campo 'fecha_hora_fin' es requerido")
+
+    # Validar formato y que fecha_fin sea posterior a fecha_inicio
+    try:
+        inicio_dt = datetime.fromisoformat(str(data['fecha_hora_inicio']))
+        fin_dt = datetime.fromisoformat(str(data['fecha_hora_fin']))
+    except Exception:
+        raise ValueError("Formato de fecha/hora inválido. Usa ISO (YYYY-MM-DDTHH:MM).")
+
+    if fin_dt <= inicio_dt:
+        raise ValueError("La fecha de fin debe ser posterior a la fecha de inicio")
+
+    if inicio_dt < datetime.now():
+        raise ValueError("No se puede crear/actualizar un turno en una fecha/hora pasada")
+
+    estado = data.get('estado', 'disponible')
+    if estado == 'reservado' and not data.get('id_cliente'):
+        raise ValueError("Debe indicar un cliente para un turno en estado 'reservado'")
 
     # Validar solapamiento de turnos en la misma cancha
     if data.get('id_cancha') and data.get('fecha_hora_inicio') and data.get('fecha_hora_fin'):
@@ -78,6 +95,7 @@ def obtener_turno_por_id(turno_id: int) -> Turno:
     Raises:
         LookupError: Si el turno no existe
     """
+    _expirar_turnos_pasados()
     turno = TurnoRepository.obtener_por_id(turno_id)
     if not turno:
         raise LookupError(f"Turno con ID {turno_id} no encontrado")
@@ -86,26 +104,31 @@ def obtener_turno_por_id(turno_id: int) -> Turno:
 
 def listar_turnos() -> List[Turno]:
     """Lista todos los turnos."""
+    _expirar_turnos_pasados()
     return TurnoRepository.obtener_todos_filtrados()
 
 
 def listar_turnos_por_cancha(id_cancha: int) -> List[Turno]:
     """Lista turnos de una cancha específica."""
+    _expirar_turnos_pasados()
     return TurnoRepository.obtener_por_cancha(id_cancha)
 
 
 def listar_turnos_por_cliente(id_cliente: int) -> List[Turno]:
     """Lista turnos de un cliente específico."""
+    _expirar_turnos_pasados()
     return TurnoRepository.obtener_por_cliente(id_cliente)
 
 
 def listar_turnos_por_estado(estado: str) -> List[Turno]:
     """Lista turnos por estado."""
+    _expirar_turnos_pasados()
     return TurnoRepository.obtener_todos_filtrados(estado=estado)
 
 
 def buscar_disponibles(id_cancha: int, fecha_inicio: str, fecha_fin: str) -> List[Turno]:
     """Busca turnos disponibles en un rango de fechas."""
+    _expirar_turnos_pasados()
     # Filtrar por cancha y estado disponible, luego filtrar por fechas
     turnos = TurnoRepository.obtener_por_cancha(id_cancha, estado='disponible')
     # Filtrar por rango de fechas (simplificado)
@@ -122,37 +145,21 @@ def actualizar_turno(turno_id: int, data: Dict[str, Any]) -> Turno:
     Returns:
         Instancia de Turno actualizado
     """
-    _validar_datos_turno(data, para_actualizar=True, turno_id=turno_id)
-    
-    turno = obtener_turno_por_id(turno_id)
-    
-    # Actualizar campos
-    if 'id_cancha' in data:
-        turno.id_cancha = data['id_cancha']
-    if 'fecha_hora_inicio' in data:
-        turno.fecha_hora_inicio = data['fecha_hora_inicio']
-    if 'fecha_hora_fin' in data:
-        turno.fecha_hora_fin = data['fecha_hora_fin']
-    if 'estado' in data:
-        turno.estado = data['estado']
-    if 'precio_final' in data:
-        turno.precio_final = data['precio_final']
-    if 'id_cliente' in data:
-        turno.id_cliente = data['id_cliente']
-    if 'id_usuario_registro' in data:
-        turno.id_usuario_registro = data['id_usuario_registro']
-    if 'reserva_created_at' in data:
-        turno.reserva_created_at = data['reserva_created_at']
-    if 'id_usuario_bloqueo' in data:
-        turno.id_usuario_bloqueo = data['id_usuario_bloqueo']
-    if 'motivo_bloqueo' in data:
-        turno.motivo_bloqueo = data['motivo_bloqueo']
-    
-    success = TurnoRepository.actualizar(turno)
+    turno_existente = obtener_turno_por_id(turno_id)
+
+    merged = turno_existente.to_dict()
+    merged.update(data)
+
+    _validar_datos_turno(merged, para_actualizar=True, turno_id=turno_id)
+
+    turno_actualizado = Turno.from_dict(merged)
+    turno_actualizado.id = turno_id
+
+    success = TurnoRepository.actualizar(turno_actualizado)
     if not success:
         raise Exception("No se pudo actualizar el turno")
     
-    return turno
+    return turno_actualizado
 
 
 def cambiar_estado_turno(turno_id: int, nuevo_estado: str) -> bool:
@@ -169,7 +176,7 @@ def cambiar_estado_turno(turno_id: int, nuevo_estado: str) -> bool:
     obtener_turno_por_id(turno_id)
     
     # Validar estados permitidos
-    estados_validos = ['disponible', 'reservado', 'bloqueado', 'cancelado', 'finalizado']
+    estados_validos = ['disponible', 'reservado', 'bloqueado', 'cancelado', 'finalizado', 'no_disponible']
     if nuevo_estado not in estados_validos:
         raise ValueError(f"Estado inválido. Debe ser uno de: {', '.join(estados_validos)}")
     
@@ -209,6 +216,10 @@ def reservar_turno(turno_id: int, id_cliente: int, id_usuario_registro: Optional
         ValueError: Si el turno no está disponible
     """
     turno = obtener_turno_por_id(turno_id)
+
+    cliente = ClienteRepository.obtener_por_id(id_cliente)
+    if not cliente:
+        raise ValueError(f"El cliente con ID {id_cliente} no existe.")
     
     if turno.estado != 'disponible':
         raise ValueError(f"El turno no está disponible (estado actual: {turno.estado})")
@@ -223,7 +234,7 @@ def reservar_turno(turno_id: int, id_cliente: int, id_usuario_registro: Optional
 
 
 def cancelar_reserva(turno_id: int) -> Turno:
-    """Cancela una reserva, devolviendo el turno a disponible.
+    """Cancela una reserva, devolviendo el turno a disponible y liberando el cliente.
     
     Args:
         turno_id: ID del turno
@@ -233,10 +244,19 @@ def cancelar_reserva(turno_id: int) -> Turno:
     """
     turno = obtener_turno_por_id(turno_id)
     
+    # Si ya está disponible o cancelado, devolverlo idempotente
+    if turno.estado in ['disponible', 'cancelado']:
+        return turno
+
     if turno.estado not in ['reservado', 'bloqueado']:
         raise ValueError(f"Solo se pueden cancelar turnos reservados o bloqueados (estado actual: {turno.estado})")
     
-    turno.estado = 'cancelado'
+    turno.estado = 'disponible'
+    turno.id_cliente = None
+    turno.id_usuario_registro = None
+    turno.reserva_created_at = None
+    turno.id_usuario_bloqueo = None
+    turno.motivo_bloqueo = None
     TurnoRepository.actualizar(turno)
     return turno
 

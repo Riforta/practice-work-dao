@@ -2,6 +2,7 @@ from typing import List, Dict, Any
 
 from models.usuario import Usuario
 from repositories.usuario_repository import UsuarioRepository
+from repositories.cliente_repository import ClienteRepository
 from passlib.hash import pbkdf2_sha256
 
 
@@ -49,7 +50,7 @@ def registrar_usuario(data: Dict[str, Any]) -> Usuario:
         email=email,
         password_hash=hashed,
         id_rol=id_rol,
-        activo=1,  # Activo al registrarse
+        activo=0,  # Inactivo al registrarse
     )
     
     try:
