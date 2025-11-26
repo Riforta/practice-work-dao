@@ -29,10 +29,10 @@ class ClienteRepository:
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO Cliente (nombre, apellido, dni, telefono, email)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO Cliente (nombre, apellido, dni, telefono, email,id_usuario)
+                VALUES (?, ?, ?, ?, ?, ?)
             """, (cliente.nombre, cliente.apellido, cliente.dni, 
-                cliente.telefono, cliente.email))
+                cliente.telefono, cliente.email, cliente.id_usuario))
             
             conn.commit()
             return cursor.lastrowid

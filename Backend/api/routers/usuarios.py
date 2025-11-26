@@ -51,6 +51,9 @@ def registrar_usuario_cliente(payload: Dict[str, Any]):
         usuario = usuarios_service.registrar_usuario(usuario_data)
         
         # 3. Preparar datos de cliente vinculado al usuario
+        # OJO VER ACA
+        print("Usuario creado con ID:")
+        print(usuario.id)
         cliente_data = {
             'id_usuario': usuario.id,  # Vincular con usuario recién creado
             'nombre': payload.get('nombre'),

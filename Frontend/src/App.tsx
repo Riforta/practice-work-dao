@@ -24,6 +24,10 @@ import ModificarServicios from './components/servicios/ModificarServicios.tsx'
 import ConsultarTurnos from './components/turnos/ConsultarTurnos.tsx'
 import RegistrarTurnos from './components/turnos/RegistrarTurnos.tsx'
 import ModificarTurnos from './components/turnos/ModificarTurnos.tsx'
+import Torneo from './components/torneo/torneo.tsx'
+//import ConsultarTorneo from './components/torneo/ConsultarTorneo.tsx'
+//import RegistrarTorneo from './components/torneo/RegistrarTorneo.tsx'
+//import ModificarTorneo from './components/torneo/ModificarTorneo.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -73,15 +77,15 @@ function App() {
                   <Route path="/equipos/ConsultarEquipo" element={<ConsultarEquipo/>} />
                   <Route path="/equipos/RegistrarEquipo" element={<RegistrarEquipo/>} />
                   <Route path="/equipos/ModificarEquipo/:id" element={<ModificarEquipo/>} />
-                  {/*<Route path="/canchas/padel" element={<CanchaPadel/>} />
-                  <Route path="/canchas/padel/consulta" element={<ConsultarCanchaPadel/>} />
-                  <Route path="/canchas/padel/crear" element={<CrearCanchaPadel/>} />
-                  <Route path="/canchas/padel/eliminar" element={<EliminarCanchaPadel/>} />
-                  <Route path="/canchas/padel/modificar" element={<ModificarCanchaPadel/>} />*/}
                   {/* Servicios adicionales */}
                   <Route path="/servicios" element={<ConsultarServicios />} />
                   <Route path="/servicios/nuevo" element={<RegistrarServicios />} />
                   <Route path="/servicios/:id/editar" element={<ModificarServicios />} />
+                  {/* Torneos */}
+                  <Route path="/torneos" element={<Torneo/>} />
+                  {/*<Route path="/torneos/ConsultarTorneos" element={<ConsultarTorneo/>} />
+                  <Route path="/torneos/RegistrarTorneos" element={<RegistrarTorneo/>} />
+                  <Route path="/torneos/ModificarTorneos/:id" element={<ModificarTorneo/>} />*/}
                   {/* Turnos */}
                   <Route path="/turnos" element={<ConsultarTurnos />} />
                   <Route path="/turnos/nuevo" element={<RegistrarTurnos />} />
