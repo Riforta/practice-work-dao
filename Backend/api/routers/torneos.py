@@ -1,13 +1,15 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Dict, Any
 
+from api.dependencies.auth import require_admin
+from models.usuario import Usuario
 from services import torneos_service
 
 router = APIRouter()
 
 
 @router.post("/torneos/", status_code=status.HTTP_201_CREATED)
-def crear_torneo(payload: Dict[str, Any]):
+def crear_torneo(payload: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     try:
         t = torneos_service.crear_torneo(payload)
         return t.to_dict()
@@ -33,7 +35,7 @@ def obtener_torneo(torneo_id: int):
 
 
 @router.put("/torneos/{torneo_id}", response_model=Dict[str, Any])
-def actualizar_torneo(torneo_id: int, payload: Dict[str, Any]):
+def actualizar_torneo(torneo_id: int, payload: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     try:
         t = torneos_service.actualizar_torneo(torneo_id, payload)
         return t.to_dict()
@@ -46,7 +48,7 @@ def actualizar_torneo(torneo_id: int, payload: Dict[str, Any]):
 
 
 @router.delete("/torneos/{torneo_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_torneo(torneo_id: int):
+def eliminar_torneo(torneo_id: int, current_user: Usuario = Depends(require_admin)):
     try:
         torneos_service.eliminar_torneo(torneo_id)
         return None

@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Dict, Any, Optional
 
+from api.dependencies.auth import require_admin, require_role
+from models.usuario import Usuario
 from services import usuarios_service, clientes_service
 from services.auth_service import AuthService
 
@@ -91,7 +93,7 @@ def registrar_usuario_cliente(payload: Dict[str, Any]):
 
 
 @router.get("/usuarios/", response_model=List[Dict[str, Any]])
-def listar_usuarios():
+def listar_usuarios(admin_check: Usuario = Depends(require_admin)):
     items = usuarios_service.listar_usuarios()
     results = []
     for i in items:
@@ -102,7 +104,7 @@ def listar_usuarios():
 
 
 @router.get("/usuarios/{usuario_id}", response_model=Dict[str, Any])
-def obtener_usuario(usuario_id: int):
+def obtener_usuario(usuario_id: int, admin_check: Usuario = Depends(require_admin)):
     try:
         u = usuarios_service.obtener_usuario_por_id(usuario_id)
         d = u.to_dict()
@@ -113,7 +115,9 @@ def obtener_usuario(usuario_id: int):
 
 
 @router.put("/usuarios/{usuario_id}", response_model=Dict[str, Any])
-def actualizar_usuario(usuario_id: int, payload: Dict[str, Any]):
+def actualizar_usuario(usuario_id: int, payload: Dict[str, Any],
+                    admin_check: Usuario = Depends(require_admin),
+                    current_user: Usuario = Depends(require_role("cliente"))):
     try:
         u = usuarios_service.actualizar_usuario(usuario_id, payload)
         return u.to_dict()
@@ -126,7 +130,8 @@ def actualizar_usuario(usuario_id: int, payload: Dict[str, Any]):
 
 
 @router.delete("/usuarios/{usuario_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_usuario(usuario_id: int):
+def eliminar_usuario(usuario_id: int, current_user: Usuario = Depends(require_role("cliente")),
+                    admin_check: Usuario = Depends(require_admin)):
     try:
         usuarios_service.eliminar_usuario(usuario_id)
         return None

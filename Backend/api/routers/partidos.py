@@ -1,13 +1,15 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Dict, Any
 
+from api.dependencies.auth import require_admin
+from models.usuario import Usuario
 from services import partidos_service
 
 router = APIRouter()
 
 
 @router.post("/partidos/", status_code=status.HTTP_201_CREATED)
-def crear_partido(payload: Dict[str, Any]):
+def crear_partido(payload: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     try:
         partido = partidos_service.crear_partido(payload)
         return partido.to_dict()
@@ -33,7 +35,7 @@ def obtener_partido(partido_id: int):
 
 
 @router.put("/partidos/{partido_id}", response_model=Dict[str, Any])
-def actualizar_partido(partido_id: int, payload: Dict[str, Any]):
+def actualizar_partido(partido_id: int, payload: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     try:
         partido = partidos_service.actualizar_partido(partido_id, payload)
         return partido.to_dict()
@@ -46,7 +48,7 @@ def actualizar_partido(partido_id: int, payload: Dict[str, Any]):
 
 
 @router.delete("/partidos/{partido_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_partido(partido_id: int):
+def eliminar_partido(partido_id: int, current_user: Usuario = Depends(require_admin)):
     try:
         partidos_service.eliminar_partido(partido_id)
         return None

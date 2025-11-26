@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
 
-from api.dependencies.auth import require_admin
+from api.dependencies.auth import require_admin, require_role
 from models.usuario import Usuario
 from services import clientes_service
 
@@ -44,7 +44,7 @@ def obtener_cliente(cliente_id: int):
 
 
 @router.put("/clientes/{cliente_id}")
-def actualizar_cliente(cliente_id: int, cliente_data: Dict[str, Any]):
+def actualizar_cliente(cliente_id: int, cliente_data: Dict[str, Any], current_user: Usuario = Depends(require_role("admin"))):
     try:
         cliente = clientes_service.actualizar_cliente(cliente_id, cliente_data)
         return cliente.to_dict()
