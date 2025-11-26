@@ -29,16 +29,16 @@ export function logout() {
   localStorage.removeItem('user')
 }
 
-export async function register(username: string, email: string, password: string): Promise<LoginResponse> {
+export async function register(name: string, lastname: string, phone: number, dni: number,username: string, email: string, password: string): Promise<LoginResponse> {
   // Backend router exposes POST /usuarios/ to create users
-  const res = await fetch(`${BASE}/usuarios/`, {
+  const res = await fetch(`${BASE}/usuarios/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   // Send multiple keys to be compatible with small inconsistencies in the backend:
   // - 'username' (used by some service helpers)
   // - 'nombre_usuario' (the Usuario model field)
   // - 'password' (plain password; backend will hash it)
-  body: JSON.stringify({ username, nombre_usuario: username, email, password }),
+  body: JSON.stringify({nombre: name,apellido: lastname,telefono: phone,dni,nombre_usuario: username, email, password }),
   })
 
   if (!res.ok) {

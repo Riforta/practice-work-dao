@@ -1,9 +1,9 @@
-import axios from 'axios';
-const api_url =  'http://127.0.0.1:8000/api/canchas'
+import http from './http';
+const api_url = '/canchas';
 
 // BASQUET SERVICE
 const getAllCanchasBasquet = async () => {
-    const response = await axios.get(`${api_url}/`);
+    const response = await http.get(`${api_url}/`);
     // normalizar distintos formatos de respuesta (Items, items o array directo)
     const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
     const list = Array.isArray(data) ? data : [];
@@ -17,7 +17,7 @@ const getAllCanchasBasquet = async () => {
 
 const getCanchaBasquetByName = async (name: string) => {
     // intento de pedir al backend por nombre (si el endpoint acepta query params)
-    const response = await axios.get(`${api_url}`, { params: { name } });
+    const response = await http.get(`${api_url}`, { params: { name } });
     const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
     const list = Array.isArray(data) ? data : [];
 
@@ -39,7 +39,7 @@ const getByIdBasquet = async (id: number) => {
     try {
             // 1. Petición directa al ID (asumiendo que tu backend es /canchas/{id})
             // OJO: Si tu api_url ya tiene una barra al final, quítasela aquí o en la variable.
-            const response = await axios.get(`${api_url}/${id}`); 
+            const response = await http.get(`${api_url}/${id}`); 
 
             console.log("📦 Objeto recibido del Back:", response.data);
 
@@ -55,23 +55,23 @@ const getByIdBasquet = async (id: number) => {
 
 
 const deleteCanchaBasquet = async (id: number) => {
-    const response = await axios.delete(`${api_url}/${id}`);
+    const response = await http.delete(`${api_url}/${id}`);
     return response.data;
 }
 
 const putCanchaBasquet = async (id: number, payload: any) => {
-    const response = await axios.put(`${api_url}/${id}`, payload);
+    const response = await http.put(`${api_url}/${id}`, payload);
     return response.data;
 }
 
 const creatCanchaBasquet = async (payload: any) => {
-    const response = await axios.post(`${api_url}/`, payload);
+    const response = await http.post(`${api_url}/`, payload);
     return response.data;
 }
 
 // FUTBOL SERVICE
 const getAllCanchasFutbol = async () => {
-    const response = await axios.get(`${api_url}/`);
+    const response = await http.get(`${api_url}/`);
     const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
     const list = Array.isArray(data) ? data : [];
     const isFootball = (item: any) => {
@@ -82,7 +82,7 @@ const getAllCanchasFutbol = async () => {
 };
 
 const getCanchaFutbolByName = async (name: string) => {
-    const response = await axios.get(`${api_url}`, { params: { name } });
+    const response = await http.get(`${api_url}`, { params: { name } });
     const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
     const list = Array.isArray(data) ? data : [];
     const isFootball = (item: any) => {
@@ -99,7 +99,7 @@ const getCanchaFutbolByName = async (name: string) => {
 
 const getByIdFutbol = async (id: number) => {
     try {
-        const response = await axios.get(`${api_url}/${id}`); 
+        const response = await http.get(`${api_url}/${id}`); 
         console.log("📦 Objeto recibido del Back:", response.data);
         return response.data; 
     } catch (error) {
@@ -109,24 +109,24 @@ const getByIdFutbol = async (id: number) => {
 };
 
 const deleteCanchaFutbol = async (id: number) => {
-    const response = await axios.delete(`${api_url}/${id}`);
+    const response = await http.delete(`${api_url}/${id}`);
     return response.data;
 }
 
 const putCanchaFutbol = async (id: number, payload: any) => {
-    const response = await axios.put(`${api_url}/${id}`, payload);
+    const response = await http.put(`${api_url}/${id}`, payload);
     return response.data;
 }
 
 const creatCanchaFutbol = async (payload: any) => {
-    const response = await axios.post(`${api_url}/`, payload);
+    const response = await http.post(`${api_url}/`, payload);
     return response.data;
 }
 
 // PADEL SERVICE
 
 const getAllCanchasPadel = async () => {
-    const response = await axios.get(`${api_url}/`);
+    const response = await http.get(`${api_url}/`);
     const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
     const list = Array.isArray(data) ? data : [];
     const isPadel = (item: any) => {
@@ -137,7 +137,7 @@ const getAllCanchasPadel = async () => {
 };
 
 const getCanchaPadelByName = async (name: string) => {
-    const response = await axios.get(`${api_url}`, { params: { name } });
+    const response = await http.get(`${api_url}`, { params: { name } });
     const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
     const list = Array.isArray(data) ? data : [];
     const isPadel = (item: any) => {
@@ -154,7 +154,7 @@ const getCanchaPadelByName = async (name: string) => {
 
 const getByIdPadel = async (id: number) => {
     try {
-        const response = await axios.get(`${api_url}/${id}`);
+        const response = await http.get(`${api_url}/${id}`);
         console.log("📦 Objeto recibido del Back:", response.data)
         return response.data
         } catch (error) {
@@ -164,17 +164,17 @@ const getByIdPadel = async (id: number) => {
 };
 
 const deleteCanchaPadel = async (id: number) => {
-    const response = await axios.delete(`${api_url}/${id}`);
+    const response = await http.delete(`${api_url}/${id}`);
     return response.data;
 }
 
 const putCanchaPadel = async (id: number, payload: any) => {
-    const response = await axios.put(`${api_url}/${id}`, payload);
+    const response = await http.put(`${api_url}/${id}`, payload);
     return response.data;
 }
 
 const creatCanchaPadel = async (payload: any) => {
-    const response = await axios.post(`${api_url}/`, payload);
+    const response = await http.post(`${api_url}/`, payload);
     return response.data;
 }
 

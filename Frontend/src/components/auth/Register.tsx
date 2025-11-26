@@ -8,6 +8,12 @@ const Register: React.FC = () => {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [lastname, setLastname] = useState('')
+  const [phone, setPhone] = useState('')
+  const [dni, setDni] = useState('')
+
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -21,7 +27,7 @@ const Register: React.FC = () => {
     e.preventDefault()
     setError(null)
 
-    if (!username || !email || !password) {
+    if (!name ||!dni||!username || !email || !password) {
       setError('Completa todos los campos')
       return
     }
@@ -31,9 +37,21 @@ const Register: React.FC = () => {
       return
     }
 
+    const phoneNumber = Number(phone)
+    if (!Number.isFinite(phoneNumber)) {
+      setError('Ingresa un teléfono válido (solo números)')
+      return
+    }
+
+    const dniNumber = Number(dni)
+    if (!Number.isFinite(dniNumber)) {
+      setError('Ingresa un DNI válido (solo números)')
+      return
+    }
+
     try {
       setLoading(true)
-      const data = await authRegister(username, email, password)
+      const data = await authRegister(name, lastname, phoneNumber, dniNumber, username, email, password)
 
       if (data?.token) {
         // establish session
@@ -67,7 +85,27 @@ const Register: React.FC = () => {
         {success && <div className="text-sm text-green-700 bg-green-100 px-3 py-2 rounded">{success}</div>}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Usuario</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Nombre</label>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" required className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Apellido</label>
+          <input type="text" value={lastname} onChange={(e) => setLastname(e.target.value)} placeholder="Apellido" className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Telefono</label>
+          <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Telefono" required className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">DNI</label>
+          <input type="text" value={dni} onChange={(e) => setDni(e.target.value)} placeholder="DNI" className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Nombre Usuario</label>
           <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Nombre de usuario" required className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
         </div>
 

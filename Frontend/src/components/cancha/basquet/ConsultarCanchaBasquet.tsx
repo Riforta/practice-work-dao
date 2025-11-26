@@ -98,14 +98,15 @@ export default function ConsultarCanchaBasquet() {
                         <th className="px-6 py-3">Deporte</th>
                         <th className="px-6 py-3">Descripción</th>
                         <th className="px-6 py-3">Estado</th>
+                        <th className='px-6 py-3'>Precio x Hora</th>
                         <th className="px-6 py-3">Acciones</th>
                     </tr>
                 </thead>
                 <tbody className="text-center">
                     {loading ? (
-                        <tr><td colSpan={5} className="py-4">Cargando...</td></tr>
+                        <tr><td colSpan={6} className="py-4">Cargando...</td></tr>
                     ) : rows.length === 0 ? (
-                        <tr><td colSpan={5} className="py-4">No se encontraron canchas</td></tr>
+                        <tr><td colSpan={6} className="py-4">No se encontraron canchas</td></tr>
                     ) : (
                         rows.map((item: any) => (
                             <tr key={item.Id || item.id} className="border-b hover:bg-gray-50">
@@ -117,6 +118,7 @@ export default function ConsultarCanchaBasquet() {
                                         {item.activa ? 'Activa' : 'Inactiva'}
                                     </span>
                                 </td>
+                                <td className="px-6 py-4">{item.precio_hora}</td>
                                 <td className="px-6 py-4 space-x-2">
                                     <button
                                         onClick={() => navigate(`/canchas/basquet/ModificarCanchaBasquet/${item.Id || item.id}`)}

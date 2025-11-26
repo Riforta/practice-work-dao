@@ -9,6 +9,7 @@ type FormData = {
   tipo_deporte: string;
   descripcion: string;
   activa: boolean;
+  precio_hora: number;
 };
 
 export default function ModificarCanchaBasquet() {
@@ -130,6 +131,20 @@ export default function ModificarCanchaBasquet() {
           className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
           rows={3}
         />
+
+        <label className="block mb-2 text-sm">Precio x Hora</label>
+        <input
+          type="number"
+          min={10}
+          step={1}
+          {...register("precio_hora", {
+            required: "El precio es requerido",
+            valueAsNumber: true,
+            min: { value: 10, message: "El precio debe ser mayor o igual a 10" },
+          })}
+          className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
+        />
+        {errors.precio_hora && <p className="text-red-400 text-sm mb-2">{errors.precio_hora.message}</p>}
 
         <label className="flex items-center gap-2 mb-4">
           <input
