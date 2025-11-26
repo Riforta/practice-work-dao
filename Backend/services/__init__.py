@@ -21,7 +21,6 @@ __all__ = [
     "reservas_service",
     "roles_services",
     "servicios_adicionales_services",
-    "tarifas_services",
     "torneos_services",
     "turno_servicios_service",
     "turnos_service",

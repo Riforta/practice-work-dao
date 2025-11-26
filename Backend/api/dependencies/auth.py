@@ -76,7 +76,7 @@ def require_admin(
     rol = RolRepository.obtener_por_id(current_user.id_rol)
     
     # Verifica si es admin
-    if rol and rol.descripcion.lower() in ["admin", "administrador"]:
+    if rol and rol.nombre_rol.lower() in ["admin", "administrador"]:
         return current_user
     
     raise HTTPException(

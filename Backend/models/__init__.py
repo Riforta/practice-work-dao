@@ -4,7 +4,6 @@ from .usuario import Usuario
 from .cliente import Cliente
 from .cancha import Cancha
 from .turno import Turno
-from .tarifa import Tarifa
 from .servicio_adicional import ServicioAdicional
 from .turno_servicio import TurnoServicio
 from .torneo import Torneo
@@ -22,7 +21,6 @@ __all__ = [
     'Cliente',
     'Cancha',
     'Turno',
-    'Tarifa',
     'ServicioAdicional',
     'TurnoServicio',
     'Torneo',
