@@ -51,8 +51,7 @@ def login(credentials: Dict[str, Any]):
             "nombre_usuario": user.nombre_usuario,
             "email": user.email,
             "id_rol": user.id_rol,
-            "activo": user.activo,
-            "fecha_creacion": user.fecha_creacion
+            "activo": user.activo
         }
     }
 

@@ -5,7 +5,7 @@ export interface LoginResponse {
 
 // If VITE_API_BASE is not set during dev, default to the backend common dev port.
 // Adjust this if your backend runs on a different host/port.
-const BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+const BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
 
 export async function login(usuario: string, password: string): Promise<LoginResponse> {
   // Enviamos 'usuario' como campo identificador (puede ser username o email según backend)
