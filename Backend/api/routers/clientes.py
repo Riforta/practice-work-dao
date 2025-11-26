@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Query
-from typing import List, Dict, Any, Optional
+from typing import List, Optional, Dict, Any
 
 from services import clientes_service
 
@@ -7,9 +7,9 @@ router = APIRouter()
 
 
 @router.post("/clientes/", status_code=status.HTTP_201_CREATED)
-def crear_cliente(payload: Dict[str, Any]):
+def crear_cliente(cliente_data: Dict[str, Any]):
     try:
-        cliente = clientes_service.crear_cliente(payload)
+        cliente = clientes_service.crear_cliente(cliente_data)
         return cliente.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -17,13 +17,13 @@ def crear_cliente(payload: Dict[str, Any]):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/clientes/", response_model=List[Dict[str, Any]])
+@router.get("/clientes/")
 def listar_clientes():
     clientes = clientes_service.listar_clientes()
     return [c.to_dict() for c in clientes]
 
 
-@router.get("/clientes/search", response_model=List[Dict[str, Any]])
+@router.get("/clientes/search")
 def buscar_clientes(nombre: Optional[str] = Query(None, description="Nombre o apellido a buscar")):
     if not nombre:
         return []
@@ -31,7 +31,7 @@ def buscar_clientes(nombre: Optional[str] = Query(None, description="Nombre o ap
     return [c.to_dict() for c in result]
 
 
-@router.get("/clientes/{cliente_id}", response_model=Dict[str, Any])
+@router.get("/clientes/{cliente_id}")
 def obtener_cliente(cliente_id: int):
     try:
         cliente = clientes_service.obtener_cliente_por_id(cliente_id)
@@ -40,10 +40,10 @@ def obtener_cliente(cliente_id: int):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.put("/clientes/{cliente_id}", response_model=Dict[str, Any])
-def actualizar_cliente(cliente_id: int, payload: Dict[str, Any]):
+@router.put("/clientes/{cliente_id}")
+def actualizar_cliente(cliente_id: int, cliente_data: Dict[str, Any]):
     try:
-        cliente = clientes_service.actualizar_cliente(cliente_id, payload)
+        cliente = clientes_service.actualizar_cliente(cliente_id, cliente_data)
         return cliente.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

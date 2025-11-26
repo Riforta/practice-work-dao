@@ -1,191 +1,197 @@
--- DER_TP_DAO_V2.sql
--- Versión corregida para SQLite: todas las foreign keys se declaran
--- dentro de las sentencias CREATE TABLE (SQLite no soporta ALTER ... ADD FOREIGN KEY).
-
-PRAGMA foreign_keys = ON;
-
-BEGIN TRANSACTION;
-
--- Seguridad
-CREATE TABLE IF NOT EXISTS "Rol" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "nombre_rol" TEXT UNIQUE NOT NULL,
-  "descripcion" TEXT
+CREATE TABLE `Usuario` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `nombre_usuario` varchar(255) UNIQUE NOT NULL,
+  `email` varchar(255) UNIQUE NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `id_rol` integer,
+  `activo` boolean DEFAULT true
 );
 
-CREATE TABLE IF NOT EXISTS "Usuario" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "nombre_usuario" TEXT UNIQUE NOT NULL,
-  "email" TEXT UNIQUE NOT NULL,
-  "password_hash" TEXT NOT NULL,
-  "id_rol" INTEGER,
-  "activo" INTEGER DEFAULT 1,
-  FOREIGN KEY ("id_rol") REFERENCES "Rol"("id") ON DELETE SET NULL
+CREATE TABLE `Rol` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `nombre_rol` varchar(255) UNIQUE NOT NULL,
+  `descripcion` varchar(255)
 );
 
--- Datos del Cliente y Cancha
 CREATE TABLE `Cliente` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `nombre` TEXT NOT NULL,
-  `apellido` TEXT,
-  `dni` TEXT UNIQUE, -- Validacion avanzada
-  `telefono` TEXT NOT NULL,
-  `email` TEXT
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `apellido` varchar(255),
+  `dni` varchar(255) UNIQUE,
+  `telefono` varchar(255) NOT NULL,
+  `email` varchar(255),
+  `id_usuario` integer UNIQUE
 );
 
 CREATE TABLE `Cancha` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `nombre` TEXT NOT NULL,
-  `tipo_deporte` TEXT,
-  `descripcion` TEXT,
-  `activa` INTEGER DEFAULT 1
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `tipo_deporte` varchar(255),
+  `descripcion` text,
+  `activa` boolean DEFAULT true
 );
 
-CREATE TABLE IF NOT EXISTS "Tarifa" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "id_cancha" INTEGER NOT NULL,
-  "descripcion" TEXT,
-  "precio_hora" REAL NOT NULL,
-  FOREIGN KEY ("id_cancha") REFERENCES "Cancha"("id") ON DELETE CASCADE
+CREATE TABLE `Turno` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `id_cancha` integer NOT NULL,
+  `fecha_hora_inicio` datetime NOT NULL,
+  `fecha_hora_fin` datetime NOT NULL,
+  `estado` varchar(255) NOT NULL DEFAULT 'disponible',
+  `precio_final` float NOT NULL,
+  `id_cliente` integer,
+  `id_usuario_registro` integer,
+  `reserva_created_at` timestamp,
+  `id_usuario_bloqueo` integer,
+  `motivo_bloqueo` varchar(255)
 );
 
--- Transacción Principal (Turno/Reserva)
-CREATE TABLE IF NOT EXISTS "Turno" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "id_cancha" INTEGER NOT NULL,
-  "fecha_hora_inicio" TEXT NOT NULL,
-  "fecha_hora_fin" TEXT NOT NULL,
-  "estado" TEXT NOT NULL DEFAULT 'disponible',
-  "precio_final" REAL NOT NULL,
-  "id_cliente" INTEGER,
-  "id_usuario_registro" INTEGER,
-  "reserva_created_at" TEXT DEFAULT CURRENT_TIMESTAMP,
-  "id_usuario_bloqueo" INTEGER,
-  "motivo_bloqueo" TEXT,
-  FOREIGN KEY ("id_cancha") REFERENCES "Cancha"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("id_cliente") REFERENCES "Cliente"("id") ON DELETE SET NULL,
-  FOREIGN KEY ("id_usuario_registro") REFERENCES "Usuario"("id") ON DELETE SET NULL,
-  FOREIGN KEY ("id_usuario_bloqueo") REFERENCES "Usuario"("id") ON DELETE SET NULL
+CREATE TABLE `Tarifa` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `id_cancha` integer NOT NULL,
+  `descripcion` varchar(255),
+  `precio_hora` float NOT NULL
 );
 
--- Módulos de Pago y Servicios
 CREATE TABLE `ServicioAdicional` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `nombre` TEXT NOT NULL,
-  `precio_actual` REAL NOT NULL,
-  `activo` INTEGER DEFAULT 1
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `precio_actual` float NOT NULL,
+  `activo` boolean DEFAULT true
 );
 
-CREATE TABLE IF NOT EXISTS "TurnoXServicio" (
-  "id_turno" INTEGER,
-  "id_servicio" INTEGER,
-  "cantidad" INTEGER NOT NULL DEFAULT 1,
-  "precio_unitario_congelado" REAL NOT NULL,
-  PRIMARY KEY ("id_turno", "id_servicio"),
-  FOREIGN KEY ("id_turno") REFERENCES "Turno"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("id_servicio") REFERENCES "ServicioAdicional"("id") ON DELETE CASCADE
+CREATE TABLE `TurnoXServicio` (
+  `id_turno` integer,
+  `id_servicio` integer,
+  `cantidad` integer NOT NULL DEFAULT 1,
+  `precio_unitario_congelado` float NOT NULL,
+  PRIMARY KEY (`id_turno`, `id_servicio`)
 );
 
-CREATE TABLE IF NOT EXISTS "Pedido" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "id_cliente" INTEGER NOT NULL,
-  "monto_total" REAL NOT NULL,
-  "estado" TEXT NOT NULL DEFAULT 'pendiente_pago',
-  "fecha_creacion" TEXT DEFAULT CURRENT_TIMESTAMP,
-  "fecha_expiracion" TEXT,
-  FOREIGN KEY ("id_cliente") REFERENCES "Cliente"("id") ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS "PedidoItem" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "id_pedido" INTEGER NOT NULL,
-  "id_turno" INTEGER UNIQUE,
-  "id_inscripcion" INTEGER UNIQUE,
-  "descripcion" TEXT NOT NULL,
-  "monto" REAL NOT NULL,
-  FOREIGN KEY ("id_pedido") REFERENCES "Pedido"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("id_turno") REFERENCES "Turno"("id") ON DELETE SET NULL,
-  FOREIGN KEY ("id_inscripcion") REFERENCES "Inscripcion"("id") ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS "Pago" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "id_pedido" INTEGER NOT NULL,
-  "monto" REAL NOT NULL,
-  "estado" TEXT NOT NULL DEFAULT 'iniciado',
-  "metodo_pago" TEXT,
-  "id_gateway_externo" TEXT,
-  "fecha_pago" TEXT DEFAULT CURRENT_TIMESTAMP,
-  "id_usuario_manual" INTEGER NOT NULL,
-  FOREIGN KEY ("id_pedido") REFERENCES "Pedido"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("id_usuario_manual") REFERENCES "Usuario"("id") ON DELETE SET NULL
-);
-
--- Módulo de Torneos
 CREATE TABLE `Torneo` (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `nombre` TEXT NOT NULL,
-  `tipo_deporte` TEXT NOT NULL,
-  `created_at` TEXT DEFAULT CURRENT_TIMESTAMP,
-  `fecha_inicio` TEXT,
-  `fecha_fin` TEXT,
-  `costo_inscripcion` REAL DEFAULT 0,
-  `cupos` INTEGER,
-  `reglas` TEXT,
-  `estado` TEXT
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  `tipo_deporte` varchar(255) NOT NULL,
+  `created_at` timestamp DEFAULT (now()),
+  `fecha_inicio` date,
+  `fecha_fin` date,
+  `costo_inscripcion` float DEFAULT 0,
+  `cupos` integer,
+  `reglas` text,
+  `estado` varchar(255)
 );
 
-CREATE TABLE IF NOT EXISTS "Equipo" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "nombre_equipo" TEXT UNIQUE NOT NULL,
-  "id_capitan" INTEGER,
-  FOREIGN KEY ("id_capitan") REFERENCES "Cliente"("id") ON DELETE SET NULL
+CREATE TABLE `Equipo` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `nombre_equipo` varchar(255) UNIQUE NOT NULL,
+  `id_capitan` integer
 );
 
-CREATE TABLE IF NOT EXISTS "EquipoMiembro" (
-  "id_equipo" INTEGER,
-  "id_cliente" INTEGER,
-  PRIMARY KEY ("id_equipo", "id_cliente"),
-  FOREIGN KEY ("id_equipo") REFERENCES "Equipo"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("id_cliente") REFERENCES "Cliente"("id") ON DELETE CASCADE
+CREATE TABLE `EquipoMiembro` (
+  `id_equipo` integer,
+  `id_cliente` integer,
+  PRIMARY KEY (`id_equipo`, `id_cliente`)
 );
 
-CREATE TABLE IF NOT EXISTS "Inscripcion" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "id_equipo" INTEGER NOT NULL,
-  "id_torneo" INTEGER NOT NULL,
-  "fecha_inscripcion" TEXT DEFAULT CURRENT_TIMESTAMP,
-  "estado" TEXT NOT NULL DEFAULT 'pendiente_pago',
-  UNIQUE ("id_equipo", "id_torneo"),
-  FOREIGN KEY ("id_equipo") REFERENCES "Equipo"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("id_torneo") REFERENCES "Torneo"("id") ON DELETE CASCADE
+CREATE TABLE `Inscripcion` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `id_equipo` integer NOT NULL,
+  `id_torneo` integer NOT NULL,
+  `fecha_inscripcion` timestamp DEFAULT (now()),
+  `estado` varchar(255) NOT NULL DEFAULT 'pendiente_pago'
 );
 
-CREATE TABLE IF NOT EXISTS "Partido" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "id_torneo" INTEGER NOT NULL,
-  "id_turno" INTEGER UNIQUE,
-  "id_equipo_local" INTEGER,
-  "id_equipo_visitante" INTEGER,
-  "id_equipo_ganador" INTEGER,
-  "ronda" TEXT,
-  "marcador_local" INTEGER,
-  "marcador_visitante" INTEGER,
-  "estado" TEXT,
-  FOREIGN KEY ("id_torneo") REFERENCES "Torneo"("id") ON DELETE CASCADE,
-  FOREIGN KEY ("id_turno") REFERENCES "Turno"("id") ON DELETE SET NULL,
-  FOREIGN KEY ("id_equipo_local") REFERENCES "Equipo"("id") ON DELETE SET NULL,
-  FOREIGN KEY ("id_equipo_visitante") REFERENCES "Equipo"("id") ON DELETE SET NULL,
-  FOREIGN KEY ("id_equipo_ganador") REFERENCES "Equipo"("id") ON DELETE SET NULL
+CREATE TABLE `Partido` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `id_torneo` integer NOT NULL,
+  `id_turno` integer UNIQUE,
+  `id_equipo_local` integer,
+  `id_equipo_visitante` integer,
+  `id_equipo_ganador` integer,
+  `ronda` varchar(255),
+  `marcador_local` integer,
+  `marcador_visitante` integer,
+  `estado` varchar(255)
 );
 
+CREATE TABLE `Pedido` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `id_cliente` integer NOT NULL,
+  `monto_total` float NOT NULL,
+  `estado` varchar(255) NOT NULL DEFAULT 'pendiente_pago',
+  `fecha_creacion` timestamp DEFAULT (now()),
+  `fecha_expiracion` timestamp
+);
 
--- Índices y notas
-COMMIT;
+CREATE TABLE `PedidoItem` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `id_pedido` integer NOT NULL,
+  `id_turno` integer UNIQUE NOT NULL,
+  `id_inscripcion` integer UNIQUE NOT NULL,
+  `descripcion` varchar(255) NOT NULL,
+  `monto` float NOT NULL
+);
 
-CREATE INDEX IF NOT EXISTS idx_cliente_dni ON "Cliente"(dni);
-CREATE INDEX IF NOT EXISTS idx_usuario_email ON "Usuario"(email);
-CREATE INDEX IF NOT EXISTS idx_turno_cancha ON "Turno"("id_cancha");
-CREATE INDEX IF NOT EXISTS idx_tarifa_cancha ON "Tarifa"("id_cancha");
+CREATE TABLE `Pago` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `id_pedido` integer NOT NULL,
+  `monto` float NOT NULL,
+  `estado` varchar(255) NOT NULL DEFAULT 'iniciado',
+  `metodo_pago` varchar(255),
+  `id_gateway_externo` varchar(255),
+  `fecha_pago` timestamp DEFAULT (now()),
+  `id_usuario_manual` integer NOT NULL
+);
 
--- Fin del DER corregido para SQLite
+CREATE UNIQUE INDEX `Turno_index_0` ON `Turno` (`id_cancha`, `fecha_hora_inicio`);
+
+CREATE UNIQUE INDEX `Inscripcion_index_1` ON `Inscripcion` (`id_equipo`, `id_torneo`);
+
+ALTER TABLE `Usuario` ADD FOREIGN KEY (`id_rol`) REFERENCES `Rol` (`id`);
+
+ALTER TABLE `Cliente` ADD FOREIGN KEY (`id_usuario`) REFERENCES `Usuario` (`id`);
+
+ALTER TABLE `Turno` ADD FOREIGN KEY (`id_cancha`) REFERENCES `Cancha` (`id`);
+
+ALTER TABLE `Turno` ADD FOREIGN KEY (`id_cliente`) REFERENCES `Cliente` (`id`);
+
+ALTER TABLE `Turno` ADD FOREIGN KEY (`id_usuario_registro`) REFERENCES `Usuario` (`id`);
+
+ALTER TABLE `Turno` ADD FOREIGN KEY (`id_usuario_bloqueo`) REFERENCES `Usuario` (`id`);
+
+ALTER TABLE `Tarifa` ADD FOREIGN KEY (`id_cancha`) REFERENCES `Cancha` (`id`);
+
+ALTER TABLE `TurnoXServicio` ADD FOREIGN KEY (`id_turno`) REFERENCES `Turno` (`id`);
+
+ALTER TABLE `TurnoXServicio` ADD FOREIGN KEY (`id_servicio`) REFERENCES `ServicioAdicional` (`id`);
+
+ALTER TABLE `Equipo` ADD FOREIGN KEY (`id_capitan`) REFERENCES `Cliente` (`id`);
+
+ALTER TABLE `EquipoMiembro` ADD FOREIGN KEY (`id_equipo`) REFERENCES `Equipo` (`id`);
+
+ALTER TABLE `EquipoMiembro` ADD FOREIGN KEY (`id_cliente`) REFERENCES `Cliente` (`id`);
+
+ALTER TABLE `Inscripcion` ADD FOREIGN KEY (`id_equipo`) REFERENCES `Equipo` (`id`);
+
+ALTER TABLE `Inscripcion` ADD FOREIGN KEY (`id_torneo`) REFERENCES `Torneo` (`id`);
+
+ALTER TABLE `Partido` ADD FOREIGN KEY (`id_torneo`) REFERENCES `Torneo` (`id`);
+
+ALTER TABLE `Partido` ADD FOREIGN KEY (`id_turno`) REFERENCES `Turno` (`id`);
+
+ALTER TABLE `Partido` ADD FOREIGN KEY (`id_equipo_local`) REFERENCES `Equipo` (`id`);
+
+ALTER TABLE `Partido` ADD FOREIGN KEY (`id_equipo_visitante`) REFERENCES `Equipo` (`id`);
+
+ALTER TABLE `Partido` ADD FOREIGN KEY (`id_equipo_ganador`) REFERENCES `Equipo` (`id`);
+
+ALTER TABLE `Pedido` ADD FOREIGN KEY (`id_cliente`) REFERENCES `Cliente` (`id`);
+
+ALTER TABLE `PedidoItem` ADD FOREIGN KEY (`id_pedido`) REFERENCES `Pedido` (`id`);
+
+ALTER TABLE `PedidoItem` ADD FOREIGN KEY (`id_turno`) REFERENCES `Turno` (`id`);
+
+ALTER TABLE `PedidoItem` ADD FOREIGN KEY (`id_inscripcion`) REFERENCES `Inscripcion` (`id`);
+
+ALTER TABLE `Pago` ADD FOREIGN KEY (`id_pedido`) REFERENCES `Pedido` (`id`);
+
+ALTER TABLE `Pago` ADD FOREIGN KEY (`id_usuario_manual`) REFERENCES `Usuario` (`id`);
