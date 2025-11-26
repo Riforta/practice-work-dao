@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
 
-from Backend.api.dependencies.auth import require_admin
-from Backend.models.usuario import Usuario
+from api.dependencies.auth import require_admin
+from models.usuario import Usuario
 from services import clientes_service
 
 router = APIRouter()
