@@ -1,7 +1,7 @@
 import axios from 'axios';
 const api_url =  'http://127.0.0.1:8000/canchas'
 
-
+// BASQUET SERVICE
 const getAllCanchasBasquet = async () => {
     const response = await axios.get(`${api_url}/`);
     // normalizar distintos formatos de respuesta (Items, items o array directo)
@@ -64,10 +64,143 @@ const putCanchaBasquet = async (id: number, payload: any) => {
     return response.data;
 }
 
+const creatCanchaBasquet = async (payload: any) => {
+    const response = await axios.post(`${api_url}/`, payload);
+    return response.data;
+}
+
+// FUTBOL SERVICE
+const getAllCanchasFutbol = async () => {
+    const response = await axios.get(`${api_url}/`);
+    const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
+    const list = Array.isArray(data) ? data : [];
+    const isFootball = (item: any) => {
+        const val = (item?.deporte ?? item?.Deporte ?? item?.tipo ?? item?.tipo_deporte ?? item?.Tipo_deporte ?? '').toString().toLowerCase();
+        return val === 'futbol' || val === 'fútbol' || val === 'football' || val === 'soccer';
+    };
+    return list.filter(isFootball);
+};
+
+const getCanchaFutbolByName = async (name: string) => {
+    const response = await axios.get(`${api_url}`, { params: { name } });
+    const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
+    const list = Array.isArray(data) ? data : [];
+    const isFootball = (item: any) => {
+        const val = (item?.deporte ?? item?.Deporte ?? item?.tipo ?? item?.tipo_deporte ?? item?.Tipo_deporte ?? '').toString().toLowerCase();
+        return val === 'futbol' || val === 'fútbol' || val === 'football' || val === 'soccer';
+    };
+    const nameLower = (name ?? '').toString().toLowerCase();
+    return list.filter((item: any) => {
+        const itemName = (item?.nombre ?? item?.Nombre ?? item?.nombre_del_estadio ?? item?.Nombre_del_Estadio ?? '').toString().toLowerCase();
+        return itemName.includes(nameLower) && isFootball(item);
+    }
+    );
+}
+
+const getByIdFutbol = async (id: number) => {
+    try {
+        const response = await axios.get(`${api_url}/${id}`); 
+        console.log("📦 Objeto recibido del Back:", response.data);
+        return response.data; 
+    } catch (error) {
+        console.error("❌ Error obteniendo cancha por ID:", error);
+        return null;
+    }
+};
+
+const deleteCanchaFutbol = async (id: number) => {
+    const response = await axios.delete(`${api_url}/${id}`);
+    return response.data;
+}
+
+const putCanchaFutbol = async (id: number, payload: any) => {
+    const response = await axios.put(`${api_url}/${id}`, payload);
+    return response.data;
+}
+
+const creatCanchaFutbol = async (payload: any) => {
+    const response = await axios.post(`${api_url}/`, payload);
+    return response.data;
+}
+
+// PADEL SERVICE
+
+const getAllCanchasPadel = async () => {
+    const response = await axios.get(`${api_url}/`);
+    const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
+    const list = Array.isArray(data) ? data : [];
+    const isPadel = (item: any) => {
+        const val = (item?.deporte ?? item?.Deporte ?? item?.tipo ?? item?.tipo_deporte ?? item?.Tipo_deporte ?? '').toString().toLowerCase();
+        return val === 'padel' || val === 'pádel';
+    };
+    return list.filter(isPadel);
+};
+
+const getCanchaPadelByName = async (name: string) => {
+    const response = await axios.get(`${api_url}`, { params: { name } });
+    const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
+    const list = Array.isArray(data) ? data : [];
+    const isPadel = (item: any) => {
+        const val = (item?.deporte ?? item?.Deporte ?? item?.tipo ?? item?.tipo_deporte ?? item?.Tipo_deporte ?? '').toString().toLowerCase();
+        return val === 'padel' || val === 'pádel';
+    };
+    const nameLower = (name ?? '').toString().toLowerCase();
+    return list.filter((item: any) => {
+        const itemName = (item?.nombre ?? item?.Nombre ?? item?.nombre_del_estadio ?? item?.Nombre_del_Estadio ?? '').toString().toLowerCase();
+        return itemName.includes(nameLower) && isPadel(item);
+    }
+    );
+}
+
+const getByIdPadel = async (id: number) => {
+    try {
+        const response = await axios.get(`${api_url}/${id}`);
+        console.log("📦 Objeto recibido del Back:", response.data)
+        return response.data
+        } catch (error) {
+            console.error("❌ Error obteniendo cancha por ID:", error)
+            return null
+            }
+};
+
+const deleteCanchaPadel = async (id: number) => {
+    const response = await axios.delete(`${api_url}/${id}`);
+    return response.data;
+}
+
+const putCanchaPadel = async (id: number, payload: any) => {
+    const response = await axios.put(`${api_url}/${id}`, payload);
+    return response.data;
+}
+
+const creatCanchaPadel = async (payload: any) => {
+    const response = await axios.post(`${api_url}/`, payload);
+    return response.data;
+}
+
+
+
 export default {
+    // BASQUET
     getAllCanchasBasquet,
     getCanchaBasquetByName,
     deleteCanchaBasquet,
     getByIdBasquet,
-    actualizarCancha: putCanchaBasquet
+    actualizarCancha: putCanchaBasquet,
+    creatCanchaBasquet,
+    //FUTBOL
+    getAllCanchasFutbol,
+    getCanchaFutbolByName,
+    deleteCanchaFutbol,
+    getByIdFutbol,
+    putCanchaFutbol,
+    creatCanchaFutbol,
+    //PADEL
+    getAllCanchasPadel,
+    getCanchaPadelByName,
+    deleteCanchaPadel,
+    getByIdPadel,
+    putCanchaPadel,
+    creatCanchaPadel
+
 };

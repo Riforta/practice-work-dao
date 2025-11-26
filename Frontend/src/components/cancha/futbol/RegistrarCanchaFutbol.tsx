@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import service from "../../../services/canchas.service";
-import backgroundImage from "./imagenes/curry_hd_si.jpg";
+import backgroundImage from "./imagenes/robben.jpg";
 
 type FormData = {
   nombre: string;
@@ -11,12 +11,12 @@ type FormData = {
   activa: boolean;     // Quité el optional '?'
 };
 
-export default function RegistroCanchaBasquet() {
+export default function RegistroCanchaFutbol() {
   const [action, setAction] = useState("R");
   const [errorMessage, setErrorMessage] = useState("");
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
-    defaultValues: { tipo_deporte: "basquet", activa: true }
+    defaultValues: { tipo_deporte: "futbol", activa: true }
   });
   
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export default function RegistroCanchaBasquet() {
     try {
       // --- PASO 1: VERIFICAR SI YA EXISTE ---
       // Llamamos al servicio para buscar por nombre
-      const coincidencias = await service.getCanchaBasquetByName(data.nombre);
+      const coincidencias = await service.getCanchaFutbolByName(data.nombre);
       
       // Verificamos si alguna de las coincidencias tiene el nombre EXACTO
       // (Porque la búsqueda puede traer parecidos)
@@ -43,12 +43,12 @@ export default function RegistroCanchaBasquet() {
 
       // --- PASO 2: CREAR LA CANCHA ---
       // Si llegamos acá, es porque no existe. Procedemos a crear.
-      await service.creatCanchaBasquet(data);
+      await service.creatCanchaFutbol(data);
 
       // --- PASO 3: REDIRECCIONAR ---
       // Si no hubo error en el await anterior, redirigimos.
       setAction("C"); // Opcional, ya que nos vamos de la página
-      navigate("/canchas/basquet");
+      navigate("/canchas/futbol");
 
     } catch (error) {
       console.error(error);
@@ -92,9 +92,7 @@ export default function RegistroCanchaBasquet() {
             {...register("tipo_deporte", { required: "Seleccione un deporte" })}
             className="w-full mb-3 px-3 py-2 border border-white/30 bg-white/5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-white"
           >
-            <option value="basquet" className="bg-gray-700">Basquet</option>
-            <option value="futbol" className="bg-gray-700">Futbol</option>
-            <option value="padel" className="bg-gray-700">Padel</option>
+            <option value="Futbol" className="bg-gray-700">Futbol</option>
           </select>
           {errors.tipo_deporte && <p className="text-red-400 text-sm mb-2">{errors.tipo_deporte.message}</p>}
 
@@ -131,7 +129,7 @@ export default function RegistroCanchaBasquet() {
               Limpiar
             </button>
             <Link
-              to="/canchas/basquet"
+              to="/canchas/futbol"
               className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-md shadow transition-colors"
             >
               Volver
