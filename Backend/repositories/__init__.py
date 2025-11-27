@@ -18,7 +18,6 @@ from .pago_repository import PagoRepository
 from .rol_repository import RolRepository
 from .turno_repository import TurnoRepository
 from .turno_servicio_repository import TurnoXServicioRepository
-from .tarifa_repository import TarifaRepository
 
 __all__ = [
 	'ClienteRepository',
@@ -34,5 +33,4 @@ __all__ = [
     'RolRepository',
     'TurnoRepository',
     'TurnoXServicioRepository',
-    'TarifaRepository',
 ]

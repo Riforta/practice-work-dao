@@ -3,12 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import turnosApi from '../../services/turnos.service';
 import clientesApi from '../../services/clientes.service';
-import tarifasApi from '../../services/tarifas.service';
 import serviciosApi from '../../services/servicios.service';
-import type { CanchaRef } from '../../services/turnos.service';
 import type { Cliente } from '../../services/clientes.service';
-import type { Tarifa } from '../../services/tarifas.service';
 import type { ServicioAdicional } from '../../services/servicios.service';
+
+interface Cancha {
+  id: number;
+  nombre: string;
+  tipo_deporte?: string;
+  precio_hora?: number;
+}
 
 type FormValues = {
   id_cancha: number;
@@ -26,7 +30,7 @@ const estados = ['disponible', 'reservado', 'bloqueado', 'cancelado', 'finalizad
 export default function RegistrarTurnos() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
-  const [canchas, setCanchas] = useState<CanchaRef[]>([]);
+  const [canchas, setCanchas] = useState<Cancha[]>([]);
   const [loadingCanchas, setLoadingCanchas] = useState(true);
   const [clienteTerm, setClienteTerm] = useState('');
   const [clienteOptions, setClienteOptions] = useState<Cliente[]>([]);
@@ -34,7 +38,6 @@ export default function RegistrarTurnos() {
   const [showClienteList, setShowClienteList] = useState(false);
   const [showHoraInicio, setShowHoraInicio] = useState(false);
   const [showHoraFin, setShowHoraFin] = useState(false);
-  const [tarifas, setTarifas] = useState<Tarifa[]>([]);
   const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
   const [luzAplicada, setLuzAplicada] = useState<{ aplicada: boolean; monto: number }>({
     aplicada: false,
@@ -69,20 +72,23 @@ export default function RegistrarTurnos() {
   useEffect(() => {
     const fetchCanchasYClientes = async () => {
       try {
-        const [canchasList, clientesList, tarifasList, serviciosList] = await Promise.all([
-          turnosApi.listCanchas(),
+        const [clientesList, serviciosList] = await Promise.all([
           clientesApi.list(),
-          tarifasApi.list(),
           serviciosApi.list(),
         ]);
+        
+        // Obtener canchas completas (con precio_hora) desde el endpoint de canchas
+        const response = await fetch('http://127.0.0.1:8000/api/canchas/');
+        const canchasData = await response.json();
+        const canchasList = Array.isArray(canchasData) ? canchasData : [];
+        
         setCanchas(canchasList);
         setAllClientes(clientesList);
         setClienteOptions(clientesList);
-        setTarifas(tarifasList);
         setServicios(serviciosList);
       } catch (err) {
         console.error(err);
-        setError('No se pudieron cargar canchas, clientes o tarifas/servicios.');
+        setError('No se pudieron cargar canchas, clientes o servicios.');
       } finally {
         setLoadingCanchas(false);
       }
@@ -129,8 +135,8 @@ export default function RegistrarTurnos() {
     }
 
     const durationHours = (endMinutes - startMinutes) / 60;
-    const tarifa = tarifas.find((t) => t.id_cancha === canchaSeleccionada);
-    const baseHora = tarifa?.precio_hora ?? 0;
+    const cancha = canchas.find((c) => c.id === canchaSeleccionada);
+    const baseHora = cancha?.precio_hora ?? 0;
     let total = durationHours * baseHora;
 
     // Agregar servicio de luz si el rango toca noche (>=19:00) o madrugada (<07:00)
@@ -150,7 +156,7 @@ export default function RegistrarTurnos() {
     setLuzAplicada({ aplicada: luzMonto > 0, monto: luzMonto });
 
     setValue('precio_final', Number(total.toFixed(2)), { shouldValidate: false });
-  }, [canchaSeleccionada, horaInicio, horaFin, tarifas, servicios, setValue]);
+  }, [canchaSeleccionada, horaInicio, horaFin, canchas, servicios, setValue]);
 
   const onSubmit = async (values: FormValues) => {
     setError('');
@@ -187,7 +193,7 @@ export default function RegistrarTurnos() {
         return;
       }
       if (!rest.precio_final || rest.precio_final <= 0) {
-        setError('No se pudo calcular el precio. Revisa la tarifa y los horarios.');
+        setError('No se pudo calcular el precio. Revisa la cancha y los horarios.');
         return;
       }
       await turnosApi.create(payload);
