@@ -50,14 +50,9 @@ def get_current_active_user(
     current_user: Usuario = Depends(get_current_user)
 ) -> Usuario:
     """
-    Verifica que el usuario esté activo.
-    (Redundante si AuthService.validar_token ya lo hace, pero puede ser útil)
+    Compatibilidad: previamente verificaba un flag 'activo'.
+    Ya no se usa; se mantiene para compatibilidad y retorna el usuario.
     """
-    if not current_user.activo:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario inactivo"
-        )
     return current_user
 
 
@@ -97,7 +92,7 @@ def require_role(rol_descripcion: str):
     def role_checker(current_user: Usuario = Depends(get_current_user)) -> Usuario:
         rol = RolRepository.obtener_por_id(current_user.id_rol)
         
-        if not rol or rol.descripcion.lower() != rol_descripcion.lower():
+        if not rol or rol.nombre_rol.lower() != rol_descripcion.lower():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Se requiere rol: {rol_descripcion}"

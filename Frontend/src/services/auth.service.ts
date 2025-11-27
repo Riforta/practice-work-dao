@@ -24,23 +24,9 @@ export async function login(usuario: string, password: string): Promise<LoginRes
   return data
 }
 
-export async function logout(token: string | null) {
-  // Si hay token, llamar al endpoint de logout del backend
-  if (token) {
-    try {
-      await fetch(`${BASE}/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-    } catch (error) {
-      console.error('Error al cerrar sesión en el servidor:', error)
-      // Continuar con la limpieza local incluso si falla el backend
-    }
-  }
-  
+export async function logout() {
+  // Con JWT stateless, el logout solo requiere eliminar el token del cliente
+  // No hay endpoint /logout en el backend porque el token expira automáticamente
   localStorage.removeItem('token')
   localStorage.removeItem('user')
 }

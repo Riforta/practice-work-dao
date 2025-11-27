@@ -34,6 +34,8 @@ import ModificarCancha from './components/cancha/ModificarCancha'
 //import ConsultarTorneo from './components/torneo/ConsultarTorneo.tsx'
 //import RegistrarTorneo from './components/torneo/RegistrarTorneo.tsx'
 //import ModificarTorneo from './components/torneo/ModificarTorneo.tsx'
+import ReservasCliente from './components/turnos/ReservasCliente.tsx'
+import PagoReserva from './components/turnos/PagoReserva.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 import ErrorBoundary from './components/common/ErrorBoundary'
@@ -103,9 +105,9 @@ function App() {
                   <Route path="/servicios/:id/editar" element={<ModificarServicios />} />
                   {/* Torneos */}
                   <Route path="/torneos" element={<Torneo/>} />
-                  {/*<Route path="/torneos/ConsultarTorneos" element={<ConsultarTorneo/>} />
-                  <Route path="/torneos/RegistrarTorneos" element={<RegistrarTorneo/>} />
-                  <Route path="/torneos/ModificarTorneos/:id" element={<ModificarTorneo/>} />*/}
+                  <Route path="/torneos/ConsultarTorneos" element={<ConsultarTorneo/>} />
+                  <Route path="/torneos/RegistrarTorneo" element={<RegistrarTorneo/>} />
+                  <Route path="/torneos/ModificarTorneo/:id" element={<ModificarTorneo/>} />
                   {/* Turnos */}
                   <Route path="/turnos" element={<ConsultarTurnos />} />
                   <Route path="/turnos/nuevo" element={<RegistrarTurnos />} />
@@ -121,6 +123,8 @@ function App() {
                   />
                   <Route path="/clientes/nuevo" element={<RegistrarCliente />} />
                   <Route path="/clientes/:id/editar" element={<ModificarCliente />} />
+                  <Route path="/reservas" element={<ReservasCliente />} />
+                  <Route path="/reservas/pago" element={<PagoReserva />} />
                 </Routes>
               </Suspense>
             </main>

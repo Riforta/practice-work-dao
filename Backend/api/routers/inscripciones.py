@@ -23,6 +23,12 @@ def listar_inscripciones():
     return [i.to_dict() for i in insc]
 
 
+@router.get("/inscripciones/torneo/{torneo_id}", response_model=List[Dict[str, Any]])
+def listar_inscripciones_por_torneo(torneo_id: int):
+    insc = inscripciones_service.listar_inscripciones_por_torneo(torneo_id)
+    return [i.to_dict() for i in insc]
+
+
 @router.get("/inscripciones/{inscripcion_id}", response_model=Dict[str, Any])
 def obtener_inscripcion(inscripcion_id: int):
     try:

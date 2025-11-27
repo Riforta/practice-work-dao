@@ -17,6 +17,11 @@ class ReservasService:
     """Servicio para la lógica de negocio de reservas de turnos (CU-1 a CU-4)"""
 
     @staticmethod
+    def _expirar_turnos_pasados() -> None:
+        """Marca como no disponibles los turnos disponibles vencidos."""
+        TurnoRepository.marcar_pasados_no_disponible()
+
+    @staticmethod
     def registrar_reserva(
         turno_id: int, 
         id_cliente: int, 
@@ -85,6 +90,7 @@ class ReservasService:
         - Si el turno está reservado debe pertenecer a ese cliente.
         - Si no pertenece o no está reservado para él -> PermissionError.
         """
+        ReservasService._expirar_turnos_pasados()
         turno = TurnoRepository.obtener_por_id(turno_id)
         if not turno:
             raise LookupError(f"El turno con ID {turno_id} no existe.")
@@ -112,10 +118,11 @@ class ReservasService:
         if not ClienteRepository.obtener_por_id(id_cliente):
             raise ValueError(f"El cliente con ID {id_cliente} no existe.")
 
-        ESTADOS_VALIDOS = ['disponible', 'reservado', 'bloqueado', 'mantenimiento']
+        ESTADOS_VALIDOS = ['disponible', 'reservado', 'bloqueado', 'mantenimiento', 'no_disponible']
         if estado and estado not in ESTADOS_VALIDOS:
             raise ValueError(f"El estado '{estado}' no es válido. Valores permitidos: {ESTADOS_VALIDOS}")
 
+        ReservasService._expirar_turnos_pasados()
         turnos = TurnoRepository.obtener_todos_filtrados(
             id_cancha=id_cancha,
             estado=estado,
@@ -134,10 +141,11 @@ class ReservasService:
         - Si se informa id_cliente: delega en listar_reservas_cliente (valida cliente y estado).
         - Si no se informa id_cliente: valida estado y devuelve según filtros (uso administrativo potencial).
         """
-        ESTADOS_VALIDOS = ['disponible', 'reservado', 'bloqueado', 'mantenimiento']
+        ESTADOS_VALIDOS = ['disponible', 'reservado', 'bloqueado', 'mantenimiento', 'no_disponible']
         if estado and estado not in ESTADOS_VALIDOS:
             raise ValueError(f"El estado '{estado}' no es válido. Valores permitidos: {ESTADOS_VALIDOS}")
 
+        ReservasService._expirar_turnos_pasados()
         if id_cliente is not None:
             return ReservasService.listar_reservas_cliente(
                 id_cliente=id_cliente,
@@ -237,17 +245,19 @@ class ReservasService:
             raise LookupError(f"El turno con ID {turno_id} no existe.")
 
         # 3. Validar Lógica de Negocio (Estado)
-        if turno_a_cancelar.estado != 'reservado':
-            raise ValueError(f"Solo se pueden cancelar turnos que estén 'reservados' (Estado actual: {turno_a_cancelar.estado}).")
+        if turno_a_cancelar.estado not in ['reservado', 'bloqueado']:
+            raise ValueError(f"Solo se pueden cancelar turnos reservados o bloqueados (Estado actual: {turno_a_cancelar.estado}).")
 
-        # 4. Aplicar la "cancelación" (Resetear el turno)
+        # 4. Aplicar la \"cancelación\" (Resetear el turno)
         # Volvemos el estado a 'disponible'
         turno_a_cancelar.estado = 'disponible'
         
-        # MUY IMPORTANTE: Limpiamos los campos de la reserva
+        # MUY IMPORTANTE: Limpiamos los campos de la reserva/bloqueo
         turno_a_cancelar.id_cliente = None
         turno_a_cancelar.id_usuario_registro = None
         turno_a_cancelar.reserva_created_at = None
+        turno_a_cancelar.id_usuario_bloqueo = None
+        turno_a_cancelar.motivo_bloqueo = None
 
         # 5. Persistir el cambio en la base de datos
         try:

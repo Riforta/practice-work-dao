@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
 
-from api.dependencies.auth import require_admin
+from api.dependencies.auth import require_admin, require_role
 from models.usuario import Usuario
 from services import clientes_service
 
@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.post("/clientes", status_code=status.HTTP_201_CREATED)
 @router.post("/clientes/", status_code=status.HTTP_201_CREATED)
-def crear_cliente(cliente_data: Dict[str, Any]):
+def crear_cliente(cliente_data: Dict[str, Any], admin_check: Usuario = Depends(require_admin)):
     """Crea un nuevo cliente.
 
     Acepta tanto `/clientes` como `/clientes/` para evitar errores de redirección 307.
@@ -24,6 +24,7 @@ def crear_cliente(cliente_data: Dict[str, Any]):
     except Exception as e:
         # Errores del repositorio o inesperados
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/clientes/")
 def listar_clientes():
@@ -49,7 +50,7 @@ def obtener_cliente(cliente_id: int):
 
 
 @router.put("/clientes/{cliente_id}")
-def actualizar_cliente(cliente_id: int, cliente_data: Dict[str, Any]):
+def actualizar_cliente(cliente_id: int, cliente_data: Dict[str, Any], current_user: Usuario = Depends(require_role("admin"))):
     try:
         cliente = clientes_service.actualizar_cliente(cliente_id, cliente_data)
         return cliente.to_dict()

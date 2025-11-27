@@ -20,6 +20,10 @@ def obtener_inscripcion_por_id(inscripcion_id: int) -> Inscripcion:
     return ins
 
 
+def listar_inscripciones() -> List[Inscripcion]:
+    return InscripcionRepository.listar_todas()
+
+
 def listar_inscripciones_por_torneo(torneo_id: int) -> List[Inscripcion]:
     return InscripcionRepository.listar_por_torneo(torneo_id)
 

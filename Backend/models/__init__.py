@@ -11,9 +11,8 @@ from .equipo import Equipo
 from .equipo_miembro import EquipoMiembro
 from .inscripcion import Inscripcion
 from .partido import Partido
-from .pedido import Pedido
-from .pedido_item import PedidoItem
 from .pago import Pago
+from .tarifa import Tarifa
 
 __all__ = [
     'Rol',
@@ -28,7 +27,6 @@ __all__ = [
     'EquipoMiembro',
     'Inscripcion',
     'Partido',
-    'Pedido',
-    'PedidoItem',
-    'Pago'
+    'Pago',
+    'Tarifa'
 ]

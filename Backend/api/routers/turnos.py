@@ -1,8 +1,10 @@
 """Router FastAPI para gestión de Turnos y Reservas."""
 
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
 
+from api.dependencies.auth import require_role, require_admin
+from models.usuario import Usuario
 from services import turnos_service, turno_servicios_service, reservas_service
 
 router = APIRouter()
@@ -13,7 +15,9 @@ router = APIRouter()
 # ====================================================
 
 @router.post("/turnos/{turno_id}/reservar", status_code=status.HTTP_200_OK)
-def reservar_turno_endpoint(turno_id: int, request: Dict[str, Any]):
+def reservar_turno_endpoint(turno_id: int, request: Dict[str, Any],
+                            current_user: Usuario = Depends(require_role("cliente")),
+                            admin_check: Usuario = Depends(require_admin)):
     """CU-1: Registra una reserva sobre un turno disponible."""
     try:
         turno = reservas_service.ReservasService.registrar_reserva(
@@ -33,7 +37,8 @@ def reservar_turno_endpoint(turno_id: int, request: Dict[str, Any]):
 @router.get("/turnos/{turno_id}/detalle")
 def consultar_reserva_endpoint(
     turno_id: int,
-    id_cliente: Optional[int] = Query(None, description="Validar pertenencia al cliente")
+    id_cliente: Optional[int] = Query(None, description="Validar pertenencia al cliente"),
+    current_user: Usuario = Depends(require_role("cliente"))
 ):
     """CU-2a: Consulta un turno/reserva por ID con validación opcional de cliente."""
     try:
@@ -51,7 +56,8 @@ def consultar_reserva_endpoint(
 def listar_reservas_cliente_endpoint(
     id_cliente: int = Query(..., description="ID del cliente (obligatorio)"),
     id_cancha: Optional[int] = Query(None, description="Filtrar por cancha"),
-    estado: Optional[str] = Query(None, description="Filtrar por estado")
+    estado: Optional[str] = Query(None, description="Filtrar por estado"),
+    current_user: Usuario = Depends(require_role("cliente"))
 ):
     """CU-2b/2c: Lista reservas de un cliente con filtros opcionales."""
     try:
@@ -69,7 +75,7 @@ def listar_reservas_cliente_endpoint(
 
 @router.patch("/turnos/{turno_id}/reserva")
 @router.patch("/turnos/{turno_id}")  # Alias para compatibilidad con tests
-def modificar_reserva_endpoint(turno_id: int, request: Dict[str, Any]):
+def modificar_reserva_endpoint(turno_id: int, request: Dict[str, Any], current_user: Usuario = Depends(require_role("cliente"))):
     """CU-3: Modifica una reserva existente."""
     try:
         id_usuario_mod = request.pop("id_usuario_mod", None)
@@ -96,13 +102,18 @@ def modificar_reserva_endpoint(turno_id: int, request: Dict[str, Any]):
 
 @router.post("/turnos/{turno_id}/cancelar-reserva")
 @router.post("/turnos/{turno_id}/cancelar")  # Alias para compatibilidad
-def cancelar_reserva_endpoint(turno_id: int, request: Dict[str, Any]):
+def cancelar_reserva_endpoint(turno_id: int, request: Optional[Dict[str, Any]] = None, current_user: Usuario = Depends(require_role("cliente")),
+                            admin_check: Usuario = Depends(require_admin)):
     """CU-4: Cancela una reserva y devuelve el turno a disponible."""
     try:
-        turno = reservas_service.ReservasService.cancelar_reserva(
-            turno_id=turno_id,
-            id_usuario_cancelacion=request.get("id_usuario_cancelacion")
-        )
+        id_usuario_cancelacion = request.get("id_usuario_cancelacion") if request else None
+        if id_usuario_cancelacion:
+            turno = reservas_service.ReservasService.cancelar_reserva(
+                turno_id=turno_id,
+                id_usuario_cancelacion=id_usuario_cancelacion
+            )
+        else:
+            turno = turnos_service.cancelar_reserva(turno_id)
         return turno.to_dict()
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
@@ -119,7 +130,7 @@ def cancelar_reserva_endpoint(turno_id: int, request: Dict[str, Any]):
 
 
 @router.post("/turnos/", status_code=status.HTTP_201_CREATED)
-def crear_turno(turno_data: Dict[str, Any]):
+def crear_turno(turno_data: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     """Crea un nuevo turno/slot de cancha."""
     try:
         turno = turnos_service.crear_turno(turno_data)
@@ -204,7 +215,7 @@ def calcular_precio_total(turno_id: int):
 
 
 @router.put("/turnos/{turno_id}")
-def actualizar_turno(turno_id: int, turno_data: Dict[str, Any]):
+def actualizar_turno(turno_id: int, turno_data: Dict[str, Any], admin_check: Usuario = Depends(require_admin)):
     """Actualiza un turno existente."""
     try:
         turno = turnos_service.actualizar_turno(turno_id, turno_data)
@@ -218,7 +229,7 @@ def actualizar_turno(turno_id: int, turno_data: Dict[str, Any]):
 
 
 @router.patch("/turnos/{turno_id}/estado")
-def cambiar_estado(turno_id: int, payload: Dict[str, str]):
+def cambiar_estado(turno_id: int, payload: Dict[str, str], admin_check: Usuario = Depends(require_admin)):
     """Cambia el estado de un turno."""
     try:
         nuevo_estado = payload.get('estado')
@@ -233,7 +244,7 @@ def cambiar_estado(turno_id: int, payload: Dict[str, str]):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.post("/turnos/{turno_id}/reservar-simple")
+'''@router.post("/turnos/{turno_id}/reservar-simple")
 def reservar_turno_simple(turno_id: int, payload: Dict[str, Any]):
     """Reserva un turno para un cliente (versión legacy con Dict)."""
     try:
@@ -259,11 +270,11 @@ def cancelar_turno_simple(turno_id: int):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except LookupError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))'''
 
 
 @router.post("/turnos/{turno_id}/bloquear")
-def bloquear_turno(turno_id: int, payload: Dict[str, Any]):
+def bloquear_turno(turno_id: int, payload: Dict[str, Any], admin_check: Usuario = Depends(require_admin)):
     """Bloquea un turno (admin/operador)."""
     try:
         id_usuario = payload.get('id_usuario')
@@ -281,7 +292,7 @@ def bloquear_turno(turno_id: int, payload: Dict[str, Any]):
 
 
 @router.delete("/turnos/{turno_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_turno(turno_id: int):
+def eliminar_turno(turno_id: int, admin_check: Usuario = Depends(require_admin)):
     """Elimina un turno."""
     try:
         turnos_service.eliminar_turno(turno_id)
@@ -295,7 +306,7 @@ def eliminar_turno(turno_id: int):
 # === Endpoints para Servicios Adicionales de Turnos ===
 
 @router.post("/turnos/{turno_id}/servicios", status_code=status.HTTP_201_CREATED)
-def agregar_servicio_a_turno(turno_id: int, payload: Dict[str, Any]):
+def agregar_servicio_a_turno(turno_id: int, payload: Dict[str, Any], current_user: Usuario = Depends(require_role("cliente"))):
     """Agrega un servicio adicional a un turno."""
     try:
         payload['id_turno'] = turno_id
@@ -310,21 +321,21 @@ def agregar_servicio_a_turno(turno_id: int, payload: Dict[str, Any]):
 
 
 @router.get("/turnos/{turno_id}/servicios", response_model=List[Dict[str, Any]])
-def listar_servicios_turno(turno_id: int):
+def listar_servicios_turno(turno_id: int, current_user: Usuario = Depends(require_role("cliente"))):
     """Lista servicios adicionales de un turno."""
     servicios = turno_servicios_service.listar_servicios_por_turno(turno_id)
     return [s.to_dict() for s in servicios]
 
-
+'''
 @router.get("/turnos/{turno_id}/servicios/total")
 def calcular_total_servicios(turno_id: int):
     """Calcula el total de servicios adicionales de un turno."""
     total = turno_servicios_service.calcular_total_servicios_turno(turno_id)
     return {"turno_id": turno_id, "total_servicios": total}
-
+''' # No es necesario, ya se calcula en el precio total del turno
 
 @router.delete("/turnos/servicios/{registro_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_servicio_turno(registro_id: int):
+def eliminar_servicio_turno(registro_id: int, current_user: Usuario = Depends(require_role("cliente"))):
     """Elimina un servicio adicional de un turno."""
     try:
         turno_servicios_service.eliminar_servicio_turno(registro_id)

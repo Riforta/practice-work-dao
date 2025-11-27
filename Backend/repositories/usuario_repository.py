@@ -24,15 +24,14 @@ class UsuarioRepository:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO Usuario (nombre_usuario, email, password_hash, id_rol, activo)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO Usuario (nombre_usuario, email, password_hash, id_rol)
+                VALUES (?, ?, ?, ?)
                 """,
                 (
                     usuario.nombre_usuario,
                     usuario.email,
                     usuario.password_hash,
-                    usuario.id_rol,
-                    usuario.activo,
+                    usuario.id_rol
                 ),
             )
             conn.commit()
@@ -80,16 +79,11 @@ class UsuarioRepository:
             conn.close()
 
     @staticmethod
-    def obtener_todos(activos: Optional[bool] = None) -> List[Usuario]:
+    def obtener_todos() -> List[Usuario]:
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            if activos is True:
-                cursor.execute("SELECT * FROM Usuario WHERE activo = 1 ORDER BY nombre_usuario")
-            elif activos is False:
-                cursor.execute("SELECT * FROM Usuario WHERE activo = 0 ORDER BY nombre_usuario")
-            else:
-                cursor.execute("SELECT * FROM Usuario ORDER BY nombre_usuario")
+            cursor.execute("SELECT * FROM Usuario ORDER BY nombre_usuario")
             rows = cursor.fetchall()
             return [Usuario.from_db_row(r) for r in rows]
         finally:
@@ -106,7 +100,7 @@ class UsuarioRepository:
             cursor.execute(
                 """
                 UPDATE Usuario
-                SET nombre_usuario = ?, email = ?, password_hash = ?, id_rol = ?, activo = ?
+                SET nombre_usuario = ?, email = ?, password_hash = ?, id_rol = ?
                 WHERE id = ?
                 """,
                 (
@@ -114,7 +108,6 @@ class UsuarioRepository:
                     usuario.email,
                     usuario.password_hash,
                     usuario.id_rol,
-                    usuario.activo,
                     usuario.id,
                 ),
             )
@@ -157,20 +150,6 @@ class UsuarioRepository:
 
     # HELPERS
     @staticmethod
-    def activar(usuario_id: int, activo: bool = True) -> bool:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE Usuario SET activo = ? WHERE id = ?",
-                (1 if activo else 0, usuario_id),
-            )
-            conn.commit()
-            return cursor.rowcount > 0
-        finally:
-            conn.close()
-
-    @staticmethod
     def existe_email(email: str, excluir_id: Optional[int] = None) -> bool:
         conn = get_connection()
         try:
@@ -208,16 +187,11 @@ class UsuarioRepository:
             conn.close()
 
     @staticmethod
-    def contar(activos: Optional[bool] = None) -> int:
+    def contar() -> int:
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            if activos is True:
-                cursor.execute("SELECT COUNT(*) FROM Usuario WHERE activo = 1")
-            elif activos is False:
-                cursor.execute("SELECT COUNT(*) FROM Usuario WHERE activo = 0")
-            else:
-                cursor.execute("SELECT COUNT(*) FROM Usuario")
+            cursor.execute("SELECT COUNT(*) FROM Usuario")
             return cursor.fetchone()[0]
         finally:
             conn.close()

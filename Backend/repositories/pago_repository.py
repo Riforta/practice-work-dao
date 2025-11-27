@@ -14,10 +14,19 @@ class PagoRepository:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO Pago (id_pedido, monto, estado, metodo_pago, id_gateway_externo, fecha_pago, id_usuario_manual)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO Pago (
+                    id_turno, id_inscripcion, monto_turno, monto_servicios, monto_total,
+                    id_cliente, id_usuario_registro, estado, metodo_pago, id_gateway_externo,
+                    fecha_creacion, fecha_expiracion, fecha_completado
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (pago.id_pedido, pago.monto, pago.estado, pago.metodo_pago, pago.id_gateway_externo, pago.fecha_pago, pago.id_usuario_manual)
+                (
+                    pago.id_turno, pago.id_inscripcion, pago.monto_turno, pago.monto_servicios,
+                    pago.monto_total, pago.id_cliente, pago.id_usuario_registro, pago.estado,
+                    pago.metodo_pago, pago.id_gateway_externo, pago.fecha_creacion,
+                    pago.fecha_expiracion, pago.fecha_completado
+                )
             )
             conn.commit()
             return cursor.lastrowid
@@ -39,11 +48,55 @@ class PagoRepository:
             conn.close()
 
     @staticmethod
-    def listar_por_pedido(id_pedido: int) -> List[Pago]:
+    def obtener_por_turno(id_turno: int) -> Optional[Pago]:
+        """Obtiene el pago asociado a un turno específico"""
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Pago WHERE id_pedido = ? ORDER BY id DESC", (id_pedido,))
+            cursor.execute("SELECT * FROM Pago WHERE id_turno = ? ORDER BY id DESC LIMIT 1", (id_turno,))
+            row = cursor.fetchone()
+            return Pago.from_db_row(row) if row else None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def obtener_por_inscripcion(id_inscripcion: int) -> Optional[Pago]:
+        """Obtiene el pago asociado a una inscripción específica"""
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Pago WHERE id_inscripcion = ? ORDER BY id DESC LIMIT 1", (id_inscripcion,))
+            row = cursor.fetchone()
+            return Pago.from_db_row(row) if row else None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def listar_por_cliente(id_cliente: int) -> List[Pago]:
+        """Lista todos los pagos de un cliente"""
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Pago WHERE id_cliente = ? ORDER BY fecha_creacion DESC", (id_cliente,))
+            return [Pago.from_db_row(r) for r in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    @staticmethod
+    def listar_expirados() -> List[Pago]:
+        """Lista pagos que expiraron y siguen en estado 'iniciado'"""
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM Pago 
+                WHERE estado = 'iniciado' 
+                AND fecha_expiracion IS NOT NULL 
+                AND datetime(fecha_expiracion) < datetime('now')
+                ORDER BY fecha_expiracion
+                """
+            )
             return [Pago.from_db_row(r) for r in cursor.fetchall()]
         finally:
             conn.close()
@@ -58,10 +111,18 @@ class PagoRepository:
             cursor.execute(
                 """
                 UPDATE Pago
-                SET id_pedido = ?, monto = ?, estado = ?, metodo_pago = ?, id_gateway_externo = ?, fecha_pago = ?, id_usuario_manual = ?
+                SET id_turno = ?, id_inscripcion = ?, monto_turno = ?, monto_servicios = ?,
+                    monto_total = ?, id_cliente = ?, id_usuario_registro = ?, estado = ?,
+                    metodo_pago = ?, id_gateway_externo = ?, fecha_creacion = ?,
+                    fecha_expiracion = ?, fecha_completado = ?
                 WHERE id = ?
                 """,
-                (pago.id_pedido, pago.monto, pago.estado, pago.metodo_pago, pago.id_gateway_externo, pago.fecha_pago, pago.id_usuario_manual, pago.id)
+                (
+                    pago.id_turno, pago.id_inscripcion, pago.monto_turno, pago.monto_servicios,
+                    pago.monto_total, pago.id_cliente, pago.id_usuario_registro, pago.estado,
+                    pago.metodo_pago, pago.id_gateway_externo, pago.fecha_creacion,
+                    pago.fecha_expiracion, pago.fecha_completado, pago.id
+                )
             )
             conn.commit()
             return cursor.rowcount > 0
@@ -72,11 +133,18 @@ class PagoRepository:
             conn.close()
 
     @staticmethod
-    def cambiar_estado(pago_id: int, nuevo_estado: str) -> bool:
+    def cambiar_estado(pago_id: int, nuevo_estado: str, fecha_completado: Optional[str] = None) -> bool:
+        """Cambia el estado de un pago, opcionalmente actualizando fecha_completado"""
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute("UPDATE Pago SET estado = ? WHERE id = ?", (nuevo_estado, pago_id))
+            if fecha_completado:
+                cursor.execute(
+                    "UPDATE Pago SET estado = ?, fecha_completado = ? WHERE id = ?",
+                    (nuevo_estado, fecha_completado, pago_id)
+                )
+            else:
+                cursor.execute("UPDATE Pago SET estado = ? WHERE id = ?", (nuevo_estado, pago_id))
             conn.commit()
             return cursor.rowcount > 0
         finally:

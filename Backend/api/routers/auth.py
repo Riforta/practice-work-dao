@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Dict, Any
 from services.auth_service import AuthService
+from repositories.cliente_repository import ClienteRepository
 from api.dependencies.auth import get_current_user
 from models.usuario import Usuario
 
@@ -36,12 +37,10 @@ def login(credentials: Dict[str, Any]):
             detail="Credenciales inválidas"
         )
     
-    # Ya no marcamos usuario como activo al hacer login
-    # El campo activo se usa solo para cuentas habilitadas/deshabilitadas por admin
-    # No para rastrear sesiones activas
-    
     # Genera el token
     token = AuthService.generar_token(user)
+
+    cliente = ClienteRepository.obtener_por_id_usuario(user.id)
     
     # Prepara la respuesta como dict
     return {
@@ -51,7 +50,7 @@ def login(credentials: Dict[str, Any]):
             "nombre_usuario": user.nombre_usuario,
             "email": user.email,
             "id_rol": user.id_rol,
-            "activo": user.activo
+            "id_cliente": cliente.id if cliente else None
         }
     }
 
@@ -75,35 +74,6 @@ def login(credentials: Dict[str, Any]):
 #         status_code=status.HTTP_410_GONE,
 #         detail="Este endpoint ha sido movido a POST /api/usuarios/register"
 #     )
-
-
-@router.post("/logout", summary="Cerrar sesión")
-def logout(current_user: Usuario = Depends(get_current_user)):
-    """
-    Cierra la sesión del usuario.
-    
-    Requiere autenticación (token JWT en header Authorization: Bearer <token>).
-    
-    NOTA: El token JWT seguirá siendo técnicamente válido hasta su expiración.
-    El cliente debe eliminar el token del localStorage para completar el logout.
-    
-    Ya no marcamos al usuario como inactivo porque el campo 'activo' se usa
-    para cuentas habilitadas/deshabilitadas por administradores, no para
-    rastrear sesiones activas.
-    
-    Para invalidación inmediata de tokens, se requeriría implementar:
-    - Blacklist de tokens en Redis/DB
-    - O refresh tokens con access tokens de corta duración
-    
-    Returns:
-        Mensaje de confirmación indicando que el usuario debe eliminar
-        el token del localStorage/cookies en el frontend.
-    """
-    return {
-        "message": "Sesión cerrada exitosamente. Elimine el token del cliente.",
-        "usuario": current_user.nombre_usuario,
-        "action_required": "Eliminar token del localStorage/cookies en el cliente"
-    }
 
 '''
 @router.post("/refresh", summary="Refrescar token")

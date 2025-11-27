@@ -1,13 +1,15 @@
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Dict, Any, Optional
 
+from api.dependencies.auth import require_admin
+from models.usuario import Usuario
 from services import equipos_service
 
 router = APIRouter()
 
 
 @router.post("/equipos/", status_code=status.HTTP_201_CREATED)
-def crear_equipo(payload: Dict[str, Any]):
+def crear_equipo(payload: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     try:
         equipo = equipos_service.crear_equipo(payload)
         return equipo.to_dict()
@@ -45,7 +47,7 @@ def obtener_equipo_por_nombre(nombre: str):
 
 
 @router.put("/equipos/{equipo_id}", response_model=Dict[str, Any])
-def actualizar_equipo(equipo_id: int, payload: Dict[str, Any]):
+def actualizar_equipo(equipo_id: int, payload: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     try:
         equipo = equipos_service.actualizar_equipo(equipo_id, payload)
         return equipo.to_dict()
@@ -58,7 +60,7 @@ def actualizar_equipo(equipo_id: int, payload: Dict[str, Any]):
 
 
 @router.delete("/equipos/{equipo_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_equipo(equipo_id: int):
+def eliminar_equipo(equipo_id: int, current_user: Usuario = Depends(require_admin)):
     try:
         equipos_service.eliminar_equipo(equipo_id)
         return None
