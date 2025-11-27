@@ -17,7 +17,7 @@ router = APIRouter()
 @router.post("/turnos/{turno_id}/reservar", status_code=status.HTTP_200_OK)
 def reservar_turno_endpoint(turno_id: int, request: Dict[str, Any],
                             current_user: Usuario = Depends(require_role("cliente")),
-                            admin_check: Usuario = Depends(require_admin())):
+                            admin_check: Usuario = Depends(require_admin)):
     """CU-1: Registra una reserva sobre un turno disponible."""
     try:
         turno = reservas_service.ReservasService.registrar_reserva(
@@ -103,7 +103,7 @@ def modificar_reserva_endpoint(turno_id: int, request: Dict[str, Any], current_u
 @router.post("/turnos/{turno_id}/cancelar-reserva")
 @router.post("/turnos/{turno_id}/cancelar")  # Alias para compatibilidad
 def cancelar_reserva_endpoint(turno_id: int, request: Optional[Dict[str, Any]] = None, current_user: Usuario = Depends(require_role("cliente")),
-                            admin_check: Usuario = Depends(require_admin())):
+                            admin_check: Usuario = Depends(require_admin)):
     """CU-4: Cancela una reserva y devuelve el turno a disponible."""
     try:
         id_usuario_cancelacion = request.get("id_usuario_cancelacion") if request else None
@@ -130,7 +130,7 @@ def cancelar_reserva_endpoint(turno_id: int, request: Optional[Dict[str, Any]] =
 
 
 @router.post("/turnos/", status_code=status.HTTP_201_CREATED)
-def crear_turno(turno_data: Dict[str, Any], current_user: Usuario = Depends(require_admin())):
+def crear_turno(turno_data: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     """Crea un nuevo turno/slot de cancha."""
     try:
         turno = turnos_service.crear_turno(turno_data)
@@ -215,7 +215,7 @@ def calcular_precio_total(turno_id: int):
 
 
 @router.put("/turnos/{turno_id}")
-def actualizar_turno(turno_id: int, turno_data: Dict[str, Any], admin_check: Usuario = Depends(require_admin())):
+def actualizar_turno(turno_id: int, turno_data: Dict[str, Any], admin_check: Usuario = Depends(require_admin)):
     """Actualiza un turno existente."""
     try:
         turno = turnos_service.actualizar_turno(turno_id, turno_data)
@@ -229,7 +229,7 @@ def actualizar_turno(turno_id: int, turno_data: Dict[str, Any], admin_check: Usu
 
 
 @router.patch("/turnos/{turno_id}/estado")
-def cambiar_estado(turno_id: int, payload: Dict[str, str], admin_check: Usuario = Depends(require_admin())):
+def cambiar_estado(turno_id: int, payload: Dict[str, str], admin_check: Usuario = Depends(require_admin)):
     """Cambia el estado de un turno."""
     try:
         nuevo_estado = payload.get('estado')
@@ -274,7 +274,7 @@ def cancelar_turno_simple(turno_id: int):
 
 
 @router.post("/turnos/{turno_id}/bloquear")
-def bloquear_turno(turno_id: int, payload: Dict[str, Any], admin_check: Usuario = Depends(require_admin())):
+def bloquear_turno(turno_id: int, payload: Dict[str, Any], admin_check: Usuario = Depends(require_admin)):
     """Bloquea un turno (admin/operador)."""
     try:
         id_usuario = payload.get('id_usuario')
@@ -292,7 +292,7 @@ def bloquear_turno(turno_id: int, payload: Dict[str, Any], admin_check: Usuario 
 
 
 @router.delete("/turnos/{turno_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_turno(turno_id: int, admin_check: Usuario = Depends(require_admin())):
+def eliminar_turno(turno_id: int, admin_check: Usuario = Depends(require_admin)):
     """Elimina un turno."""
     try:
         turnos_service.eliminar_turno(turno_id)
