@@ -26,10 +26,10 @@ import RegistrarTurnos from './components/turnos/RegistrarTurnos.tsx'
 import ModificarTurnos from './components/turnos/ModificarTurnos.tsx'
 import ReservasCliente from './components/turnos/ReservasCliente.tsx'
 import PagoReserva from './components/turnos/PagoReserva.tsx'
-import Torneo from './components/torneo/torneo.tsx'
-//import ConsultarTorneo from './components/torneo/ConsultarTorneo.tsx'
-//import RegistrarTorneo from './components/torneo/RegistrarTorneo.tsx'
-//import ModificarTorneo from './components/torneo/ModificarTorneo.tsx'
+import Torneo from './components/torneo/Torneo.tsx'
+import ConsultarTorneo from './components/torneo/ConsultarTorneo.tsx'
+import RegistrarTorneo from './components/torneo/RegistrarTorneo.tsx'
+import ModificarTorneo from './components/torneo/ModificarTorneo.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -85,9 +85,9 @@ function App() {
                   <Route path="/servicios/:id/editar" element={<ModificarServicios />} />
                   {/* Torneos */}
                   <Route path="/torneos" element={<Torneo/>} />
-                  {/*<Route path="/torneos/ConsultarTorneos" element={<ConsultarTorneo/>} />
-                  <Route path="/torneos/RegistrarTorneos" element={<RegistrarTorneo/>} />
-                  <Route path="/torneos/ModificarTorneos/:id" element={<ModificarTorneo/>} />*/}
+                  <Route path="/torneos/ConsultarTorneos" element={<ConsultarTorneo/>} />
+                  <Route path="/torneos/RegistrarTorneo" element={<RegistrarTorneo/>} />
+                  <Route path="/torneos/ModificarTorneo/:id" element={<ModificarTorneo/>} />
                   {/* Turnos */}
                   <Route path="/turnos" element={<ConsultarTurnos />} />
                   <Route path="/turnos/nuevo" element={<RegistrarTurnos />} />

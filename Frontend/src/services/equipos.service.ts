@@ -1,74 +1,72 @@
-import axios from 'axios';
-const api_url =  'http://127.0.0.1:8000/api/equipos'
+import http from './http';
 
-//  SERVICE
-const getAllEquipos = async () => {
-    const response = await axios.get(`${api_url}/`);
-    // normalizar distintos formatos de respuesta (Items, items o array directo)
-    const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
-    const list = Array.isArray(data) ? data : [];
-    // asegurar que sólo devuelva Equipos cuyo deporte sea básquet (case-insensitive)
-
-    return list;
-};
-
-const getEquipoByName = async (name: string) => {
-    // intento de pedir al backend por nombre (si el endpoint acepta query params)
-    const response = await axios.get(`${api_url}`, { params: { name } });
-    const data = response.data?.Items ?? response.data?.items ?? response.data ?? [];
-    const list = Array.isArray(data) ? data : [];
-
-        // filtrar por nombre + deporte =  (comparación case-insensitive)
-    const nameLower = (name ?? '').toString().toLowerCase();
-    return list.filter((item: any) => {
-        const itemName = (item?.nombre_equipo ??'').toString().toLowerCase();
-        return itemName.includes(nameLower);
-    });
+export interface Equipo {
+	id?: number;
+	nombre_equipo: string;
+	id_capitan?: number | null;
 }
 
-const getById = async (id: number) => {
-        // intento de pedir al backend por nombre (si el endpoint acepta query params)
-    try {
-            // 1. Petición directa al ID (asumiendo que tu backend es /Equipos/{id})
-            // OJO: Si tu api_url ya tiene una barra al final, quítasela aquí o en la variable.
-            const response = await axios.get(`${api_url}/${id}`); 
+const endpoint = '/equipos';
 
-            console.log("📦 Objeto recibido del Back:", response.data);
+const normalize = (raw: any): Equipo => ({
+	id:
+		raw?.id ??
+		raw?.Id ??
+		raw?.ID ??
+		raw?.id_equipo ??
+		raw?.idEquipo ??
+		raw?.ID_EQUIPO ??
+		undefined,
+	nombre_equipo: raw?.nombre_equipo ?? raw?.nombre ?? raw?.nombreEquipo ?? raw?.Nombre ?? '',
+	id_capitan: raw?.id_capitan ?? raw?.idCapitan ?? raw?.id_capitan ?? null,
+});
 
-            // 2. No filtramos nada. Devolvemos el objeto directo.
-            // Si tu backend devuelve { nombre: "...", ... } lo devolvemos directo.
-            return response.data; 
-
-        } catch (error) {
-            console.error("❌ Error obteniendo Equipo por ID:", error);
-            return null;
-        }
+const extractList = (data: any) => {
+	const list = data?.Items ?? data?.items ?? data;
+	return Array.isArray(list) ? list : [];
 };
 
+const getAllEquipos = async (): Promise<Equipo[]> => {
+	const response = await http.get(`${endpoint}/`);
+	return extractList(response.data).map(normalize);
+};
+
+const getEquipoByName = async (name: string): Promise<Equipo[]> => {
+	const response = await http.get(`${endpoint}/`, { params: { nombre: name } });
+	return extractList(response.data)
+		.map(normalize)
+		.filter((item) => item.nombre_equipo.toLowerCase().includes(name.toLowerCase()));
+};
+
+const getById = async (id: number): Promise<Equipo | null> => {
+	try {
+		const response = await http.get(`${endpoint}/${id}`);
+		return normalize(response.data);
+	} catch (error) {
+		console.error('❌ Error obteniendo equipo por ID:', error);
+		return null;
+	}
+};
 
 const deleteEquipo = async (id: number) => {
-    const response = await axios.delete(`${api_url}/${id}`);
-    return response.data;
-}
+	await http.delete(`${endpoint}/${id}`);
+};
 
-const putEquipo = async (id: number, payload: any) => {
-    const response = await axios.put(`${api_url}/${id}`, payload);
-    return response.data;
-}
+const putEquipo = async (id: number, payload: Partial<Equipo>) => {
+	const response = await http.put(`${endpoint}/${id}`, payload);
+	return normalize(response.data);
+};
 
-const creatEquipo = async (payload: any) => {
-    const response = await axios.post(`${api_url}/`, payload);
-    return response.data;
-}
-
+const creatEquipo = async (payload: Partial<Equipo>) => {
+	const response = await http.post(`${endpoint}/`, payload);
+	return normalize(response.data);
+};
 
 export default {
-    // 
-    getAllEquipos,
-    getEquipoByName,
-    deleteEquipo,
-    getById,
-    actualizarEquipo: putEquipo,
-    creatEquipo
-
+	getAllEquipos,
+	getEquipoByName,
+	deleteEquipo,
+	getById,
+	actualizarEquipo: putEquipo,
+	creatEquipo,
 };
