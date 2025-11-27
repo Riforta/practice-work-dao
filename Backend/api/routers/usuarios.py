@@ -48,15 +48,7 @@ def registrar_usuario_cliente(payload: Dict[str, Any]):
             'password': payload.get('password'),
             'id_rol': payload.get('id_rol', 2)  # Default: Cliente
         }
-        
-        # 2. Registrar usuario (usuarios_service)
-        usuario = usuarios_service.registrar_usuario(usuario_data) 
 
-        # 2.5 Activar usuario recién creado (por logueo automático)
-        AuthService.marcar_activo(usuario.id, activo=True)
-        # Actualizar objeto en memoria
-        usuario.activo = 1
-        
         # 3. Preparar datos de cliente vinculado al usuario
         cliente_data = {
             'id_usuario': usuario.id,  # Vincular con usuario recién creado
@@ -64,18 +56,14 @@ def registrar_usuario_cliente(payload: Dict[str, Any]):
             'apellido': payload.get('apellido'),
             'dni': payload.get('dni'),
             'telefono': payload.get('telefono'),
-            'direccion': payload.get('direccion')
         }
         
-        # 4. Crear cliente (clientes_service)
-        cliente = clientes_service.crear_cliente(cliente_data)
-        
-        # 5. Generar token JWT (auth_service)
-        token = AuthService.generar_token(usuario)
+        # 2. Registrar usuario (usuarios_service)
+        usuario, cliente, token = usuarios_service.registrar_usuario(usuario_data, cliente_data) 
         
         # 6. Preparar respuesta usando to_dict()
         user_dict = usuario.to_dict()
-        user_dict.pop('password_hash', None)  # Nunca exponer password_hash
+        user_dict.pop('password', None)  # Nunca exponer password_hash
         
         return {
             "token": token,
