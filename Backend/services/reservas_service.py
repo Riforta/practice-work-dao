@@ -25,7 +25,6 @@ class ReservasService:
     def registrar_reserva(
         turno_id: int, 
         id_cliente: int, 
-        id_usuario_registro: int
     ) -> Turno:
         """
         Orquesta la lógica de negocio para registrar una RESERVA.
@@ -56,15 +55,16 @@ class ReservasService:
             raise LookupError(f"El turno con ID {turno_id} no existe.")
 
         # 3. Validar Lógica de Negocio (Disponibilidad)
-        if turno_a_reservar.estado != 'disponible':
+        # Acepta 'disponible' (flujo directo sin pago) o 'pendiente_pago' (después de confirmar pago)
+        if turno_a_reservar.estado not in ['disponible', 'pendiente_pago']:
             raise ValueError(
-                f"El turno {turno_id} no está disponible. Estado actual: {turno_a_reservar.estado}"
+                f"El turno {turno_id} no está disponible para reservar. Estado actual: {turno_a_reservar.estado}"
             )
 
-        # 4. Modificar el objeto modelo 'Turno'
+        # 4. Modificar el objeto modelo 'Turno' - siempre cambia a 'reservado'
         turno_a_reservar.estado = 'reservado'
         turno_a_reservar.id_cliente = id_cliente
-        turno_a_reservar.id_usuario_registro = id_usuario_registro
+        # NO modificamos id_usuario_registro (solo lo setea el admin al crear el turno)
         turno_a_reservar.reserva_created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         # Limpiar campos de bloqueo

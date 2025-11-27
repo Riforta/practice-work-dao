@@ -7,6 +7,27 @@ from repositories.turno_servicio_repository import TurnoXServicioRepository
 from repositories.servicio_adicional_repository import ServicioAdicionalRepository
 
 
+def agregar_servicio_desde_dict(id_turno: int, id_servicio: int, cantidad: int, precio_unitario: float) -> int:
+    """Agrega un servicio a un turno con precio ya especificado.
+    
+    Args:
+        id_turno: ID del turno
+        id_servicio: ID del servicio adicional
+        cantidad: Cantidad del servicio
+        precio_unitario: Precio unitario a congelar
+        
+    Returns:
+        ID del registro creado
+    """
+    turno_servicio = TurnoServicio(
+        id_turno=id_turno,
+        id_servicio=id_servicio,
+        cantidad=cantidad,
+        precio_unitario_congelado=precio_unitario
+    )
+    return TurnoXServicioRepository.agregar(turno_servicio)
+
+
 def agregar_servicio_a_turno(data: Dict[str, Any]) -> TurnoServicio:
     """Agrega un servicio adicional a un turno.
     

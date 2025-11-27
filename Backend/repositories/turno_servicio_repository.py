@@ -90,7 +90,6 @@ class TurnoXServicioRepository:
             rows = cursor.fetchall()
             return [
                 TurnoServicio(
-                    id=row["id"],
                     id_turno=row["id_turno"],
                     id_servicio=row["id_servicio"],
                     cantidad=row["cantidad"],

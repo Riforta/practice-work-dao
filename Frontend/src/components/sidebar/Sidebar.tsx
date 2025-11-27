@@ -6,32 +6,53 @@ import {
   InboxIcon,
   UserCircleIcon,
   BanknotesIcon,
+  HomeIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
+import { useAuth } from '../../contexts/AuthContext';
 
 // --- El componente se llama 'Sidebar' y es la exportación por defecto ---
 
 export default function Sidebar() {
-  // const currentItem = 'Reservas'; // ⬆️ ELIMINÉ ESTA LÍNEA
+  const { user } = useAuth();
+  
+  // Determinar rol del usuario
+  const isAdmin = user?.id_rol === 1;
+  const isCliente = user?.id_rol === 2;
+  const isGuest = !user; // Sin autenticar
 
-  const navigation = [
-    { name: 'Reservas', href: '/reservas', icon: RectangleStackIcon}, // 'current: true' ahora controla el estado activo
-    {
-      name: 'Clientes',
-      icon: ShoppingCartIcon,
-      current: false,
-      children: [
-        { name: 'Orders', href: '#' },
-        { name: 'Products', href: '#' },
-      ],
-    },
-    { name: 'Canchas', href: '/canchas', icon: InboxIcon, current: false, count: '14' },
+  // Navegación pública (usuarios no autenticados)
+  const navigationPublic = [
+    { name: 'Inicio', href: '/', icon: HomeIcon, current: false },
+    { name: 'Canchas Disponibles', href: '/canchas-publicas', icon: InboxIcon, current: false },
+  ];
+
+  // Navegación cliente (usuarios autenticados como cliente)
+  const navigationCliente = [
+    { name: 'Inicio', href: '/', icon: HomeIcon, current: false },
+    { name: 'Canchas Disponibles', href: '/canchas-publicas', icon: InboxIcon, current: false },
+    { name: 'Mis Reservas', href: '/mis-reservas', icon: CalendarIcon, current: false },
+  ];
+
+  // Navegación admin (usuarios con rol administrador)
+  const navigationAdmin = [
+    { name: 'Inicio', href: '/', icon: HomeIcon, current: false },
+    { name: 'Reservas', href: '/reservas', icon: RectangleStackIcon, current: false },
+    { name: 'Canchas', href: '/canchas', icon: InboxIcon, current: false },
     { name: 'Equipos', href: '/equipos', icon: UserCircleIcon, current: false },
     { name: 'Pagos', href: '/pagos', icon: BanknotesIcon, current: false },
     { name: 'Torneos', href: '/torneos', icon: UserCircleIcon, current: false },
     { name: 'Servicios', href: '/servicios', icon: UserCircleIcon, current: false },
     { name: 'Turnos', href: '/turnos', icon: UserCircleIcon, current: false },
-
   ];
+
+  // Seleccionar navegación según rol
+  let navigation = navigationPublic;
+  if (isAdmin) {
+    navigation = navigationAdmin;
+  } else if (isCliente) {
+    navigation = navigationCliente;
+  }
 
 
 
@@ -42,76 +63,33 @@ export default function Sidebar() {
 
   return (
     <div className="flex h-full w-72 flex-col bg-gray-900 text-white">
-      {/* Encabezado del Sidebar (Logo/Título) */}
-
       {/* Contenido principal del Sidebar */}
       <div className="flex flex-1 flex-col overflow-y-auto">
         <nav className="flex-1 space-y-1 px-4 py-4">
-          {navigation.map((item) =>
-            !item.children ? (
-              // --- Elemento de link normal ---
-              <div key={item.name}>
-                <a
-                  href={item.href}
-                  className={classNames(
-                    item.current // ⬆️ MODIFICADO: Ahora usa 'item.current'
-                      ? 'bg-gray-800 text-white' // Estado activo
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white', // Estado normal
-                    'group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150',
-                  )}
-                >
-                  <item.icon
-                    className={classNames(
-                      item.current // ⬆️ MODIFICADO: Ahora usa 'item.current'
-                        ? 'text-white'
-                        : 'text-gray-500 group-hover:text-white',
-                      'size-6 shrink-0 transition-colors duration-150',
-                    )}
-                    aria-hidden="true"
-                  />
-                  <span className="flex-1">{item.name}</span>
-                  {item.count ? (
-                    <span className="ml-auto whitespace-nowrap rounded-full bg-indigo-500 px-2.5 py-0.5 text-xs font-medium text-white">
-                      {item.count}
-                    </span>
-                  ) : null}
-                </a>
-              </div>
-            ) : (
-              // --- Elemento de Disclosure (Submenú) ---
-              <Disclosure as="div" key={item.name} className="space-y-1" defaultOpen={true}>
-                <DisclosureButton
+          {navigation.map((item) => (
+            <div key={item.name}>
+              <a
+                href={item.href}
+                className={classNames(
+                  item.current
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                  'group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150',
+                )}
+              >
+                <item.icon
                   className={classNames(
                     item.current
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                    'group flex w-full items-center gap-x-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500',
+                      ? 'text-white'
+                      : 'text-gray-500 group-hover:text-white',
+                    'size-6 shrink-0 transition-colors duration-150',
                   )}
-                >
-                  <item.icon
-                    className="size-6 shrink-0 text-gray-500 group-hover:text-white"
-                    aria-hidden="true"
-                  />
-                  <span className="flex-1">{item.name}</span>
-                  <ChevronDownIcon
-                    className="size-5 shrink-0 text-gray-500 transition-transform duration-150 ease-in-out group-data-open:rotate-180"
-                    aria-hidden="true"
-                  />
-                </DisclosureButton>
-                <DisclosurePanel className="space-y-1 pl-9">
-                  {item.children.map((subItem) => (
-                    <a
-                      key={subItem.name}
-                      href={subItem.href}
-                      className="group flex items-center gap-x-3 rounded-md py-2 pl-3 pr-2 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white"
-                    >
-                      {subItem.name}
-                    </a>
-                  ))}
-                </DisclosurePanel>
-              </Disclosure>
-            )
-          )}
+                  aria-hidden="true"
+                />
+                <span className="flex-1">{item.name}</span>
+              </a>
+            </div>
+          ))}
         </nav>
       </div>
     </div>
