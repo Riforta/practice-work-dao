@@ -168,10 +168,10 @@ class ClienteRepository:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE Cliente 
-                SET nombre = ?, apellido = ?, dni = ?, telefono = ?
+                SET nombre = ?, apellido = ?, dni = ?, telefono = ?, id_usuario = ?
                 WHERE id = ?
             """, (cliente.nombre, cliente.apellido, cliente.dni, 
-                cliente.telefono, cliente.id))
+                cliente.telefono, cliente.id_usuario, cliente.id))
             
             conn.commit()
             return cursor.rowcount > 0

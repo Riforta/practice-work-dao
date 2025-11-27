@@ -2,6 +2,70 @@
 
 Este es el backend del sistema de gestión de alquiler de canchas deportivas, que incluye gestión de usuarios, reservas de turnos, torneos y pagos.
 
+## 🚀 Inicio Rápido
+
+### 1. Instalar dependencias
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Inicializar base de datos
+```bash
+# Crear base de datos e insertar datos básicos
+python scripts/init_database.py
+
+# O resetear completamente la base de datos
+python scripts/init_database.py --reset
+```
+
+El script `init_database.py` crea automáticamente:
+- ✅ 3 roles (administrador, cliente, empleado)
+- ✅ Usuario admin (usuario: `admin`, password: `admin123`)
+- ✅ 5 canchas deportivas (fútbol, tenis, paddle, básquet)
+- ✅ 7 servicios adicionales
+- ✅ 210+ turnos disponibles (próximos 3 días)
+- ✅ 1 torneo de ejemplo
+
+### 3. Iniciar la API
+```bash
+python -m uvicorn api.main:app --reload
+```
+
+La API estará disponible en: `http://localhost:8000`
+
+### 4. Login como administrador
+```http
+POST http://localhost:8000/api/auth/login
+Content-Type: application/json
+
+{
+  "nombre_usuario": "admin",
+  "password": "admin123"
+}
+```
+
+## 📚 Scripts Disponibles
+
+### `scripts/init_database.py`
+Inicializa la base de datos con estructura y datos básicos.
+```bash
+python scripts/init_database.py          # Inicializar
+python scripts/init_database.py --reset  # Resetear y reinicializar
+```
+
+### `scripts/migrate_to_new_pago.py`
+Migra la base de datos al nuevo modelo de Pago (sin Pedido/PedidoItem).
+```bash
+python scripts/migrate_to_new_pago.py --check    # Ver estado
+python scripts/migrate_to_new_pago.py --execute  # Ejecutar migración
+```
+
+### `scripts/create_admin.py`
+Crea un usuario administrador adicional.
+```bash
+python scripts/create_admin.py
+```
+
 ## 🗂️ Estructura del Proyecto
 
 ```
@@ -286,5 +350,38 @@ conn.close()
 ## 🛠️ Tecnologías
 
 - **Base de datos**: SQLite3
-- **Lenguaje**: Python 3
+- **Lenguaje**: Python 3.13+
+- **Framework**: FastAPI
 - **Patrón**: DAO (Data Access Object)
+- **Autenticación**: JWT (JSON Web Tokens)
+
+## 📖 Documentación Adicional
+
+- **[COMPARACION_DER_BD.md](COMPARACION_DER_BD.md)** - Análisis detallado: DER vs Base de Datos actual
+- **[MIGRACION_NUEVO_PAGO.md](MIGRACION_NUEVO_PAGO.md)** - Documentación del nuevo flujo de pagos sin carrito
+- **[DER_TP_DAO_V2.sql](DER_TP_DAO_V2.sql)** - Diagrama Entidad-Relación exportado para MySQL
+
+## 🔄 Flujo de Negocio Principal
+
+### Reserva de Turno
+1. Cliente selecciona turno + servicios opcionales
+2. Se crea Pago con estado `iniciado` y timer de 15 minutos
+3. Turno cambia a `pendiente_pago`
+4. Si pago se confirma → Turno: `reservado`, Pago: `completado`
+5. Si expira timer → Turno: `disponible`, Pago: `fallido`
+
+### Inscripción a Torneo
+1. Equipo se inscribe con estado `pendiente_pago`
+2. Se crea Pago con timer de 15 minutos
+3. Si pago se confirma → Inscripcion: `confirmada`
+4. Si expira timer → Inscripcion: `cancelada`
+
+## 🔐 Credenciales por Defecto
+
+Después de ejecutar `init_database.py`:
+
+| Usuario | Password | Rol | Email |
+|---------|----------|-----|-------|
+| admin | admin123 | administrador | admin@canchas.com |
+
+⚠️ **IMPORTANTE**: Cambiar estas credenciales en producción.

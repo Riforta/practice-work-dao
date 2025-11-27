@@ -49,21 +49,20 @@ def registrar_usuario_cliente(payload: Dict[str, Any]):
             'id_rol': payload.get('id_rol', 2)  # Default: Cliente
         }
 
-        # 3. Preparar datos de cliente vinculado al usuario
+        # 2. Preparar datos de cliente (sin id_usuario; lo setea el servicio)
         cliente_data = {
-            'id_usuario': usuario.id,  # Vincular con usuario recién creado
             'nombre': payload.get('nombre'),
             'apellido': payload.get('apellido'),
             'dni': payload.get('dni'),
             'telefono': payload.get('telefono'),
         }
         
-        # 2. Registrar usuario (usuarios_service)
-        usuario, cliente, token = usuarios_service.registrar_usuario(usuario_data, cliente_data) 
+        # 3. Registrar usuario + cliente (usuarios_service maneja el vínculo y rollback)
+        usuario, cliente, token = usuarios_service.registrar_usuario(usuario_data, cliente_data)
         
         # 6. Preparar respuesta usando to_dict()
         user_dict = usuario.to_dict()
-        user_dict.pop('password', None)  # Nunca exponer password_hash
+        user_dict.pop('password_hash', None)  # Nunca exponer password_hash
         
         return {
             "token": token,

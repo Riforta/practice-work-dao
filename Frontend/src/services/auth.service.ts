@@ -24,7 +24,9 @@ export async function login(usuario: string, password: string): Promise<LoginRes
   return data
 }
 
-export function logout() {
+export async function logout() {
+  // Con JWT stateless, el logout solo requiere eliminar el token del cliente
+  // No hay endpoint /logout en el backend porque el token expira automáticamente
   localStorage.removeItem('token')
   localStorage.removeItem('user')
 }

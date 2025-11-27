@@ -3,8 +3,7 @@ CREATE TABLE `Usuario` (
   `nombre_usuario` varchar(255) UNIQUE NOT NULL,
   `email` varchar(255) UNIQUE NOT NULL,
   `password_hash` varchar(255) NOT NULL,
-  `id_rol` integer,
-  `activo` boolean DEFAULT true
+  `id_rol` integer
 );
 
 CREATE TABLE `Rol` (
@@ -19,7 +18,6 @@ CREATE TABLE `Cliente` (
   `apellido` varchar(255),
   `dni` varchar(255) UNIQUE,
   `telefono` varchar(255) NOT NULL,
-  `email` varchar(255),
   `id_usuario` integer UNIQUE
 );
 
@@ -28,7 +26,8 @@ CREATE TABLE `Cancha` (
   `nombre` varchar(255) NOT NULL,
   `tipo_deporte` varchar(255),
   `descripcion` text,
-  `activa` boolean DEFAULT true
+  `activa` boolean DEFAULT true,
+  `precio_hora` float
 );
 
 CREATE TABLE `Turno` (
@@ -43,13 +42,6 @@ CREATE TABLE `Turno` (
   `reserva_created_at` timestamp,
   `id_usuario_bloqueo` integer,
   `motivo_bloqueo` varchar(255)
-);
-
-CREATE TABLE `Tarifa` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `id_cancha` integer NOT NULL,
-  `descripcion` varchar(255),
-  `precio_hora` float NOT NULL
 );
 
 CREATE TABLE `ServicioAdicional` (
@@ -113,33 +105,21 @@ CREATE TABLE `Partido` (
   `estado` varchar(255)
 );
 
-CREATE TABLE `Pedido` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `id_cliente` integer NOT NULL,
-  `monto_total` float NOT NULL,
-  `estado` varchar(255) NOT NULL DEFAULT 'pendiente_pago',
-  `fecha_creacion` timestamp DEFAULT (now()),
-  `fecha_expiracion` timestamp
-);
-
-CREATE TABLE `PedidoItem` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `id_pedido` integer NOT NULL,
-  `id_turno` integer UNIQUE NOT NULL,
-  `id_inscripcion` integer UNIQUE NOT NULL,
-  `descripcion` varchar(255) NOT NULL,
-  `monto` float NOT NULL
-);
-
 CREATE TABLE `Pago` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `id_pedido` integer NOT NULL,
-  `monto` float NOT NULL,
+  `id_turno` integer UNIQUE,
+  `id_inscripcion` integer UNIQUE,
+  `monto_turno` float,
+  `monto_servicios` float DEFAULT 0,
+  `monto_total` float NOT NULL,
+  `id_cliente` integer NOT NULL,
+  `id_usuario_registro` integer,
   `estado` varchar(255) NOT NULL DEFAULT 'iniciado',
   `metodo_pago` varchar(255),
   `id_gateway_externo` varchar(255),
-  `fecha_pago` timestamp DEFAULT (now()),
-  `id_usuario_manual` integer NOT NULL
+  `fecha_creacion` timestamp DEFAULT (now()),
+  `fecha_expiracion` timestamp,
+  `fecha_completado` timestamp
 );
 
 CREATE UNIQUE INDEX `Turno_index_0` ON `Turno` (`id_cancha`, `fecha_hora_inicio`);
@@ -157,8 +137,6 @@ ALTER TABLE `Turno` ADD FOREIGN KEY (`id_cliente`) REFERENCES `Cliente` (`id`);
 ALTER TABLE `Turno` ADD FOREIGN KEY (`id_usuario_registro`) REFERENCES `Usuario` (`id`);
 
 ALTER TABLE `Turno` ADD FOREIGN KEY (`id_usuario_bloqueo`) REFERENCES `Usuario` (`id`);
-
-ALTER TABLE `Tarifa` ADD FOREIGN KEY (`id_cancha`) REFERENCES `Cancha` (`id`);
 
 ALTER TABLE `TurnoXServicio` ADD FOREIGN KEY (`id_turno`) REFERENCES `Turno` (`id`);
 
@@ -184,14 +162,10 @@ ALTER TABLE `Partido` ADD FOREIGN KEY (`id_equipo_visitante`) REFERENCES `Equipo
 
 ALTER TABLE `Partido` ADD FOREIGN KEY (`id_equipo_ganador`) REFERENCES `Equipo` (`id`);
 
-ALTER TABLE `Pedido` ADD FOREIGN KEY (`id_cliente`) REFERENCES `Cliente` (`id`);
+ALTER TABLE `Pago` ADD FOREIGN KEY (`id_turno`) REFERENCES `Turno` (`id`);
 
-ALTER TABLE `PedidoItem` ADD FOREIGN KEY (`id_pedido`) REFERENCES `Pedido` (`id`);
+ALTER TABLE `Pago` ADD FOREIGN KEY (`id_inscripcion`) REFERENCES `Inscripcion` (`id`);
 
-ALTER TABLE `PedidoItem` ADD FOREIGN KEY (`id_turno`) REFERENCES `Turno` (`id`);
+ALTER TABLE `Pago` ADD FOREIGN KEY (`id_cliente`) REFERENCES `Cliente` (`id`);
 
-ALTER TABLE `PedidoItem` ADD FOREIGN KEY (`id_inscripcion`) REFERENCES `Inscripcion` (`id`);
-
-ALTER TABLE `Pago` ADD FOREIGN KEY (`id_pedido`) REFERENCES `Pedido` (`id`);
-
-ALTER TABLE `Pago` ADD FOREIGN KEY (`id_usuario_manual`) REFERENCES `Usuario` (`id`);
+ALTER TABLE `Pago` ADD FOREIGN KEY (`id_usuario_registro`) REFERENCES `Usuario` (`id`);

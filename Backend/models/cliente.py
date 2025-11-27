@@ -10,7 +10,7 @@ class Cliente:
     apellido: Optional[str] = None
     dni: Optional[str] = None
     telefono: str = ""
-    id_usuario: int = None
+    id_usuario: Optional[int] = None
     
     def __post_init__(self):
         """Validación básica"""

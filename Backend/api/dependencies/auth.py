@@ -50,14 +50,9 @@ def get_current_active_user(
     current_user: Usuario = Depends(get_current_user)
 ) -> Usuario:
     """
-    Verifica que el usuario esté activo.
-    (Redundante si AuthService.validar_token ya lo hace, pero puede ser útil)
+    Compatibilidad: previamente verificaba un flag 'activo'.
+    Ya no se usa; se mantiene para compatibilidad y retorna el usuario.
     """
-    if not current_user.activo:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario inactivo"
-        )
     return current_user
 
 
