@@ -7,7 +7,6 @@
 # API Framework - FastAPI (REQUERIDO)
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
 
 # Seguridad (para autenticación futura)
 bcrypt>=4.1.0

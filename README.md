@@ -1,214 +1,532 @@
-# 🏟️ Sistema de Alquiler de Canchas Deportivas
+# 🏟️ Sistema de Gestión de Canchas Deportivas
 
-Sistema de gestión para alquiler de canchas deportivas, incluyendo gestión de usuarios, reservas, torneos y pagos.
+> Sistema completo de gestión y reserva de canchas deportivas con torneos, equipos y pagos.  
+> **Stack**: FastAPI + SQLite + React + TypeScript + Vite
 
-## ✅ Estado Actual
+[![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6.svg)](https://www.typescriptlang.org/)
 
-- ✅ **Base de datos SQLite inicializada** con 17 tablas y datos seed
-- ✅ **16 modelos de entidad** implementados como dataclasses
-- ✅ **14 Repositories completos** con patrón DAO (CRUD completo)
-- ✅ **13 Services** de lógica de negocio implementados
-- ✅ **13 Routers FastAPI** con endpoints REST
-- ✅ **Sistema de conexión** a base de datos configurado con foreign keys
-- ✅ **Script de inicialización** automático con verificación de integridad
+---
+
+## 📑 Tabla de Contenidos
+
+- [Características](#-características)
+- [Arquitectura](#️-arquitectura)
+- [Modelo de Datos](#-modelo-de-datos)
+- [Inicio Rápido](#-inicio-rápido)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [API Endpoints](#-api-endpoints)
+- [Documentación](#-documentación)
+
+---
+
+## ✨ Características
+
+### 🔐 Gestión de Usuarios y Autenticación
+- Registro de usuarios con roles (Admin, Cliente)
+- Autenticación JWT con tokens de 5 minutos
+- Password hashing con pbkdf2_sha256
+- Control de acceso basado en roles
+
+### 🏟️ Gestión de Canchas
+- CRUD completo de canchas deportivas
+- Múltiples tipos de deporte (Fútbol, Básquet, Pádel)
+- Precio por hora configurable
+- Estado activo/inactivo
+
+### 📅 Sistema de Turnos y Reservas
+- Gestión de turnos con estados:
+  - `disponible`: Turno libre para reservar
+  - `reservado`: Turno asignado a un cliente
+  - `pendiente_pago`: Reserva iniciada, esperando confirmación de pago
+  - `bloqueado`: Turno bloqueado por administrador
+  - `cancelado`: Turno cancelado
+  - `finalizado`: Turno completado
+- Cálculo automático de precios basado en:
+  - Precio por hora de la cancha
+  - Duración del turno
+  - Servicios adicionales (luz nocturna)
+- Índice único para prevenir doble reserva
+- Reserva simple o con pago
+
+### 💳 Sistema de Pagos
+- Pagos para turnos individuales o inscripciones a torneos
+- Estados de pago: `iniciado`, `completado`, `fallido`
+- Timer de expiración de 15 minutos
+- Procesamiento automático de pagos expirados
+- Desglose detallado: monto turno/inscripción + servicios adicionales
+
+### 🏆 Gestión de Torneos
+- Creación y administración de torneos
+- Inscripción de equipos
+- Gestión de partidos
+- Seguimiento de miembros por equipo
+
+### 🛠️ Servicios Adicionales
+- Configuración de servicios extras (luces, equipamiento)
+- Precios dinámicos por servicio
+- Activación/desactivación de servicios
+
+---
+
+## 🏗️ Arquitectura
+
+### Patrón de Capas (Layered Architecture)
+
+```
+┌─────────────────────────────────────────────┐
+│         Capa de Presentación (API)         │
+│     FastAPI Routers + Validación          │
+│  • 13 routers REST                         │
+│  • Documentación automática (Swagger)      │
+│  • Manejo de errores HTTP                  │
+└─────────────────────────────────────────────┘
+                    ↓ ↑
+┌─────────────────────────────────────────────┐
+│      Capa de Lógica de Negocio            │
+│            Services                         │
+│  • Validaciones de negocio                 │
+│  • Orquestación de repositories            │
+│  • Transacciones                           │
+└─────────────────────────────────────────────┘
+                    ↓ ↑
+┌─────────────────────────────────────────────┐
+│       Capa de Acceso a Datos (DAO)        │
+│           Repositories                      │
+│  • CRUD operations                         │
+│  • Queries SQL                             │
+│  • Mapeo objeto-relacional                 │
+└─────────────────────────────────────────────┘
+                    ↓ ↑
+┌─────────────────────────────────────────────┐
+│          Capa de Persistencia              │
+│            SQLite Database                  │
+│  • 13 tablas relacionales                  │
+│  • Foreign keys + índices                  │
+└─────────────────────────────────────────────┘
+```
+
+### Patrón DAO (Data Access Object)
+
+Separación clara entre lógica de negocio y acceso a datos:
+
+```python
+# Repository (DAO) - Acceso a datos
+class CanchaRepository:
+    @staticmethod
+    def crear(cancha: Cancha) -> int: ...
+    
+    @staticmethod
+    def obtener_por_id(id: int) -> Optional[Cancha]: ...
+
+# Service - Lógica de negocio
+class CanchasService:
+    def crear_cancha(data: dict) -> Cancha:
+        # Validaciones
+        # Transformaciones
+        # Llamada al repository
+```
+
+---
+
+## 📊 Modelo de Datos
+
+### Diagrama Entidad-Relación
+
+El sistema cuenta con **13 tablas principales**:
+
+#### 🔐 Gestión de Acceso
+- **Rol**: Roles del sistema (Admin, Cliente)
+- **Usuario**: Usuarios con autenticación
+- **Cliente**: Perfil de cliente vinculado a usuario
+
+#### 🏟️ Gestión de Canchas
+- **Cancha**: Canchas deportivas con precio_hora
+- **ServicioAdicional**: Servicios extras (luz, equipos)
+
+#### 📅 Gestión de Turnos
+- **Turno**: Turnos/horarios de cancha
+- **TurnoServicio**: Relación N:N entre Turno y ServicioAdicional
+
+#### 💳 Gestión de Pagos
+- **Pago**: Pagos de turnos e inscripciones
+
+#### 🏆 Gestión de Torneos
+- **Torneo**: Torneos organizados
+- **Equipo**: Equipos participantes
+- **EquipoMiembro**: Miembros de cada equipo
+- **Inscripcion**: Inscripciones de equipos a torneos
+- **Partido**: Partidos entre equipos
+
+### Relaciones Clave
+
+```
+Usuario 1:1 Cliente
+Usuario N:1 Rol
+
+Turno N:1 Cancha
+Turno N:1 Cliente
+Turno N:M ServicioAdicional (a través de TurnoServicio)
+
+Pago N:1 Cliente
+Pago 1:1 Turno (opcional)
+Pago 1:1 Inscripcion (opcional)
+
+Equipo N:M Torneo (a través de Inscripcion)
+Equipo 1:N EquipoMiembro
+Partido N:1 Torneo
+```
+
+### Características del Schema
+
+✅ **Integridad referencial** con Foreign Keys  
+✅ **Índices únicos** para prevenir duplicados  
+✅ **Índice compuesto único** en Turno (id_cancha, fecha_hora_inicio)  
+✅ **Constraints** para validación a nivel de BD  
+✅ **Timestamps** para auditoría  
+
+---
 
 ## 🚀 Inicio Rápido
 
+### Prerrequisitos
+
+- Python 3.13+
+- Node.js 18+ (para Frontend)
+- Git
+
+### 1️⃣ Clonar el repositorio
+
 ```bash
-# Navegar al backend
+git clone https://github.com/Ignagg/TP-DAO---4K1---G22---2025.git
+cd TP-DAO---4K1---G22---2025
+```
+
+### 2️⃣ Backend Setup
+
+```bash
 cd Backend
 
-# Inicializar la base de datos (recomendado)
-cd database
-python init_database.py
+# Crear entorno virtual
+python -m venv .venv
 
-# O usar el método alternativo
-cd ..
-python database/connection.py
+# Activar entorno virtual
+# Windows PowerShell:
+.\.venv\Scripts\Activate.ps1
+# Windows CMD:
+.venv\Scripts\activate.bat
+# Linux/Mac:
+source .venv/bin/activate
 
-# Iniciar el servidor FastAPI
-uvicorn api.main:app --reload
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Inicializar base de datos con datos de prueba
+python scripts/init_database.py
+
+# Iniciar servidor FastAPI
+uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-🌐 **API disponible en**: `http://localhost:8000`  
-📖 **Documentación Swagger**: `http://localhost:8000/docs`  
-📋 **Documentación ReDoc**: `http://localhost:8000/redoc`
+### 3️⃣ Frontend Setup
 
-### 🔐 Credenciales por Defecto
+```bash
+cd Frontend
 
-- **Usuario**: `admin`
-- **Email**: `admin@tpdao.com`
-- **Password**: `admin123`
+# Instalar dependencias
+npm install
 
-📖 **Para más detalles**, consulta [`Backend/database/README_INIT.md`](Backend/database/README_INIT.md) y [`Backend/GETTING_STARTED.md`](Backend/GETTING_STARTED.md)
-
-## 📂 Estructura del Proyecto
-
-```
-Backend/
-├── api/                  # ✅ API REST con FastAPI
-│   ├── main.py          # ✅ Configuración principal FastAPI
-│   └── routers/         # ✅ 13 routers implementados
-│       ├── clientes.py
-│       ├── canchas.py
-│       ├── usuarios.py
-│       └── ... (10 más)
-├── database/            # ✅ Gestión de base de datos
-│   ├── connection.py    # ✅ Conexión SQLite
-│   ├── init_database.py # ✅ Script de inicialización
-│   └── README_INIT.md   # ✅ Documentación DB
-├── models/              # ✅ 16 modelos implementados
-│   ├── cliente.py
-│   ├── cancha.py
-│   ├── turno.py
-│   └── ... (13 más)
-├── repository/          # ✅ 14 repositories completos
-│   ├── cliente_repository.py
-│   ├── cancha_repository.py
-│   ├── usuario_repository.py
-│   └── ... (11 más)
-├── services/            # ✅ 13 services implementados
-│   ├── clientes_services.py
-│   ├── canchas_services.py
-│   └── ... (11 más)
-├── database.db          # ✅ Base de datos SQLite
-└── database_inicializar.sql  # ✅ Schema con datos seed
+# Iniciar servidor de desarrollo
+npm run dev
 ```
 
-## 🏗️ Arquitectura Implementada
+### 4️⃣ Acceder a la aplicación
 
-### Estructura Monolítica con Organización por Capas (Layered Architecture)
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **Documentación Swagger**: http://localhost:8000/docs
+- **Documentación ReDoc**: http://localhost:8000/redoc
 
-#### 1. **Presentación** (📁 `/Backend/api/routers`)
-*   APIs REST con **FastAPI** ✅
-*   13 routers implementados (clientes, canchas, usuarios, equipos, torneos, etc.)
-*   Validación de entrada y serialización JSON
-*   Documentación automática con Swagger/ReDoc
-*   **Estado**: ✅ Completado
+### 🔐 Credenciales de Prueba
 
-#### 2. **Lógica de Negocio** (📁 `/Backend/services`)
-*   13 servicios implementados
-*   Manejo de transacciones y validaciones
-*   Creación de instancias de entidades
-*   Orquestación entre múltiples repositories
-*   Manejo centralizado de excepciones
-*   **Estado**: ✅ Completado
+**Administrador**:
+- Usuario: `admin`
+- Email: `admin@canchas.com`
+- Password: `admin123`
 
-#### 3. **Acceso a Datos** (📁 `/Backend/repository`)
-*   Patrón DAO (Data Access Object) completo
-*   14 repositories con CRUD implementado:
-    - ClienteRepository, CanchaRepository, UsuarioRepository
-    - TorneoRepository, EquipoRepository, RolRepository
-    - TarifaRepository, PartidoRepository, InscripcionRepository
-    - PedidoRepository, PedidoItemRepository, PagoRepository
-    - EquipoMiembroRepository, ServicioAdicionalRepository
-*   Sin lógica de negocio, solo operaciones de persistencia
-*   **Estado**: ✅ Completado
+---
 
-#### 4. **Persistencia/Datos** (📁 `/Backend/models` y `/Backend/database`)
-*   16 modelos de entidades como dataclasses
-*   Base de datos SQLite con 17 tablas
-*   Foreign keys habilitadas y verificadas
-*   Script de inicialización con datos seed
-*   Sistema de índices para optimización
-*   **Estado**: ✅ Completado
+## 📁 Estructura del Proyecto
 
-## 📊 Entidades del Dominio
+```
+TP-DAO---4K1---G22---2025/
+│
+├── Backend/                          # API REST con FastAPI
+│   ├── api/                         # Capa de presentación
+│   │   ├── main.py                  # Aplicación FastAPI principal
+│   │   ├── dependencies/            # Dependencias de autenticación
+│   │   │   └── auth.py              # Middleware JWT
+│   │   └── routers/                 # Endpoints REST (13 routers)
+│   │       ├── auth.py              # Login y autenticación
+│   │       ├── usuarios.py          # CRUD usuarios
+│   │       ├── clientes.py          # CRUD clientes
+│   │       ├── roles.py             # CRUD roles
+│   │       ├── canchas.py           # CRUD canchas
+│   │       ├── turnos.py            # Gestión de turnos
+│   │       ├── servicios_adicionales.py
+│   │       ├── pagos.py             # Sistema de pagos
+│   │       ├── torneos.py           # CRUD torneos
+│   │       ├── equipos.py           # CRUD equipos
+│   │       ├── equipo_miembros.py   # Miembros de equipos
+│   │       ├── inscripciones.py     # Inscripciones a torneos
+│   │       └── partidos.py          # CRUD partidos
+│   │
+│   ├── services/                    # Lógica de negocio (13 services)
+│   │   ├── auth_service.py          # Autenticación JWT
+│   │   ├── usuarios_service.py
+│   │   ├── clientes_service.py
+│   │   ├── roles_service.py
+│   │   ├── canchas_service.py
+│   │   ├── turnos_service.py
+│   │   ├── servicios_adicionales_service.py
+│   │   ├── pagos_service.py
+│   │   ├── torneos_service.py
+│   │   ├── equipos_service.py
+│   │   ├── equipo_miembros_service.py
+│   │   ├── inscripciones_service.py
+│   │   └── partidos_service.py
+│   │
+│   ├── repositories/                # Capa DAO (13 repositories)
+│   │   ├── usuario_repository.py
+│   │   ├── cliente_repository.py
+│   │   ├── rol_repository.py
+│   │   ├── cancha_repository.py
+│   │   ├── turno_repository.py
+│   │   ├── turno_servicio_repository.py
+│   │   ├── servicio_adicional_repository.py
+│   │   ├── pago_repository.py
+│   │   ├── torneo_repository.py
+│   │   ├── equipo_repository.py
+│   │   ├── equipo_miembro_repository.py
+│   │   ├── inscripcion_repository.py
+│   │   └── partido_repository.py
+│   │
+│   ├── models/                      # Modelos de dominio (13 entidades)
+│   │   ├── usuario.py
+│   │   ├── cliente.py
+│   │   ├── rol.py
+│   │   ├── cancha.py
+│   │   ├── turno.py
+│   │   ├── turno_servicio.py
+│   │   ├── servicio_adicional.py
+│   │   ├── pago.py
+│   │   ├── torneo.py
+│   │   ├── equipo.py
+│   │   ├── equipo_miembro.py
+│   │   ├── inscripcion.py
+│   │   └── partido.py
+│   │
+│   ├── database/                    # Configuración de BD
+│   │   └── connection.py            # Conexión SQLite
+│   │
+│   ├── scripts/                     # Scripts utilitarios
+│   │   ├── init_database.py         # ⭐ Inicialización completa
+│   │   ├── create_admin.py          # Crear usuario admin
+│   │   └── migrate_to_new_pago.py   # Migración de sistema de pagos
+│   │
+│   ├── tests/                       # Tests unitarios
+│   ├── database.db                  # Base de datos SQLite
+│   ├── DER_TP_DAO_V2.sql           # Schema SQL completo
+│   ├── requirements.txt             # Dependencias Python
+│   └── README.md                    # Documentación Backend
+│
+├── Frontend/                        # Aplicación React
+│   ├── src/
+│   │   ├── components/              # Componentes React
+│   │   ├── contexts/                # Context API (Auth)
+│   │   ├── services/                # Servicios API
+│   │   ├── App.tsx                  # Componente principal
+│   │   └── main.tsx                 # Entry point
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── vite.config.ts
+│   └── README.md                    # Documentación Frontend
+│
+├── .gitignore
+└── README.md                        # 📖 Este archivo
+```
 
-### Gestión de Usuarios y Roles
-- `Rol` - Roles del sistema
-- `Usuario` - Usuarios del sistema con autenticación
+---
 
-### Gestión de Clientes
-- `Cliente` - Clientes que reservan canchas o participan en torneos
+## 🔌 API Endpoints
 
-### Gestión de Canchas y Reservas
-- `Cancha` - Canchas deportivas disponibles
-- `Turno` - Turnos/reservas de canchas
-- `Tarifa` - Tarifas por cancha
-- `ServicioAdicional` - Servicios extras (iluminación, equipamiento, etc.)
-- `TurnoXServicio` - Relación entre turnos y servicios adicionales
+### 🔐 Autenticación
+```
+POST   /api/auth/login              # Login usuario
+POST   /api/auth/register            # Registro usuario + cliente
+```
 
-### Gestión de Torneos
-- `Torneo` - Torneos organizados
-- `Equipo` - Equipos participantes
-- `EquipoMiembro` - Miembros de cada equipo
-- `Inscripcion` - Inscripciones de equipos en torneos
-- `Partido` - Partidos del torneo
+### 👤 Usuarios y Clientes
+```
+GET    /api/usuarios                 # Listar usuarios
+GET    /api/usuarios/{id}            # Obtener usuario
+POST   /api/usuarios                 # Crear usuario
+PUT    /api/usuarios/{id}            # Actualizar usuario
+DELETE /api/usuarios/{id}            # Eliminar usuario
 
-### Gestión de Pagos
-- `Pedido` - Pedidos/órdenes de pago
-- `PedidoItem` - Items de cada pedido
-- `Pago` - Pagos realizados
+GET    /api/clientes                 # Listar clientes
+GET    /api/clientes/{id}            # Obtener cliente
+POST   /api/clientes                 # Crear cliente
+PUT    /api/clientes/{id}            # Actualizar cliente
+DELETE /api/clientes/{id}            # Eliminar cliente
+```
 
-## 🛠️ Tecnologías
+### 🏟️ Canchas y Turnos
+```
+GET    /api/canchas                  # Listar canchas
+GET    /api/canchas/{id}             # Obtener cancha
+POST   /api/canchas                  # Crear cancha (admin)
+PUT    /api/canchas/{id}             # Actualizar cancha (admin)
+DELETE /api/canchas/{id}             # Eliminar cancha (admin)
 
-- **Base de datos**: SQLite3 con foreign keys habilitadas
-- **Backend**: Python 3.8+
-- **Framework API**: FastAPI con Uvicorn
-- **Patrón**: DAO (Data Access Object) + Layered Architecture
-- **Documentación**: Swagger UI / ReDoc (automático)
-- **Frontend**: React + TypeScript + Vite (en desarrollo)
+GET    /api/turnos                   # Listar turnos
+GET    /api/turnos/{id}              # Obtener turno
+GET    /api/turnos/cancha/{id}       # Turnos por cancha
+GET    /api/turnos/cliente/{id}      # Turnos por cliente
+GET    /api/turnos/disponibles       # Buscar turnos disponibles
+POST   /api/turnos                   # Crear turno
+POST   /api/turnos/{id}/reservar-simple  # Reserva directa
+PUT    /api/turnos/{id}              # Actualizar turno
+DELETE /api/turnos/{id}              # Eliminar turno
+```
 
-## 🎯 Funcionalidades Implementadas
+### 💳 Pagos
+```
+POST   /api/pagos/turno              # Iniciar pago de turno
+POST   /api/pagos/inscripcion        # Iniciar pago de inscripción
+POST   /api/pagos/{id}/confirmar     # Confirmar pago
+POST   /api/pagos/{id}/marcar-fallido # Marcar pago como fallido
+GET    /api/pagos/cliente/{id}       # Pagos por cliente
+GET    /api/pagos/turno/{id}         # Pago de un turno
+GET    /api/pagos/inscripcion/{id}   # Pago de una inscripción
+```
 
-### Backend Completo
-- ✅ **CRUD completo** para todas las entidades
-- ✅ **API REST** con 13 routers y ~65+ endpoints
-- ✅ **Gestión de usuarios** con roles (Admin, Operador, Cliente)
-- ✅ **Gestión de canchas** con tarifas y servicios adicionales
-- ✅ **Sistema de reservas** (turnos) con disponibilidad
-- ✅ **Gestión de torneos** con equipos, inscripciones y partidos
-- ✅ **Sistema de pedidos** con items y pagos
-- ✅ **Validación de integridad** con foreign keys
-- ✅ **Documentación automática** de la API
+### 🏆 Torneos y Equipos
+```
+GET    /api/torneos                  # Listar torneos
+POST   /api/torneos                  # Crear torneo
+GET    /api/torneos/{id}             # Obtener torneo
+PUT    /api/torneos/{id}             # Actualizar torneo
+DELETE /api/torneos/{id}             # Eliminar torneo
 
-### Datos Iniciales (Seed Data)
-- ✅ 3 Roles predefinidos
-- ✅ Usuario administrador
-- ✅ 3 Canchas de ejemplo
-- ✅ 3 Tarifas configuradas
-- ✅ 3 Servicios adicionales
-- ✅ Cliente y Torneo de prueba
+GET    /api/equipos                  # Listar equipos
+POST   /api/equipos                  # Crear equipo
+GET    /api/equipos/{id}             # Obtener equipo
+PUT    /api/equipos/{id}             # Actualizar equipo
+DELETE /api/equipos/{id}             # Eliminar equipo
 
-## 📝 Próximos Pasos
+GET    /api/inscripciones            # Listar inscripciones
+POST   /api/inscripciones            # Inscribir equipo a torneo
+GET    /api/inscripciones/{id}       # Obtener inscripción
+DELETE /api/inscripciones/{id}       # Eliminar inscripción
 
-1. 🔄 **Conectar frontend React** con el backend FastAPI
-2. ⏳ Implementar **autenticación JWT** y sistema de login
-3. ⏳ Desarrollar **interfaz de usuario** para todas las funcionalidades
-4. ⏳ Agregar **validaciones avanzadas** en la capa de servicios
-5. ⏳ Implementar **sistema de notificaciones**
-6. ⏳ Agregar **reportes y estadísticas**
-7. ⏳ Configurar **CORS** para producción
-8. ⏳ Implementar **testing unitario e integración**
+GET    /api/partidos                 # Listar partidos
+POST   /api/partidos                 # Crear partido
+GET    /api/partidos/{id}            # Obtener partido
+PUT    /api/partidos/{id}            # Actualizar partido
+DELETE /api/partidos/{id}            # Eliminar partido
+```
 
-## 📚 Documentación Adicional
+### 🛠️ Servicios Adicionales
+```
+GET    /api/servicios-adicionales    # Listar servicios
+POST   /api/servicios-adicionales    # Crear servicio (admin)
+GET    /api/servicios-adicionales/{id} # Obtener servicio
+PUT    /api/servicios-adicionales/{id} # Actualizar servicio (admin)
+DELETE /api/servicios-adicionales/{id} # Eliminar servicio (admin)
+```
 
-- **Inicialización de BD**: [`Backend/database/README_INIT.md`](Backend/database/README_INIT.md)
-- **Guía de inicio**: [`Backend/GETTING_STARTED.md`](Backend/GETTING_STARTED.md)
-- **Documentación completa**: [`Backend/README.md`](Backend/README.md)
-- **API Docs (en ejecución)**: `http://localhost:8000/docs`
+---
+
+## 📖 Documentación
+
+### Backend
+- [Backend README](Backend/README.md) - Documentación completa del backend
+- [Swagger UI](http://localhost:8000/docs) - Documentación interactiva
+- [ReDoc](http://localhost:8000/redoc) - Documentación alternativa
+- [DER SQL](Backend/DER_TP_DAO_V2.sql) - Schema de base de datos
+
+### Scripts Importantes
+- [init_database.py](Backend/scripts/init_database.py) - Inicialización de BD con datos de prueba
+- [create_admin.py](Backend/scripts/create_admin.py) - Crear usuario administrador
+
+### Frontend
+- [Frontend README](Frontend/README.md) - Documentación del frontend
+
+---
+
+## 🔧 Tecnologías Utilizadas
+
+### Backend
+- **FastAPI** - Framework web moderno y rápido
+- **SQLite** - Base de datos embebida
+- **Pydantic** - Validación de datos
+- **python-jose** - JWT para autenticación
+- **passlib** - Hashing de passwords (pbkdf2_sha256)
+- **uvicorn** - Servidor ASGI
+
+### Frontend
+- **React 18** - Biblioteca UI
+- **TypeScript** - Tipado estático
+- **Vite** - Build tool
+- **Axios** - Cliente HTTP
+- **React Router** - Enrutamiento
+
+---
 
 ## 👥 Equipo
 
-**Grupo 22 - 4K1 - TP DAO 2025**
+**Grupo 22 - 4K1 - 2025**
 
 ---
 
-## � Estado del Proyecto
+## 📝 Licencia
 
-| Componente | Estado | Progreso |
-|------------|--------|----------|
-| Modelos (16) | ✅ Completado | 100% |
-| Repositories (14) | ✅ Completado | 100% |
-| Services (13) | ✅ Completado | 100% |
-| API Routers (13) | ✅ Completado | 100% |
-| Base de Datos | ✅ Inicializada | 100% |
-| Documentación API | ✅ Automática | 100% |
-| Frontend React | 🔄 En desarrollo | 30% |
-| Autenticación | ⏳ Pendiente | 0% |
-| Testing | ⏳ Pendiente | 0% |
+Este proyecto es parte de un trabajo práctico académico.
 
 ---
 
-�📖 **Documentación completa**: Ver [`Backend/README.md`](Backend/README.md) y [`Backend/database/README_INIT.md`](Backend/database/README_INIT.md)
+## 🐛 Troubleshooting
+
+### Base de datos corrupta
+```bash
+cd Backend
+rm database.db  # Eliminar BD
+python scripts/init_database.py --reset  # Recrear
+```
+
+### Token expirado
+Los tokens JWT expiran a los 5 minutos. Volver a hacer login.
+
+### Puerto 8000 ocupado
+```bash
+# Cambiar puerto
+uvicorn api.main:app --reload --port 8001
+```
+
+### Problemas con virtual environment
+```bash
+# Recrear venv
+rm -rf .venv
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+---
+
+## 📮 Contacto
+
+Para consultas sobre el proyecto, contactar al equipo de desarrollo.

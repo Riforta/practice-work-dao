@@ -1,387 +1,997 @@
-# Backend - Sistema de Alquiler de Canchas Deportivas
+# 🔧 Backend - Sistema de Gestión de Canchas Deportivas
 
-Este es el backend del sistema de gestión de alquiler de canchas deportivas, que incluye gestión de usuarios, reservas de turnos, torneos y pagos.
+> API REST construida con **FastAPI** y **SQLite** siguiendo el patrón DAO (Data Access Object) y arquitectura en capas.
 
-## 🚀 Inicio Rápido
+---
 
-### 1. Instalar dependencias
+## 📑 Tabla de Contenidos
+
+- [Arquitectura](#️-arquitectura)
+- [Tecnologías](#-tecnologías)
+- [Instalación](#-instalación)
+- [Configuración de Base de Datos](#️-configuración-de-base-de-datos)
+- [Ejecución](#-ejecución)
+- [Estructura de Carpetas](#-estructura-de-carpetas)
+- [Modelo de Datos](#-modelo-de-datos)
+- [API Endpoints](#-api-endpoints)
+- [Autenticación](#-autenticación)
+- [Testing](#-testing)
+
+---
+
+## 🏗️ Arquitectura
+
+### Patrón de Capas
+
+```
+┌──────────────────────────────────────┐
+│     API Layer (Routers)             │  ← FastAPI, HTTP, Validación
+├──────────────────────────────────────┤
+│     Business Logic (Services)       │  ← Lógica de negocio, Validaciones
+├──────────────────────────────────────┤
+│     Data Access (Repositories)      │  ← Patrón DAO, SQL Queries
+├──────────────────────────────────────┤
+│     Domain Models                    │  ← Entidades del dominio
+├──────────────────────────────────────┤
+│     Database (SQLite)                │  ← Persistencia
+└──────────────────────────────────────┘
+```
+
+### Flujo de una Request
+
+```
+HTTP Request (POST /api/turnos)
+        ↓
+Router (turnos.py)
+  • Validación de entrada
+  • Autenticación JWT
+        ↓
+Service (turnos_service.py)
+  • Validaciones de negocio
+  • Cálculo de precios
+  • Orquestación de repositories
+        ↓
+Repository (turno_repository.py)
+  • Queries SQL
+  • Mapeo objeto-relacional
+        ↓
+Database (SQLite)
+  • Persistencia
+        ↓
+Response (JSON)
+```
+
+---
+
+## 🛠️ Tecnologías
+
+| Tecnología | Versión | Propósito |
+|-----------|---------|-----------|
+| Python | 3.13+ | Lenguaje base |
+| FastAPI | 0.104+ | Framework web |
+| SQLite | 3.x | Base de datos |
+| python-jose | 3.3+ | JWT tokens |
+| passlib | 1.7+ | Password hashing |
+| uvicorn | 0.24+ | Servidor ASGI |
+| pytest | 7.4+ | Testing |
+
+---
+
+## 💾 Instalación
+
+### 1. Prerrequisitos
+
+- Python 3.13 o superior
+- pip (gestor de paquetes Python)
+- Git
+
+### 2. Clonar el repositorio
+
+```bash
+git clone https://github.com/Ignagg/TP-DAO---4K1---G22---2025.git
+cd TP-DAO---4K1---G22---2025/Backend
+```
+
+### 3. Crear entorno virtual
+
+```bash
+# Crear venv
+python -m venv .venv
+
+# Activar venv
+# Windows PowerShell:
+.\.venv\Scripts\Activate.ps1
+
+# Windows CMD:
+.venv\Scripts\activate.bat
+
+# Linux/Mac:
+source .venv/bin/activate
+```
+
+### 4. Instalar dependencias
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Inicializar base de datos
+---
+
+## 🗄️ Configuración de Base de Datos
+
+### Opción 1: Script de Inicialización (Recomendado)
+
+El script `init_database.py` crea todas las tablas e inserta datos de prueba:
+
 ```bash
-# Crear base de datos e insertar datos básicos
+# Inicialización normal
 python scripts/init_database.py
 
-# O resetear completamente la base de datos
+# Resetear BD (elimina y recrea todo)
 python scripts/init_database.py --reset
 ```
 
-El script `init_database.py` crea automáticamente:
-- ✅ 3 roles (administrador, cliente, empleado)
-- ✅ Usuario admin (usuario: `admin`, password: `admin123`)
-- ✅ 5 canchas deportivas (fútbol, tenis, paddle, básquet)
-- ✅ 7 servicios adicionales
-- ✅ 210+ turnos disponibles (próximos 3 días)
-- ✅ 1 torneo de ejemplo
+**Datos creados automáticamente:**
+- ✅ 3 Roles (Admin, Cliente, Organizador)
+- ✅ 1 Usuario Admin (admin/admin123)
+- ✅ 5 Canchas (Fútbol, Básquet, Pádel)
+- ✅ 7 Servicios Adicionales (luces, equipos)
+- ✅ 210 Turnos (próximos 3 días)
+- ✅ 1 Torneo de ejemplo
 
-### 3. Iniciar la API
-```bash
-python -m uvicorn api.main:app --reload
-```
-
-La API estará disponible en: `http://localhost:8000`
-
-### 4. Login como administrador
-```http
-POST http://localhost:8000/api/auth/login
-Content-Type: application/json
-
-{
-  "nombre_usuario": "admin",
-  "password": "admin123"
-}
-```
-
-## 📚 Scripts Disponibles
-
-### `scripts/init_database.py`
-Inicializa la base de datos con estructura y datos básicos.
-```bash
-python scripts/init_database.py          # Inicializar
-python scripts/init_database.py --reset  # Resetear y reinicializar
-```
-
-### `scripts/migrate_to_new_pago.py`
-Migra la base de datos al nuevo modelo de Pago (sin Pedido/PedidoItem).
-```bash
-python scripts/migrate_to_new_pago.py --check    # Ver estado
-python scripts/migrate_to_new_pago.py --execute  # Ejecutar migración
-```
-
-### `scripts/create_admin.py`
-Crea un usuario administrador adicional.
-```bash
-python scripts/create_admin.py
-```
-
-## 🗂️ Estructura del Proyecto
-
-```
-Backend/
-├── database/
-│   ├── __init__.py
-│   └── connection.py          # Gestión de conexión a SQLite
-├── models/                    # Modelos de entidad
-│   ├── __init__.py
-│   ├── rol.py
-│   ├── usuario.py
-│   ├── cliente.py
-│   ├── cancha.py
-│   ├── turno.py
-│   ├── tarifa.py
-│   ├── servicio_adicional.py
-│   ├── turno_servicio.py
-│   ├── torneo.py
-│   ├── equipo.py
-│   ├── equipo_miembro.py
-│   ├── inscripcion.py
-│   ├── partido.py
-│   ├── pedido.py
-│   ├── pedido_item.py
-│   └── pago.py
-├── repository/                # Capa de acceso a datos (DAO)
-├── services/                  # Lógica de negocio
-├── DER_TP_DAO_V2.sql         # Script SQL del esquema
-└── database.db               # Base de datos SQLite
-```
-
-## 🚀 Inicio Rápido
-
-### Crear/Recrear la Base de Datos
+### Opción 2: Solo crear las tablas
 
 ```bash
-cd Backend
 python database/connection.py
 ```
 
-Este comando:
-- Elimina la base de datos existente (si existe)
-- Crea una nueva base de datos SQLite
-- Ejecuta el script SQL para crear todas las tablas
+### Opción 3: Ejecutar SQL manualmente
 
-### Levantar el backend (desarrollo)
-
-Hay dos entradas distintas en este repositorio:
-
-- `api/main.py` — la aplicación FastAPI principal (la que debe usar `uvicorn`).
-- `scripts/demo_main.py` — script de ejemplos y demo movido desde `Backend/main.py` para evitar confusiones.
-
-Para arrancar el servidor HTTP (FastAPI) en desarrollo usa el Python del virtualenv y `uvicorn` desde la carpeta `Backend`:
-
-PowerShell (recomendado):
-```powershell
-cd 'C:\ruta\a\tu\proyecto\Backend'
-..\.venv\Scripts\python.exe -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+```bash
+sqlite3 database.db < DER_TP_DAO_V2.sql
 ```
 
-Si prefieres usar el script de ayuda (`start-backend.ps1` o `start-backend.bat`) creado en el proyecto, puedes ejecutarlo desde la carpeta `Backend`:
+### Verificar la base de datos
 
-PowerShell:
-```powershell
-cd 'C:\ruta\a\tu\proyecto\Backend'
-.\start-backend.ps1 -Port 8000
+```bash
+# Entrar a SQLite
+sqlite3 database.db
+
+# Listar tablas
+.tables
+
+# Ver estructura de tabla
+.schema Usuario
+
+# Contar registros
+SELECT COUNT(*) FROM Usuario;
+
+# Salir
+.exit
 ```
 
-CMD (.bat):
-```
-cd /d C:\ruta\a\tu\proyecto\Backend
-start-backend.bat
-```
+---
 
-Verifica que el servidor está arriba abriendo `http://127.0.0.1:8000/docs` en el navegador o:
+## 🚀 Ejecución
 
-```powershell
-Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8000/health
-```
+### Modo Desarrollo
 
-### Script de ejemplo / demo
-
-El antiguo `Backend/main.py` que contenía ejemplos se movió a `Backend/scripts/demo_main.py` para evitar conflictos con la aplicación FastAPI (`api/main.py`). Ejecuta el demo con:
-
-```powershell
-cd 'C:\ruta\a\tu\proyecto\Backend'
-python .\scripts\demo_main.py
+```bash
+# Desde la carpeta Backend/
+uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-El script añade automáticamente el path del paquete para que las importaciones relativas funcionen (igual que `scripts/test_register2.py`).
+**Opciones útiles:**
+- `--reload`: Recarga automática al cambiar código
+- `--host 127.0.0.1`: IP del servidor
+- `--port 8000`: Puerto del servidor
+- `--log-level debug`: Logs detallados
+
+### Modo Producción
+
+```bash
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+### Acceso a la API
+
+- **API Base**: http://localhost:8000
+- **Health Check**: http://localhost:8000/health
+- **Documentación Swagger**: http://localhost:8000/docs
+- **Documentación ReDoc**: http://localhost:8000/redoc
+- **OpenAPI JSON**: http://localhost:8000/openapi.json
+
+---
+
+## 📂 Estructura de Carpetas
+
+```
+Backend/
+│
+├── api/                                # Capa de Presentación
+│   ├── main.py                         # ⭐ App FastAPI principal
+│   ├── dependencies/
+│   │   └── auth.py                     # Middleware autenticación JWT
+│   └── routers/                        # 13 routers REST
+│       ├── __init__.py                 # Registro de routers
+│       ├── auth.py                     # Login, registro
+│       ├── usuarios.py                 # CRUD usuarios
+│       ├── clientes.py                 # CRUD clientes
+│       ├── roles.py                    # CRUD roles
+│       ├── canchas.py                  # CRUD canchas
+│       ├── turnos.py                   # Gestión turnos y reservas
+│       ├── servicios_adicionales.py    # CRUD servicios
+│       ├── pagos.py                    # Sistema de pagos
+│       ├── torneos.py                  # CRUD torneos
+│       ├── equipos.py                  # CRUD equipos
+│       ├── equipo_miembros.py          # Miembros de equipos
+│       ├── inscripciones.py            # Inscripciones a torneos
+│       └── partidos.py                 # CRUD partidos
+│
+├── services/                           # Capa de Lógica de Negocio
+│   ├── __init__.py
+│   ├── auth_service.py                 # Autenticación, JWT, passwords
+│   ├── usuarios_service.py             # Lógica usuarios
+│   ├── clientes_service.py             # Lógica clientes
+│   ├── roles_service.py                # Lógica roles
+│   ├── canchas_service.py              # Lógica canchas
+│   ├── turnos_service.py               # Validaciones turnos, cálculo precios
+│   ├── turno_servicios_service.py      # Asociación turnos-servicios
+│   ├── servicios_adicionales_service.py # Lógica servicios
+│   ├── pagos_service.py                # Flujo de pagos, timer 15min
+│   ├── torneos_service.py              # Lógica torneos
+│   ├── equipos_service.py              # Lógica equipos
+│   ├── equipo_miembros_service.py      # Lógica miembros
+│   ├── inscripciones_service.py        # Lógica inscripciones
+│   └── partidos_service.py             # Lógica partidos
+│
+├── repositories/                       # Capa de Acceso a Datos (DAO)
+│   ├── __init__.py
+│   ├── usuario_repository.py           # CRUD Usuario
+│   ├── cliente_repository.py           # CRUD Cliente
+│   ├── rol_repository.py               # CRUD Rol
+│   ├── cancha_repository.py            # CRUD Cancha
+│   ├── turno_repository.py             # CRUD Turno
+│   ├── turno_servicio_repository.py    # CRUD TurnoServicio
+│   ├── servicio_adicional_repository.py # CRUD ServicioAdicional
+│   ├── pago_repository.py              # CRUD Pago
+│   ├── torneo_repository.py            # CRUD Torneo
+│   ├── equipo_repository.py            # CRUD Equipo
+│   ├── equipo_miembro_repository.py    # CRUD EquipoMiembro
+│   ├── inscripcion_repository.py       # CRUD Inscripcion
+│   └── partido_repository.py           # CRUD Partido
+│
+├── models/                             # Capa de Dominio
+│   ├── __init__.py
+│   ├── usuario.py                      # @dataclass Usuario
+│   ├── cliente.py                      # @dataclass Cliente
+│   ├── rol.py                          # @dataclass Rol
+│   ├── cancha.py                       # @dataclass Cancha
+│   ├── turno.py                        # @dataclass Turno
+│   ├── turno_servicio.py               # @dataclass TurnoServicio
+│   ├── servicio_adicional.py           # @dataclass ServicioAdicional
+│   ├── pago.py                         # @dataclass Pago
+│   ├── torneo.py                       # @dataclass Torneo
+│   ├── equipo.py                       # @dataclass Equipo
+│   ├── equipo_miembro.py               # @dataclass EquipoMiembro
+│   ├── inscripcion.py                  # @dataclass Inscripcion
+│   └── partido.py                      # @dataclass Partido
+│
+├── database/
+│   └── connection.py                   # Conexión SQLite, get_connection()
+│
+├── scripts/                            # Scripts utilitarios
+│   ├── init_database.py                # ⭐ Inicialización completa
+│   ├── create_admin.py                 # Crear admin manualmente
+│   └── migrate_to_new_pago.py          # Migración sistema pagos
+│
+├── tests/                              # Tests unitarios
+│   ├── test_usuarios_clientes_basic.py
+│   ├── test_turno_routes.py
+│   ├── test_turno_service.py
+│   ├── test_turno_routes_pertenencia.py
+│   └── test_flujo_reserva.py
+│
+├── database.db                         # Base de datos SQLite
+├── DER_TP_DAO_V2.sql                  # Schema completo
+├── requirements.txt                    # Dependencias
+├── utils.py                            # Utilidades generales
+└── README.md                           # Este archivo
+```
+
+---
 
 ## 📊 Modelo de Datos
 
 ### Entidades Principales
 
-#### **Rol**
-- `id`: INTEGER (PK, autoincremental)
-- `nombre_rol`: VARCHAR(255) UNIQUE NOT NULL
-- `descripcion`: VARCHAR(255)
+#### 1. Gestión de Acceso
 
-#### **Usuario**
-- `id`: INTEGER (PK, autoincremental)
-- `nombre_usuario`: VARCHAR(255) UNIQUE NOT NULL
-- `email`: VARCHAR(255) UNIQUE NOT NULL
-- `password_hash`: VARCHAR(255) NOT NULL
-- `id_rol`: INTEGER (FK → Rol)
-- `activo`: INTEGER DEFAULT 1
-
-#### **Cliente**
-- `id`: INTEGER (PK, autoincremental)
-- `nombre`: VARCHAR(255) NOT NULL
-- `apellido`: VARCHAR(255)
-- `dni`: VARCHAR(255) UNIQUE
-- `telefono`: VARCHAR(255) NOT NULL
-- `email`: VARCHAR(255)
-
-#### **Cancha**
-- `id`: INTEGER (PK, autoincremental)
-- `nombre`: VARCHAR(255) NOT NULL
-- `tipo_deporte`: VARCHAR(255)
-- `descripcion`: TEXT
-- `activa`: INTEGER DEFAULT 1
-
-#### **Turno**
-- `id`: INTEGER (PK, autoincremental)
-- `id_cancha`: INTEGER NOT NULL (FK → Cancha)
-- `fecha_hora_inicio`: TEXT NOT NULL
-- `fecha_hora_fin`: TEXT NOT NULL
-- `estado`: VARCHAR(255) NOT NULL DEFAULT 'disponible'
-- `precio_final`: REAL NOT NULL
-- `id_cliente`: INTEGER (FK → Cliente)
-- `id_usuario_registro`: INTEGER (FK → Usuario)
-- `reserva_created_at`: TEXT
-- `id_usuario_bloqueo`: INTEGER (FK → Usuario)
-- `motivo_bloqueo`: VARCHAR(255)
-
-#### **Tarifa**
-- `id`: INTEGER (PK, autoincremental)
-- `id_cancha`: INTEGER NOT NULL (FK → Cancha)
-- `descripcion`: VARCHAR(255)
-- `precio_hora`: REAL NOT NULL
-
-#### **ServicioAdicional**
-- `id`: INTEGER (PK, autoincremental)
-- `nombre`: VARCHAR(255) NOT NULL
-- `precio_actual`: REAL NOT NULL
-- `activo`: INTEGER DEFAULT 1
-
-#### **TurnoXServicio** (tabla intermedia)
-- `id_turno`: INTEGER (PK, FK → Turno)
-- `id_servicio`: INTEGER (PK, FK → ServicioAdicional)
-- `cantidad`: INTEGER NOT NULL DEFAULT 1
-- `precio_unitario_congelado`: REAL NOT NULL
-
-#### **Torneo**
-- `id`: INTEGER (PK, autoincremental)
-- `nombre`: VARCHAR(255) NOT NULL
-- `tipo_deporte`: VARCHAR(255) NOT NULL
-- `created_at`: TEXT DEFAULT CURRENT_TIMESTAMP
-- `fecha_inicio`: TEXT
-- `fecha_fin`: TEXT
-- `costo_inscripcion`: REAL DEFAULT 0
-- `cupos`: INTEGER
-- `reglas`: TEXT
-- `estado`: VARCHAR(255)
-
-#### **Equipo**
-- `id`: INTEGER (PK, autoincremental)
-- `nombre_equipo`: VARCHAR(255) UNIQUE NOT NULL
-- `id_capitan`: INTEGER (FK → Cliente)
-
-#### **EquipoMiembro** (tabla intermedia)
-- `id_equipo`: INTEGER (PK, FK → Equipo)
-- `id_cliente`: INTEGER (PK, FK → Cliente)
-
-#### **Inscripcion**
-- `id`: INTEGER (PK, autoincremental)
-- `id_equipo`: INTEGER NOT NULL (FK → Equipo)
-- `id_torneo`: INTEGER NOT NULL (FK → Torneo)
-- `fecha_inscripcion`: TEXT DEFAULT CURRENT_TIMESTAMP
-- `estado`: VARCHAR(255) NOT NULL DEFAULT 'pendiente_pago'
-
-#### **Partido**
-- `id`: INTEGER (PK, autoincremental)
-- `id_torneo`: INTEGER NOT NULL (FK → Torneo)
-- `id_turno`: INTEGER UNIQUE (FK → Turno)
-- `id_equipo_local`: INTEGER (FK → Equipo)
-- `id_equipo_visitante`: INTEGER (FK → Equipo)
-- `id_equipo_ganador`: INTEGER (FK → Equipo)
-- `ronda`: VARCHAR(255)
-- `marcador_local`: INTEGER
-- `marcador_visitante`: INTEGER
-- `estado`: VARCHAR(255)
-
-#### **Pedido**
-- `id`: INTEGER (PK, autoincremental)
-- `id_cliente`: INTEGER NOT NULL (FK → Cliente)
-- `monto_total`: REAL NOT NULL
-- `estado`: VARCHAR(255) NOT NULL DEFAULT 'pendiente_pago'
-- `fecha_creacion`: TEXT DEFAULT CURRENT_TIMESTAMP
-- `fecha_expiracion`: TEXT
-
-#### **PedidoItem**
-- `id`: INTEGER (PK, autoincremental)
-- `id_pedido`: INTEGER NOT NULL (FK → Pedido)
-- `id_turno`: INTEGER UNIQUE (FK → Turno)
-- `id_inscripcion`: INTEGER UNIQUE (FK → Inscripcion)
-- `descripcion`: VARCHAR(255) NOT NULL
-- `monto`: REAL NOT NULL
-
-#### **Pago**
-- `id`: INTEGER (PK, autoincremental)
-- `id_pedido`: INTEGER NOT NULL (FK → Pedido)
-- `monto`: REAL NOT NULL
-- `estado`: VARCHAR(255) NOT NULL DEFAULT 'iniciado'
-- `metodo_pago`: VARCHAR(255)
-- `id_gateway_externo`: VARCHAR(255)
-- `fecha_pago`: TEXT DEFAULT CURRENT_TIMESTAMP
-- `id_usuario_manual`: INTEGER NOT NULL (FK → Usuario)
-
-## 💡 Uso de los Modelos
-
-Todos los modelos incluyen:
-
-### Métodos de clase:
-- `from_dict(data: dict)`: Crea una instancia desde un diccionario
-- `from_db_row(row)`: Crea una instancia desde una fila de base de datos
-
-### Métodos de instancia:
-- `to_dict()`: Convierte la instancia a diccionario
-
-### Ejemplo de uso:
-
+**Rol**
 ```python
-from models import Cliente
-from database.connection import get_connection
-
-# Crear un nuevo cliente
-cliente = Cliente(
-    nombre="Juan",
-    apellido="Pérez",
-    dni="12345678",
-    telefono="1234567890",
-    email="juan@example.com"
-)
-
-# Convertir a diccionario
-cliente_dict = cliente.to_dict()
-
-# Crear desde un diccionario
-cliente2 = Cliente.from_dict({
-    'nombre': 'María',
-    'telefono': '0987654321'
-})
-
-# Desde una fila de base de datos
-conn = get_connection()
-cursor = conn.cursor()
-cursor.execute("SELECT * FROM Cliente WHERE id = ?", (1,))
-row = cursor.fetchone()
-if row:
-    cliente_db = Cliente.from_db_row(row)
-conn.close()
+@dataclass
+class Rol:
+    id: Optional[int]
+    nombre_rol: str              # Admin, Cliente, Organizador
+    descripcion: Optional[str]
 ```
 
-## 🔑 Características de la Base de Datos
+**Usuario**
+```python
+@dataclass
+class Usuario:
+    id: Optional[int]
+    nombre_usuario: str          # Único
+    email: str                   # Único
+    password_hash: str           # pbkdf2_sha256
+    id_rol: int                  # FK → Rol
+```
 
-- **Foreign Keys**: Habilitadas con `PRAGMA foreign_keys = ON`
-- **Índices únicos**:
-  - `Turno`: (`id_cancha`, `fecha_hora_inicio`)
-  - `Inscripcion`: (`id_equipo`, `id_torneo`)
-- **Row Factory**: Configurado para acceder a columnas por nombre
+**Cliente**
+```python
+@dataclass
+class Cliente:
+    id: Optional[int]
+    nombre: str
+    apellido: Optional[str]
+    dni: Optional[str]           # Único
+    telefono: str
+    direccion: Optional[str]
+    id_usuario: int              # FK → Usuario (único)
+```
 
-## 📝 Próximos Pasos
+#### 2. Gestión de Canchas
 
-1. Implementar la capa de repositorio (DAO) para cada entidad
-2. Crear los servicios de negocio
-3. Desarrollar las rutas/endpoints de la API
-4. Implementar validaciones adicionales
-5. Agregar tests unitarios
+**Cancha**
+```python
+@dataclass
+class Cancha:
+    id: Optional[int]
+    nombre: str
+    tipo_deporte: Optional[str]  # Fútbol, Básquet, Pádel
+    descripcion: Optional[str]
+    activa: int                  # 1=activa, 0=inactiva
+    precio_hora: Optional[float] # ⭐ Precio base por hora
+```
 
-## 🛠️ Tecnologías
+**ServicioAdicional**
+```python
+@dataclass
+class ServicioAdicional:
+    id: Optional[int]
+    nombre: str
+    precio_actual: float
+    activo: int                  # 1=activo, 0=inactivo
+```
 
-- **Base de datos**: SQLite3
-- **Lenguaje**: Python 3.13+
-- **Framework**: FastAPI
-- **Patrón**: DAO (Data Access Object)
-- **Autenticación**: JWT (JSON Web Tokens)
+#### 3. Gestión de Turnos
 
-## 📖 Documentación Adicional
+**Turno**
+```python
+@dataclass
+class Turno:
+    id: Optional[int]
+    id_cancha: int                    # FK → Cancha
+    fecha_hora_inicio: str            # ISO datetime
+    fecha_hora_fin: str               # ISO datetime
+    estado: str                       # disponible, reservado, pendiente_pago, etc.
+    precio_final: float               # Calculado
+    id_cliente: Optional[int]         # FK → Cliente
+    id_usuario_registro: Optional[int] # FK → Usuario
+    reserva_created_at: Optional[str]
+    id_usuario_bloqueo: Optional[int]
+    motivo_bloqueo: Optional[str]
+```
 
-- **[COMPARACION_DER_BD.md](COMPARACION_DER_BD.md)** - Análisis detallado: DER vs Base de Datos actual
-- **[MIGRACION_NUEVO_PAGO.md](MIGRACION_NUEVO_PAGO.md)** - Documentación del nuevo flujo de pagos sin carrito
-- **[DER_TP_DAO_V2.sql](DER_TP_DAO_V2.sql)** - Diagrama Entidad-Relación exportado para MySQL
+**Estados de Turno:**
+- `disponible`: Turno libre
+- `reservado`: Turno confirmado con cliente
+- `pendiente_pago`: Reserva iniciada, esperando pago
+- `bloqueado`: Bloqueado por admin
+- `cancelado`: Turno cancelado
+- `finalizado`: Turno completado
 
-## 🔄 Flujo de Negocio Principal
+**TurnoServicio** (Tabla de relación N:M)
+```python
+@dataclass
+class TurnoServicio:
+    id: Optional[int]
+    id_turno: int                # FK → Turno
+    id_servicio: int             # FK → ServicioAdicional
+    cantidad: int
+    precio_unitario: float
+```
 
-### Reserva de Turno
-1. Cliente selecciona turno + servicios opcionales
-2. Se crea Pago con estado `iniciado` y timer de 15 minutos
-3. Turno cambia a `pendiente_pago`
-4. Si pago se confirma → Turno: `reservado`, Pago: `completado`
-5. Si expira timer → Turno: `disponible`, Pago: `fallido`
+#### 4. Gestión de Pagos
 
-### Inscripción a Torneo
-1. Equipo se inscribe con estado `pendiente_pago`
-2. Se crea Pago con timer de 15 minutos
-3. Si pago se confirma → Inscripcion: `confirmada`
-4. Si expira timer → Inscripcion: `cancelada`
+**Pago**
+```python
+@dataclass
+class Pago:
+    id: Optional[int]
+    id_cliente: int               # FK → Cliente
+    id_turno: Optional[int]       # FK → Turno (XOR con id_inscripcion)
+    id_inscripcion: Optional[int] # FK → Inscripcion (XOR con id_turno)
+    monto_turno: float
+    monto_servicios: float
+    monto_inscripcion: float
+    descuento: float
+    recargo: float
+    monto_total: float
+    metodo_pago: Optional[str]
+    estado: str                   # iniciado, completado, fallido
+    fecha_creacion: str
+    fecha_vencimiento: str        # +15 minutos desde creación
+    fecha_pago: Optional[str]
+```
 
-## 🔐 Credenciales por Defecto
+**Flujo de Pago:**
+1. Cliente reserva turno/inscripción → Pago `iniciado`
+2. Timer 15 minutos comienza
+3. Cliente confirma → Pago `completado` + Turno/Inscripción actualizado
+4. Si expira timer → Job marca Pago `fallido` + libera Turno
 
-Después de ejecutar `init_database.py`:
+#### 5. Gestión de Torneos
 
-| Usuario | Password | Rol | Email |
-|---------|----------|-----|-------|
-| admin | admin123 | administrador | admin@canchas.com |
+**Torneo**
+```python
+@dataclass
+class Torneo:
+    id: Optional[int]
+    nombre: str
+    descripcion: Optional[str]
+    fecha_inicio: str
+    fecha_fin: str
+    deporte: Optional[str]
+    ubicacion: Optional[str]
+    id_organizador: Optional[int]  # FK → Usuario
+    estado: str                    # pendiente, en_curso, finalizado
+    precio_inscripcion: float
+```
 
-⚠️ **IMPORTANTE**: Cambiar estas credenciales en producción.
+**Equipo**
+```python
+@dataclass
+class Equipo:
+    id: Optional[int]
+    nombre: str
+    id_capitan: int                # FK → Cliente
+```
+
+**EquipoMiembro**
+```python
+@dataclass
+class EquipoMiembro:
+    id: Optional[int]
+    id_equipo: int                 # FK → Equipo
+    id_cliente: int                # FK → Cliente
+    posicion: Optional[str]
+    numero_camiseta: Optional[int]
+```
+
+**Inscripcion** (Equipo inscrito en Torneo)
+```python
+@dataclass
+class Inscripcion:
+    id: Optional[int]
+    id_torneo: int                 # FK → Torneo
+    id_equipo: int                 # FK → Equipo
+    fecha_inscripcion: str
+    estado: str                    # pendiente, confirmada, cancelada
+```
+
+**Partido**
+```python
+@dataclass
+class Partido:
+    id: Optional[int]
+    id_torneo: int                 # FK → Torneo
+    id_equipo_local: int           # FK → Equipo
+    id_equipo_visitante: int       # FK → Equipo
+    fecha_hora: str
+    id_cancha: Optional[int]       # FK → Cancha
+    resultado_local: Optional[int]
+    resultado_visitante: Optional[int]
+    estado: str                    # programado, en_curso, finalizado, suspendido
+```
+
+### Relaciones
+
+```
+Usuario 1:1 Cliente
+Usuario N:1 Rol
+
+Turno N:1 Cancha
+Turno N:1 Cliente
+Turno N:M ServicioAdicional (TurnoServicio)
+
+Pago N:1 Cliente
+Pago 1:0..1 Turno
+Pago 1:0..1 Inscripcion
+
+Equipo N:1 Cliente (capitán)
+EquipoMiembro N:1 Equipo
+EquipoMiembro N:1 Cliente
+
+Inscripcion N:1 Torneo
+Inscripcion N:1 Equipo
+
+Partido N:1 Torneo
+Partido N:1 Equipo (local)
+Partido N:1 Equipo (visitante)
+Partido N:1 Cancha
+```
+
+### Índices y Constraints
+
+✅ **Índice único compuesto**: `(id_cancha, fecha_hora_inicio)` en Turno  
+✅ **Índice**: `id_usuario_email` en Usuario  
+✅ **Índice**: `id_turno_cancha` en Turno  
+✅ **Foreign Keys** activadas con `PRAGMA foreign_keys = ON`  
+✅ **Unique constraints** en nombre_usuario, email, dni  
+
+---
+
+## 🔌 API Endpoints
+
+### Convenciones
+
+- **Base URL**: `/api`
+- **Content-Type**: `application/json`
+- **Auth**: Bearer token en header `Authorization`
+
+### Autenticación
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| POST | `/auth/login` | Login usuario | No |
+| POST | `/auth/register` | Registro usuario + cliente | No |
+
+**Request Login:**
+```json
+{
+  "usuario": "admin",
+  "password": "admin123"
+}
+```
+
+**Response Login:**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "nombre_usuario": "admin",
+    "email": "admin@canchas.com",
+    "id_rol": 1
+  }
+}
+```
+
+### Usuarios
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/usuarios` | Listar todos | Sí |
+| GET | `/usuarios/{id}` | Obtener por ID | Sí |
+| POST | `/usuarios` | Crear | Admin |
+| PUT | `/usuarios/{id}` | Actualizar | Admin |
+| DELETE | `/usuarios/{id}` | Eliminar | Admin |
+
+### Clientes
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/clientes` | Listar todos | Sí |
+| GET | `/clientes/{id}` | Obtener por ID | Sí |
+| GET | `/clientes/usuario/{id}` | Por usuario | Sí |
+| POST | `/clientes` | Crear | Admin |
+| PUT | `/clientes/{id}` | Actualizar | Sí |
+| DELETE | `/clientes/{id}` | Eliminar | Admin |
+
+### Canchas
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/canchas` | Listar todas | No |
+| GET | `/canchas/{id}` | Obtener por ID | No |
+| POST | `/canchas` | Crear | Admin |
+| PUT | `/canchas/{id}` | Actualizar | Admin |
+| DELETE | `/canchas/{id}` | Eliminar | Admin |
+
+### Turnos
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/turnos` | Listar todos | Sí |
+| GET | `/turnos/{id}` | Obtener por ID | Sí |
+| GET | `/turnos/cancha/{id}` | Por cancha | Sí |
+| GET | `/turnos/cliente/{id}` | Por cliente | Sí |
+| GET | `/turnos/disponibles` | Buscar disponibles | Sí |
+| POST | `/turnos` | Crear turno | Admin |
+| POST | `/turnos/{id}/reservar-simple` | Reservar | Sí |
+| PUT | `/turnos/{id}` | Actualizar | Admin |
+| PATCH | `/turnos/{id}/estado` | Cambiar estado | Admin |
+| DELETE | `/turnos/{id}` | Eliminar | Admin |
+
+**Request Crear Turno:**
+```json
+{
+  "id_cancha": 1,
+  "fecha_hora_inicio": "2025-11-28T18:00:00",
+  "fecha_hora_fin": "2025-11-28T19:30:00",
+  "estado": "disponible",
+  "precio_final": 1500.0
+}
+```
+
+**Request Reservar:**
+```json
+{
+  "id_cliente": 5,
+  "id_usuario_registro": 1
+}
+```
+
+### Pagos
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| POST | `/pagos/turno` | Iniciar pago turno | Sí |
+| POST | `/pagos/inscripcion` | Iniciar pago inscripción | Sí |
+| POST | `/pagos/{id}/confirmar` | Confirmar pago | Sí |
+| POST | `/pagos/{id}/marcar-fallido` | Marcar fallido | Admin |
+| GET | `/pagos/cliente/{id}` | Pagos de cliente | Sí |
+| GET | `/pagos/turno/{id}` | Pago de turno | Sí |
+| GET | `/pagos/inscripcion/{id}` | Pago de inscripción | Sí |
+
+**Request Iniciar Pago Turno:**
+```json
+{
+  "id_turno": 10,
+  "id_cliente": 5,
+  "metodo_pago": "efectivo"
+}
+```
+
+**Response Pago:**
+```json
+{
+  "id": 15,
+  "id_cliente": 5,
+  "id_turno": 10,
+  "monto_turno": 1500.0,
+  "monto_servicios": 300.0,
+  "monto_total": 1800.0,
+  "estado": "iniciado",
+  "fecha_vencimiento": "2025-11-27T19:15:00"
+}
+```
+
+### Torneos
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/torneos` | Listar todos | No |
+| GET | `/torneos/{id}` | Obtener por ID | No |
+| POST | `/torneos` | Crear | Admin |
+| PUT | `/torneos/{id}` | Actualizar | Admin |
+| DELETE | `/torneos/{id}` | Eliminar | Admin |
+
+### Equipos
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/equipos` | Listar todos | Sí |
+| GET | `/equipos/{id}` | Obtener por ID | Sí |
+| POST | `/equipos` | Crear | Sí |
+| PUT | `/equipos/{id}` | Actualizar | Sí |
+| DELETE | `/equipos/{id}` | Eliminar | Admin |
+
+### Inscripciones
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/inscripciones` | Listar todas | Sí |
+| GET | `/inscripciones/{id}` | Obtener por ID | Sí |
+| GET | `/inscripciones/torneo/{id}` | Por torneo | Sí |
+| POST | `/inscripciones` | Inscribir equipo | Sí |
+| PUT | `/inscripciones/{id}` | Actualizar estado | Admin |
+| DELETE | `/inscripciones/{id}` | Cancelar | Admin |
+
+### Partidos
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/partidos` | Listar todos | Sí |
+| GET | `/partidos/{id}` | Obtener por ID | Sí |
+| GET | `/partidos/torneo/{id}` | Por torneo | Sí |
+| POST | `/partidos` | Crear | Admin |
+| PUT | `/partidos/{id}` | Actualizar | Admin |
+| DELETE | `/partidos/{id}` | Eliminar | Admin |
+
+---
+
+## 🔐 Autenticación
+
+### JWT (JSON Web Tokens)
+
+El sistema usa tokens JWT con las siguientes características:
+
+- **Algoritmo**: HS256
+- **Expiración**: 5 minutos
+- **Claims**:
+  - `sub`: nombre_usuario
+  - `user_id`: ID del usuario
+  - `id_rol`: ID del rol
+  - `iat`: Issued at (timestamp)
+  - `exp`: Expiration (timestamp)
+
+### Flujo de Autenticación
+
+```
+1. Cliente → POST /api/auth/login
+             {usuario, password}
+
+2. Backend → Valida credenciales
+             Genera JWT token
+
+3. Backend → Responde con token
+             {access_token, user}
+
+4. Cliente → Guarda token
+             (localStorage/sessionStorage)
+
+5. Cliente → Requests subsiguientes
+             Header: Authorization: Bearer <token>
+
+6. Backend → Valida token en cada request
+             Dependency: get_current_user()
+```
+
+### Middleware de Autenticación
+
+```python
+# api/dependencies/auth.py
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer
+
+security = HTTPBearer()
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> Usuario:
+    token = credentials.credentials
+    usuario = AuthService.validar_token(token)
+    if not usuario:
+        raise HTTPException(401, "Token inválido o expirado")
+    return usuario
+
+def require_admin(
+    current_user: Usuario = Depends(get_current_user)
+) -> Usuario:
+    if current_user.id_rol != 1:  # 1 = Admin
+        raise HTTPException(403, "Requiere permisos de administrador")
+    return current_user
+```
+
+### Uso en Routers
+
+```python
+from api.dependencies.auth import get_current_user, require_admin
+
+# Endpoint público
+@router.get("/canchas")
+def listar_canchas(): ...
+
+# Endpoint autenticado
+@router.get("/turnos")
+def listar_turnos(current_user: Usuario = Depends(get_current_user)): ...
+
+# Endpoint admin
+@router.post("/canchas")
+def crear_cancha(admin: Usuario = Depends(require_admin)): ...
+```
+
+### Password Hashing
+
+```python
+from passlib.hash import pbkdf2_sha256
+
+# Hash password
+hashed = pbkdf2_sha256.hash("admin123")
+
+# Verificar password
+is_valid = pbkdf2_sha256.verify("admin123", hashed)
+```
+
+---
+
+## 🧪 Testing
+
+### Ejecutar tests
+
+```bash
+# Todos los tests
+pytest
+
+# Con coverage
+pytest --cov=. --cov-report=html
+
+# Test específico
+pytest tests/test_usuarios_clientes_basic.py
+
+# Verbose
+pytest -v
+
+# Con prints
+pytest -s
+```
+
+### Tests disponibles
+
+| Test | Descripción |
+|------|-------------|
+| `test_usuarios_clientes_basic.py` | CRUD básico usuarios/clientes |
+| `test_turno_routes.py` | Endpoints de turnos |
+| `test_turno_service.py` | Lógica de negocio turnos |
+| `test_turno_routes_pertenencia.py` | Autorización turnos |
+| `test_flujo_reserva.py` | Flujo completo de reserva |
+
+### Estructura de un Test
+
+```python
+import pytest
+from fastapi.testclient import TestClient
+from api.main import app
+
+client = TestClient(app)
+
+def test_crear_usuario():
+    response = client.post("/api/usuarios", json={
+        "nombre_usuario": "test",
+        "email": "test@test.com",
+        "password": "test123",
+        "id_rol": 2
+    })
+    assert response.status_code == 201
+    data = response.json()
+    assert data["nombre_usuario"] == "test"
+```
+
+---
+
+## 🔧 Scripts Utilitarios
+
+### init_database.py
+
+Inicialización completa de la base de datos con datos de prueba.
+
+```bash
+# Normal
+python scripts/init_database.py
+
+# Reset completo
+python scripts/init_database.py --reset
+```
+
+**Funciones:**
+- `crear_tablas()`: Crea schema completo
+- `crear_indices()`: Crea índices optimizados
+- `insertar_datos_basicos()`: Inserta datos seed
+- `resetear_base_datos()`: Elimina y recrea todo
+
+**Datos insertados:**
+- 3 Roles
+- 1 Admin (admin/admin123)
+- 5 Canchas
+- 7 Servicios
+- 210 Turnos (próximos 3 días)
+- 1 Torneo
+
+### create_admin.py
+
+Crear usuario administrador manualmente.
+
+```bash
+python scripts/create_admin.py
+```
+
+Crea:
+- Usuario: `admin`
+- Email: `admin@canchas.com`
+- Password: `admin123`
+- Rol: Administrador
+
+### migrate_to_new_pago.py
+
+Migración del sistema de pagos (Pedido → Pago directo).
+
+```bash
+# Ver cambios
+python scripts/migrate_to_new_pago.py --check
+
+# Ejecutar migración
+python scripts/migrate_to_new_pago.py --execute
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Error: No such table
+
+```bash
+# Recrear base de datos
+python scripts/init_database.py --reset
+```
+
+### Error: Token expired
+
+Los tokens expiran a los 5 minutos. Volver a hacer login.
+
+### Error: Foreign key constraint failed
+
+Verificar que las foreign keys existen antes de insertar:
+
+```sql
+PRAGMA foreign_keys = ON;
+SELECT * FROM Rol WHERE id = 1;
+```
+
+### Error: Port already in use
+
+```bash
+# Cambiar puerto
+uvicorn api.main:app --reload --port 8001
+
+# O matar proceso
+# Windows:
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
+
+# Linux/Mac:
+lsof -ti:8000 | xargs kill -9
+```
+
+### Error: Module not found
+
+```bash
+# Reinstalar dependencias
+pip install -r requirements.txt
+
+# O recrear venv
+rm -rf .venv
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+---
+
+## 📚 Referencias
+
+- [FastAPI Docs](https://fastapi.tiangolo.com/)
+- [SQLite Docs](https://www.sqlite.org/docs.html)
+- [Pydantic Docs](https://docs.pydantic.dev/)
+- [JWT.io](https://jwt.io/)
+
+---
+
+## 👥 Contribución
+
+Este es un proyecto académico. Para consultas, contactar al equipo.
+
+---
+
+## 📝 Notas de Versión
+
+### v2.0 - Noviembre 2025
+- ✅ Eliminada tabla Tarifa (usar Cancha.precio_hora)
+- ✅ Sistema de pagos directo (sin Pedido/PedidoItem)
+- ✅ JWT con timezone-aware (Python 3.12+)
+- ✅ Password hashing unificado (pbkdf2_sha256)
+- ✅ Índice único en Turno para prevenir doble reserva
+- ✅ Timer 15 minutos para pagos
+- ✅ Script init_database.py completo
