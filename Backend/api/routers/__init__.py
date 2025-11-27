@@ -59,7 +59,6 @@ def register_routers(app: FastAPI, prefix: str = "/api") -> None:
 	app.include_router(inscripciones_router, prefix=prefix)
 	app.include_router(servicios_adicionales_router, prefix=prefix)
 	app.include_router(torneos_router, prefix=prefix)
-	app.include_router(roles_router, prefix=prefix)
 	app.include_router(usuarios_router, prefix=prefix)
 	app.include_router(turnos_router, prefix=prefix)
 	app.include_router(tarifas_router, prefix=prefix)
