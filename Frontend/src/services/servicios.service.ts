@@ -1,4 +1,5 @@
 import axios from 'axios';
+import http from './http';
 
 export interface ServicioAdicional {
   id?: number;
@@ -31,7 +32,7 @@ const buildPayload = (data: Partial<ServicioAdicional>) => {
 };
 
 const list = async (): Promise<ServicioAdicional[]> => {
-  const response = await axios.get(`${endpoint}/`);
+  const response = await http.get(`${endpoint}/`);
   const raw = response.data?.Items ?? response.data?.items ?? response.data ?? [];
   const items = Array.isArray(raw) ? raw : [];
   return items.map(normalizeServicio);
@@ -45,12 +46,12 @@ const searchByName = async (term: string): Promise<ServicioAdicional[]> => {
 };
 
 const getById = async (id: number): Promise<ServicioAdicional> => {
-  const response = await axios.get(`${endpoint}/${id}`);
+  const response = await http.get(`${endpoint}/${id}`);
   return normalizeServicio(response.data);
 };
 
 const create = async (data: Omit<ServicioAdicional, 'id'>): Promise<ServicioAdicional> => {
-  const response = await axios.post(`${endpoint}/`, buildPayload(data));
+  const response = await http.post(`${endpoint}/`, buildPayload(data));
   return normalizeServicio(response.data);
 };
 
@@ -58,12 +59,12 @@ const update = async (
   id: number,
   data: Partial<Omit<ServicioAdicional, 'id'>>
 ): Promise<ServicioAdicional> => {
-  const response = await axios.put(`${endpoint}/${id}`, buildPayload(data));
+  const response = await http.put(`${endpoint}/${id}`, buildPayload(data));
   return normalizeServicio(response.data);
 };
 
 const remove = async (id: number): Promise<void> => {
-  await axios.delete(`${endpoint}/${id}`);
+  await http.delete(`${endpoint}/${id}`);
 };
 
 export default {
