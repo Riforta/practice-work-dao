@@ -1,4 +1,5 @@
 import axios from 'axios';
+import http from './http';
 
 export interface Tarifa {
   id?: number;
@@ -18,7 +19,7 @@ const normalizeTarifa = (raw: any): Tarifa => ({
 });
 
 const list = async (): Promise<Tarifa[]> => {
-  const response = await axios.get(`${endpoint}/`);
+  const response = await http.get(`${endpoint}/`);
   const raw = response.data?.Items ?? response.data?.items ?? response.data ?? [];
   const items = Array.isArray(raw) ? raw : [];
   return items.map(normalizeTarifa);

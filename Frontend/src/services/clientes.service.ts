@@ -1,4 +1,5 @@
 import axios from 'axios';
+import http from './http';
 
 export interface Cliente {
   id: number;
@@ -22,7 +23,7 @@ const normalizeCliente = (raw: any): Cliente => ({
 });
 
 const list = async (): Promise<Cliente[]> => {
-  const response = await axios.get(`${endpoint}/`);
+  const response = await http.get(`${endpoint}/`);
   const raw = response.data?.Items ?? response.data?.items ?? response.data ?? [];
   const items = Array.isArray(raw) ? raw : [];
   return items.map(normalizeCliente);
@@ -30,14 +31,14 @@ const list = async (): Promise<Cliente[]> => {
 
 const searchByName = async (term: string): Promise<Cliente[]> => {
   if (!term.trim()) return [];
-  const response = await axios.get(`${endpoint}/search`, { params: { nombre: term } });
+  const response = await http.get(`${endpoint}/search`, { params: { nombre: term } });
   const raw = response.data?.Items ?? response.data?.items ?? response.data ?? [];
   const items = Array.isArray(raw) ? raw : [];
   return items.map(normalizeCliente);
 };
 
 const getById = async (id: number): Promise<Cliente> => {
-  const response = await axios.get(`${endpoint}/${id}`);
+  const response = await http.get(`${endpoint}/${id}`);
   return normalizeCliente(response.data);
 };
 
