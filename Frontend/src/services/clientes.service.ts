@@ -45,4 +45,38 @@ export default {
   list,
   searchByName,
   getById,
+  async create(data: Omit<Cliente, 'id'>): Promise<Cliente> {
+    // Enviar solo los campos necesarios, limpios
+    const payload = {
+      nombre: data.nombre?.trim() || '',
+      apellido: data.apellido?.trim() || '',
+      dni: data.dni?.toString().trim() || '',
+      telefono: data.telefono?.toString().trim() || '',
+      email: data.email?.trim() || '',
+    };
+
+    const response = await axios.post(`${endpoint}`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return normalizeCliente(response.data);
+  },
+  async update(id: number, data: Partial<Omit<Cliente, 'id'>>): Promise<Cliente> {
+    const payload = {
+      nombre: data.nombre?.trim(),
+      apellido: data.apellido?.trim(),
+      dni: data.dni?.toString().trim(),
+      telefono: data.telefono?.toString().trim(),
+      email: data.email?.trim(),
+    };
+    // Remover campos undefined
+    Object.keys(payload).forEach(k => payload[k as keyof typeof payload] === undefined && delete payload[k as keyof typeof payload]);
+
+    const response = await axios.put(`${endpoint}/${id}`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return normalizeCliente(response.data);
+  },
+  async delete(id: number): Promise<void> {
+    await axios.delete(`${endpoint}/${id}`);
+  },
 };

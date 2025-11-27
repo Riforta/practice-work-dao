@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import { logout as logoutService } from '../services/auth.service'
 
 type User = any
 
@@ -39,7 +40,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(u)
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await logoutService(token)
     setToken(null)
     setUser(null)
   }

@@ -2,14 +2,12 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import service from "../../../services/canchas.service";
-import backgroundImage from "./imagenes/curry_hd_si.jpg";
 
 type FormData = {
   nombre: string;
   tipo_deporte: string;
   descripcion: string;
   activa: boolean;
-  precio_hora: number;
 };
 
 export default function ModificarCanchaBasquet() {
@@ -87,95 +85,81 @@ export default function ModificarCanchaBasquet() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white/10 backdrop-blur-md text-white rounded-lg p-6 w-full max-w-lg shadow-lg"
-      >
-        <h3 className="text-2xl mb-4">Modificar Cancha</h3>
-        
-        {/* Mensaje de error destacado */}
-        {errorMessage && (
-            <div className="bg-red-500/20 border border-red-500 text-red-100 p-3 rounded mb-4 text-sm text-center">
-                {errorMessage}
-            </div>
-        )}
-
-        <label className="block mb-2 text-sm">Nombre</label>
-        <input
-          {...register("nombre", { required: "El nombre es requerido" })}
-          className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
-        />
-        {errors.nombre && <p className="text-red-400 text-sm mb-2">{errors.nombre.message}</p>}
-
-        <label className="block mb-2 text-sm">Deporte</label>
-        <select
-          {...register("tipo_deporte", { required: "Seleccione un deporte" })}
-          className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
+    <div className="min-h-screen bg-slate-950 text-white px-4 py-10">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="w-full max-w-lg mx-auto space-y-4 rounded-2xl bg-white/10 p-6 shadow-2xl backdrop-blur-md border border-white/10"
         >
-        <option value="basquet" className="bg-gray-700">Basquet</option>
-        </select>
-        {errors.tipo_deporte && <p className="text-red-400 text-sm mb-2">{errors.tipo_deporte.message}</p>}
+          <div className="space-y-1">
+            <p className="text-sm uppercase tracking-widest text-emerald-200">Canchas - Basquet</p>
+            <h2 className="text-2xl font-bold">Modificar cancha</h2>
+            {errorMessage && <p className="text-red-300 text-sm">{errorMessage}</p>}
+          </div>
 
-        <label className="block mb-2 text-sm">Descripción</label>
-        <textarea
-          {...register("descripcion")}
-          className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
-          rows={3}
-        />
+          <label className="block text-sm">
+            Nombre
+            <input
+              {...register("nombre", { required: "El nombre es requerido" })}
+              className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white placeholder:text-emerald-200/60 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="Nombre de la cancha"
+            />
+            {errors.nombre && <span className="text-xs text-red-300">{errors.nombre.message}</span>}
+          </label>
 
-        <label className="block mb-2 text-sm">Precio x Hora</label>
-        <input
-          type="number"
-          min={10}
-          step={1}
-          {...register("precio_hora", {
-            required: "El precio es requerido",
-            valueAsNumber: true,
-            min: { value: 10, message: "El precio debe ser mayor o igual a 10" },
-          })}
-          className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
-        />
-        {errors.precio_hora && <p className="text-red-400 text-sm mb-2">{errors.precio_hora.message}</p>}
+          <label className="block text-sm">
+            Deporte
+            <select
+              {...register("tipo_deporte", { required: "Seleccione un deporte" })}
+              className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
+              <option value="basquet" className="bg-slate-900">Basquet</option>
+            </select>
+            {errors.tipo_deporte && <span className="text-xs text-red-300">{errors.tipo_deporte.message}</span>}
+          </label>
 
-        <label className="flex items-center gap-2 mb-4">
-          <input
-            type="checkbox"
-            {...register("activa")}
-            className="w-4 h-4 text-blue-500 bg-white/5 rounded focus:ring-2 focus:ring-white/30"
-          />
-          <span className="text-sm">Activa</span>
-        </label>
+          <label className="block text-sm">
+            Descripción
+            <textarea
+              {...register("descripcion")}
+              className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white placeholder:text-emerald-200/60 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              rows={3}
+              placeholder="Descripción opcional"
+            />
+          </label>
 
-        <div className="flex justify-center gap-3 mt-4">
-          <button
-            type="submit"
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white"
-          >
-            Actualizar
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => { reset(); setErrorMessage(""); }}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded text-white"
-          >
-            Limpiar
-          </button>
-          
-          <Link to="/canchas/basquet" className="px-4 py-2 bg-black/60 hover:bg-black/80 rounded text-white flex items-center">
-            Volver
-          </Link>
-        </div>
-      </form>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              {...register("activa")}
+              className="size-4 rounded border-white/30 bg-slate-800 text-emerald-500 focus:ring-emerald-400"
+            />
+            Cancha activa
+          </label>
+
+          <div className="flex flex-wrap gap-3 pt-2">
+            <button
+              type="submit"
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+            >
+              Actualizar
+            </button>
+            <button
+              type="button"
+              onClick={() => { reset(); setErrorMessage(""); }}
+              className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400"
+            >
+              Restaurar
+            </button>
+            <Link 
+              to="/canchas/basquet" 
+              className="rounded-lg border border-white/20 bg-white/0 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400"
+            >
+              Volver
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

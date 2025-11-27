@@ -28,10 +28,10 @@ class CanchaRepository:
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO Cancha (nombre, tipo_deporte, descripcion, activa, precio_hora)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO Cancha (nombre, tipo_deporte, descripcion, activa)
+                VALUES (?, ?, ?, ?)
             """, (cancha.nombre, cancha.tipo_deporte, 
-                cancha.descripcion, cancha.activa, cancha.precio_hora))
+                cancha.descripcion, cancha.activa))
             
             conn.commit()
             return cursor.lastrowid
@@ -57,10 +57,10 @@ class CanchaRepository:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE Cancha
-                SET nombre = ?, tipo_deporte = ?, descripcion = ?, activa = ?, precio_hora = ?
+                SET nombre = ?, tipo_deporte = ?, descripcion = ?, activa = ?
                 WHERE id = ?
             """, (cancha.nombre, cancha.tipo_deporte, 
-                cancha.descripcion, cancha.activa, cancha.precio_hora, cancha.id))
+                cancha.descripcion, cancha.activa, cancha.id))
             
             conn.commit()
         except Exception as e:

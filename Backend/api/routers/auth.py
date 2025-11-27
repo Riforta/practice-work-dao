@@ -36,9 +36,9 @@ def login(credentials: Dict[str, Any]):
             detail="Credenciales inválidas"
         )
     
-    # Marcar usuario como activo al hacer login
-    AuthService.marcar_activo(user.id, activo=True)
-    user.activo = 1  # Actualizar objeto en memoria
+    # Ya no marcamos usuario como activo al hacer login
+    # El campo activo se usa solo para cuentas habilitadas/deshabilitadas por admin
+    # No para rastrear sesiones activas
     
     # Genera el token
     token = AuthService.generar_token(user)
@@ -80,13 +80,16 @@ def login(credentials: Dict[str, Any]):
 @router.post("/logout", summary="Cerrar sesión")
 def logout(current_user: Usuario = Depends(get_current_user)):
     """
-    Cierra la sesión del usuario marcándolo como inactivo en la base de datos.
+    Cierra la sesión del usuario.
     
     Requiere autenticación (token JWT en header Authorization: Bearer <token>).
     
-    NOTA: El token JWT seguirá siendo técnicamente válido hasta su expiración,
-    pero cualquier request subsecuente con ese token será rechazado porque
-    el middleware verifica que user.activo == 1 en cada petición.
+    NOTA: El token JWT seguirá siendo técnicamente válido hasta su expiración.
+    El cliente debe eliminar el token del localStorage para completar el logout.
+    
+    Ya no marcamos al usuario como inactivo porque el campo 'activo' se usa
+    para cuentas habilitadas/deshabilitadas por administradores, no para
+    rastrear sesiones activas.
     
     Para invalidación inmediata de tokens, se requeriría implementar:
     - Blacklist de tokens en Redis/DB
@@ -96,21 +99,11 @@ def logout(current_user: Usuario = Depends(get_current_user)):
         Mensaje de confirmación indicando que el usuario debe eliminar
         el token del localStorage/cookies en el frontend.
     """
-    try:
-        # Marcar usuario como inactivo en DB
-        AuthService.marcar_activo(current_user.id, activo=False)
-        
-        return {
-            "message": "Sesión cerrada exitosamente. El token no podrá ser usado en futuras peticiones.",
-            "usuario": current_user.nombre_usuario,
-            "action_required": "Eliminar token del localStorage/cookies en el cliente"
-        }
-    
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al cerrar sesión: {str(e)}"
-        )
+    return {
+        "message": "Sesión cerrada exitosamente. Elimine el token del cliente.",
+        "usuario": current_user.nombre_usuario,
+        "action_required": "Eliminar token del localStorage/cookies en el cliente"
+    }
 
 '''
 @router.post("/refresh", summary="Refrescar token")

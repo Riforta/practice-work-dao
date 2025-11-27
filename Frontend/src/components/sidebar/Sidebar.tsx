@@ -1,4 +1,5 @@
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
+import { Link } from 'react-router-dom';
 import {
   RectangleStackIcon,
   ShoppingCartIcon,
@@ -14,17 +15,9 @@ export default function Sidebar() {
   // const currentItem = 'Reservas'; // ⬆️ ELIMINÉ ESTA LÍNEA
 
   const navigation = [
-    { name: 'Reservas', href: '#', icon: RectangleStackIcon}, // 'current: true' ahora controla el estado activo
-    {
-      name: 'Clientes',
-      icon: ShoppingCartIcon,
-      current: false,
-      children: [
-        { name: 'Orders', href: '#' },
-        { name: 'Products', href: '#' },
-      ],
-    },
-    { name: 'Canchas', href: '/canchas', icon: InboxIcon, current: false, count: '14' },
+    { name: 'Reservas', href: '/', icon: RectangleStackIcon, current: false},
+    { name: 'Clientes', href: '/clientes', icon: ShoppingCartIcon, current: false },
+    { name: 'Canchas', href: '/canchas', icon: InboxIcon, current: false },
     { name: 'Equipos', href: '/equipos', icon: UserCircleIcon, current: false },
     { name: 'Pagos', href: '/pagos', icon: BanknotesIcon, current: false },
     { name: 'Torneos', href: '/torneos', icon: UserCircleIcon, current: false },
@@ -51,8 +44,8 @@ export default function Sidebar() {
             !item.children ? (
               // --- Elemento de link normal ---
               <div key={item.name}>
-                <a
-                  href={item.href}
+                <Link
+                  to={item.href}
                   className={classNames(
                     item.current // ⬆️ MODIFICADO: Ahora usa 'item.current'
                       ? 'bg-gray-800 text-white' // Estado activo
@@ -75,7 +68,7 @@ export default function Sidebar() {
                       {item.count}
                     </span>
                   ) : null}
-                </a>
+                </Link>
               </div>
             ) : (
               // --- Elemento de Disclosure (Submenú) ---

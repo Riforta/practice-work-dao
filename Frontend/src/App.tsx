@@ -2,7 +2,7 @@ import './App.css'
 import React, { Suspense } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Navbar from './components/navbar/Navbar'
-import Sidebar from './components/sidebar/Sidebar.tsx'
+import Sidebar from './components/sidebar/Sidebar'
 import Inicio from './components/inicio/Inicio.tsx'
 import Cancha from './components/cancha/Cancha.tsx'
 import ConsultarCanchaBasquet from './components/cancha/basquet/ConsultarCanchaBasquet.tsx'
@@ -25,11 +25,18 @@ import ConsultarTurnos from './components/turnos/ConsultarTurnos.tsx'
 import RegistrarTurnos from './components/turnos/RegistrarTurnos.tsx'
 import ModificarTurnos from './components/turnos/ModificarTurnos.tsx'
 import Torneo from './components/torneo/torneo.tsx'
+const GestionClientes = React.lazy(() => import('./components/cliente/GestionClientes'))
+import RegistrarCliente from './components/cliente/RegistrarCliente'
+import ModificarCliente from './components/cliente/ModificarCliente'
+const GestionCanchas = React.lazy(() => import('./components/cancha/GestionCanchas'))
+import RegistrarCancha from './components/cancha/RegistrarCancha'
+import ModificarCancha from './components/cancha/ModificarCancha'
 //import ConsultarTorneo from './components/torneo/ConsultarTorneo.tsx'
 //import RegistrarTorneo from './components/torneo/RegistrarTorneo.tsx'
 //import ModificarTorneo from './components/torneo/ModificarTorneo.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
+import ErrorBoundary from './components/common/ErrorBoundary'
 
 
 const Login = React.lazy(() => import('./components/auth/Login'))
@@ -58,8 +65,21 @@ function App() {
                   {/* login y register */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  {/* Cancha */}
-                  <Route path="/canchas" element={<Cancha/>} />
+                  
+                  {/* Gestión Unificada de Canchas */}
+                  <Route
+                    path="/canchas"
+                    element={
+                      <ErrorBoundary>
+                        <GestionCanchas />
+                      </ErrorBoundary>
+                    }
+                  />
+                  <Route path="/canchas/nuevo" element={<RegistrarCancha />} />
+                  <Route path="/canchas/:id/editar" element={<ModificarCancha />} />
+                  
+                  {/* Canchas por deporte (legacy - mantener para compatibilidad) */}
+                  <Route path="/canchas/selector" element={<Cancha/>} />
                   {/* Canchas de Futbol */}
                   <Route path="/canchas/futbol" element={<ConsultarCanchaFutbol/>} />
                   <Route path="/canchas/futbol/RegistrarCancha" element={<RegistrarCanchaFutbol/>} />
@@ -90,6 +110,17 @@ function App() {
                   <Route path="/turnos" element={<ConsultarTurnos />} />
                   <Route path="/turnos/nuevo" element={<RegistrarTurnos />} />
                   <Route path="/turnos/:id/editar" element={<ModificarTurnos />} />
+                  {/* Clientes */}
+                  <Route
+                    path="/clientes"
+                    element={
+                      <ErrorBoundary>
+                        <GestionClientes />
+                      </ErrorBoundary>
+                    }
+                  />
+                  <Route path="/clientes/nuevo" element={<RegistrarCliente />} />
+                  <Route path="/clientes/:id/editar" element={<ModificarCliente />} />
                 </Routes>
               </Suspense>
             </main>

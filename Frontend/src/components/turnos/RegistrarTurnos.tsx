@@ -193,12 +193,6 @@ export default function RegistrarTurnos() {
     setShowClienteList(false);
   };
 
-  const handleClearCliente = () => {
-    setValue('id_cliente', undefined);
-    setClienteTerm('');
-    setClienteOptions([]);
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4 py-10">
       <form
@@ -370,13 +364,6 @@ export default function RegistrarTurnos() {
                 placeholder="Ej: Juan Perez"
                 autoComplete="off"
               />
-              <button
-                type="button"
-                onClick={handleClearCliente}
-                className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-emerald-100 hover:border-emerald-400"
-              >
-                Limpiar
-              </button>
             </div>
             {showClienteList && (
               <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-white/10 bg-slate-900/95 shadow-xl">
@@ -443,7 +430,7 @@ export default function RegistrarTurnos() {
             to="/turnos"
             className="rounded-lg border border-white/20 bg-white/0 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400"
           >
-            Volver
+            Cancelar
           </Link>
         </div>
       </form>

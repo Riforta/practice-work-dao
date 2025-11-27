@@ -59,14 +59,14 @@ export default function ConsultarServicios() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white px-4 py-10">
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-widest text-emerald-200">Servicios adicionales</p>
             <h1 className="text-3xl font-bold">Gestión de servicios</h1>
             {error && <p className="text-red-300 text-sm mt-2">{error}</p>}
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-nowrap gap-3">
             <button
               onClick={() => void loadServicios()}
               className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-60"
@@ -76,7 +76,7 @@ export default function ConsultarServicios() {
             </button>
             <Link
               to="/servicios/nuevo"
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 whitespace-nowrap"
             >
               + Registrar servicio
             </Link>
@@ -84,7 +84,7 @@ export default function ConsultarServicios() {
         </header>
 
         <section className="bg-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/10">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3">
             <label className="text-sm text-emerald-100">
               Buscá por nombre
               <input
@@ -95,12 +95,16 @@ export default function ConsultarServicios() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </label>
-            <button
-              onClick={() => setSearch('')}
-              className="self-start rounded-lg border border-white/20 px-3 py-2 text-sm text-emerald-100 hover:border-emerald-400 hover:text-white"
-            >
-              Limpiar filtro
-            </button>
+            {search && (
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setSearch('')}
+                  className="rounded-lg border border-white/20 px-3 py-2 text-sm text-emerald-100 hover:border-emerald-400 hover:text-white"
+                >
+                  Limpiar filtro
+                </button>
+              </div>
+            )}
           </div>
         </section>
 

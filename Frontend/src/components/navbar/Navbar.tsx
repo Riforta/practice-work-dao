@@ -17,20 +17,18 @@ export default function Navbar() {
           <div className="size-20 perspective-dramatic ...">
           <div className="translate-z-12 rotate-x-0 bg-sky-300/75 ...">
         </div>
-          <a href="/" className="-ml-24 sm:-ml-0 p-0">
+          <div className="-ml-24 sm:-ml-0 p-0">
             <img
               alt=""
               src={worldcup}
               className="h-16 w-auto object-contain"
             />
-          </a>
+          </div>
         </div>
         </div>
         {/* Centered title */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <Link to="/" className="pointer-events-auto">
-            <span className="text-2xl md:text-3xl font-serif font-semibold text-white">DeporteX</span>
-          </Link>
+          <span className="text-2xl md:text-3xl font-serif font-semibold text-white">DeporteX</span>
         </div>
         <div className="flex lg:hidden">
           <button

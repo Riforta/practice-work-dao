@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import service from "../../services/equipos.service";
-import backgroundImage from "./imagenes/curry_hd_si.jpg";
 
 type FormData = {
   nombre_equipo: string;
@@ -78,58 +77,51 @@ export default function ModificarEquipo() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white/10 backdrop-blur-md text-white rounded-lg p-6 w-full max-w-lg shadow-lg"
-      >
-        <h3 className="text-2xl mb-4">Modificar Equipo</h3>
-        
-        {/* Mensaje de error destacado */}
-        {errorMessage && (
-            <div className="bg-red-500/20 border border-red-500 text-red-100 p-3 rounded mb-4 text-sm text-center">
-                {errorMessage}
-            </div>
-        )}
+    <div className="min-h-screen bg-slate-950 text-white px-4 py-10">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="w-full max-w-lg mx-auto space-y-4 rounded-2xl bg-white/10 p-6 shadow-2xl backdrop-blur-md border border-white/10"
+        >
+          <div className="space-y-1">
+            <p className="text-sm uppercase tracking-widest text-emerald-200">Equipos</p>
+            <h2 className="text-2xl font-bold">Modificar equipo</h2>
+            {errorMessage && <p className="text-red-300 text-sm">{errorMessage}</p>}
+          </div>
 
-        <label className="block mb-2 text-sm">Nombre Equipo</label>
-        <input
-          {...register("nombre_equipo", { required: "El nombre_equipo es requerido" })}
-          className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
-        />
-        {errors.nombre_equipo && <p className="text-red-400 text-sm mb-2">{errors.nombre_equipo.message}</p>}
-        
+          <label className="block text-sm">
+            Nombre Equipo
+            <input
+              {...register("nombre_equipo", { required: "El nombre es requerido" })}
+              className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white placeholder:text-emerald-200/60 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="Nombre del equipo"
+            />
+            {errors.nombre_equipo && <span className="text-xs text-red-300">{errors.nombre_equipo.message}</span>}
+          </label>
 
-
-        <div className="flex justify-center gap-3 mt-4">
-          <button
-            type="submit"
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white"
-          >
-            Actualizar
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => { reset(); setErrorMessage(""); }}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded text-white"
-          >
-            Limpiar
-          </button>
-          
-          <Link to="/Equipos/" className="px-4 py-2 bg-black/60 hover:bg-black/80 rounded text-white flex items-center">
-            Volver
-          </Link>
-        </div>
-      </form>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <button
+              type="submit"
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+            >
+              Actualizar
+            </button>
+            <button
+              type="button"
+              onClick={() => { reset(); setErrorMessage(""); }}
+              className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400"
+            >
+              Restaurar
+            </button>
+            <Link 
+              to="/equipos/ConsultarEquipo" 
+              className="rounded-lg border border-white/20 bg-white/0 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400"
+            >
+              Volver
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

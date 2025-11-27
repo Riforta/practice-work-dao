@@ -19,6 +19,8 @@ excepciones (`ValueError` para validaciones, `LookupError` para no encontrado,
 from typing import List, Optional, Dict, Any
 
 from models.cliente import Cliente
+from models.usuario import Usuario
+from repositories.usuario_repository import UsuarioRepository
 from repositories.cliente_repository import ClienteRepository
 
 
@@ -59,6 +61,62 @@ def crear_cliente(data: Dict[str, Any]) -> Cliente:
 	dni = data.get('dni')
 	if dni and ClienteRepository.existe_dni(dni):
 		raise ValueError(f"Ya existe un cliente con DNI {dni}")
+
+	# Asegurar id_usuario por restricción NOT NULL + UNIQUE
+	# Si viene un id_usuario, usarlo. Si no, vincular por email creando usuario si es necesario.
+	user_id = data.get('id_usuario')
+	if not user_id:
+		email = str(data.get('email') or '').strip()
+		nombre = str(data.get('nombre') or '').strip() or 'cliente'
+		apellido = str(data.get('apellido') or '').strip()
+
+		if email:
+			existente = UsuarioRepository.obtener_por_email(email)
+			if existente:
+				user_id = existente.id
+			else:
+				# Generar nombre_usuario a partir de email o nombre+dni
+				nombre_usuario_base = (email.split('@')[0] or nombre).lower()
+				nombre_usuario = nombre_usuario_base
+				# Evitar colisiones de nombre de usuario
+				idx = 1
+				while UsuarioRepository.obtener_por_nombre_usuario(nombre_usuario):
+					nombre_usuario = f"{nombre_usuario_base}{idx}"
+					idx += 1
+
+				nuevo_usuario = Usuario(
+					nombre_usuario=nombre_usuario,
+					email=email,
+					password_hash="autocreated",
+					id_rol=None,
+					activo=1,
+				)
+				try:
+					user_id = UsuarioRepository.crear(nuevo_usuario)
+				except Exception as e:
+					# Si no se puede crear el usuario, propagar detalle
+					raise Exception(f"Error al crear usuario para cliente: {e}")
+		else:
+			# Si no hay email, crear un usuario técnico único por DNI o nombre
+			base = (nombre + (str(data.get('dni') or '')).strip()).lower() or 'cliente'
+			nombre_usuario = base
+			idx = 1
+			while UsuarioRepository.obtener_por_nombre_usuario(nombre_usuario):
+				nombre_usuario = f"{base}{idx}"
+				idx += 1
+			nuevo_usuario = Usuario(
+				nombre_usuario=nombre_usuario,
+				email=f"{nombre_usuario}@local",
+				password_hash="autocreated",
+				id_rol=None,
+				activo=1,
+			)
+			try:
+				user_id = UsuarioRepository.crear(nuevo_usuario)
+			except Exception as e:
+				raise Exception(f"Error al crear usuario técnico: {e}")
+
+	data['id_usuario'] = user_id
 
 	cliente = Cliente.from_dict(data)
 	try:

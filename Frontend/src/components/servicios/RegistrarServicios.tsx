@@ -37,11 +37,12 @@ export default function RegistrarServicios() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900 text-white flex items-center justify-center px-4 py-10">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-lg space-y-4 rounded-2xl bg-white/10 p-6 shadow-2xl backdrop-blur-md border border-white/10"
-      >
+    <div className="min-h-screen bg-slate-950 text-white px-4 py-10">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="w-full max-w-lg mx-auto space-y-4 rounded-2xl bg-white/10 p-6 shadow-2xl backdrop-blur-md border border-white/10"
+        >
         <div className="space-y-1">
           <p className="text-sm uppercase tracking-widest text-emerald-200">Servicios adicionales</p>
           <h2 className="text-2xl font-bold">Registrar servicio</h2>
@@ -108,10 +109,11 @@ export default function RegistrarServicios() {
             to="/servicios"
             className="rounded-lg border border-white/20 bg-white/0 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400"
           >
-            Volver
+            Cancelar
           </Link>
         </div>
       </form>
+      </div>
     </div>
   );
 }
