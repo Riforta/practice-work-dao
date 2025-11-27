@@ -39,6 +39,7 @@ export default function MisReservas() {
       setLoading(true)
       setError('')
       const res = await turnosApi.listByCliente(clienteId)
+      console.log('Reservas cargadas:', res) // Debug: ver estructura de datos
       setReservas(res)
     } catch (err) {
       console.error('Error cargando reservas:', err)
@@ -175,15 +176,71 @@ export default function MisReservas() {
                         {formatearHora(reserva.fecha_hora_inicio)} -{' '}
                         {formatearHora(reserva.fecha_hora_fin)}
                       </p>
-                      {reserva.precio_final && (
-                        <p className="text-sm">
-                          <span className="font-medium">💰 Precio:</span>{' '}
-                          <span className="text-emerald-400 font-bold">
-                            {currency.format(reserva.precio_final)}
-                          </span>
-                        </p>
-                      )}
                     </div>
+
+                    {/* Detalle de precios */}
+                    {reserva.pago ? (
+                      <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+                        <h4 className="text-sm font-semibold text-emerald-400 mb-3">
+                          💰 Detalle de Pago
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-slate-300">Turno de cancha:</span>
+                            <span className="font-medium text-white">
+                              {currency.format(reserva.pago.monto_turno || 0)}
+                            </span>
+                          </div>
+                          {reserva.pago.monto_servicios > 0 && (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-slate-300">Servicios adicionales:</span>
+                                <span className="font-medium text-white">
+                                  {currency.format(reserva.pago.monto_servicios)}
+                                </span>
+                              </div>
+                              {reserva.servicios && reserva.servicios.length > 0 && (
+                                <div className="pl-4 space-y-1 text-xs text-slate-400">
+                                  {reserva.servicios.map((servicio, idx) => (
+                                    <div key={idx} className="flex justify-between">
+                                      <span>
+                                        • Servicio #{servicio.id_servicio} x{servicio.cantidad}
+                                      </span>
+                                      <span>
+                                        {currency.format(servicio.precio_unitario * servicio.cantidad)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          )}
+                          <div className="pt-2 border-t border-white/10 flex justify-between">
+                            <span className="font-bold text-emerald-400">TOTAL:</span>
+                            <span className="font-bold text-emerald-400 text-lg">
+                              {currency.format(reserva.pago.monto_total)}
+                            </span>
+                          </div>
+                          {reserva.pago.metodo_pago && (
+                            <div className="pt-2 text-xs text-slate-400">
+                              Método de pago: {reserva.pago.metodo_pago}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : reserva.precio_final ? (
+                      <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+                        <h4 className="text-sm font-semibold text-slate-400 mb-2">
+                          💰 Precio
+                        </h4>
+                        <div className="text-lg font-bold text-emerald-400">
+                          {currency.format(reserva.precio_final)}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Reserva sin información de pago detallada
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* Acciones */}

@@ -12,6 +12,46 @@ from repositories.turno_servicio_repository import TurnoXServicioRepository
 from repositories.cliente_repository import ClienteRepository
 
 
+def validar_turno_disponible(turno_id: int) -> Turno:
+    """Valida que un turno exista y esté disponible para reservar.
+    
+    Args:
+        turno_id: ID del turno a validar
+        
+    Returns:
+        El turno si está disponible
+        
+    Raises:
+        LookupError: Si el turno no existe
+        ValueError: Si el turno no está disponible
+    """
+    turno = TurnoRepository.obtener_por_id(turno_id)
+    if not turno:
+        raise LookupError(f"Turno con ID {turno_id} no encontrado")
+    
+    if turno.estado != 'disponible':
+        raise ValueError(f"El turno no está disponible (estado actual: {turno.estado})")
+    
+    return turno
+
+
+def cambiar_estado_turno(turno_id: int, nuevo_estado: str) -> bool:
+    """Cambia el estado de un turno.
+    
+    Args:
+        turno_id: ID del turno
+        nuevo_estado: Nuevo estado ('disponible', 'pendiente_pago', 'reservado', 'bloqueado', 'cancelado', 'finalizado', 'no_disponible')
+        
+    Returns:
+        True si se actualizó correctamente
+    """
+    estados_validos = ['disponible', 'pendiente_pago', 'reservado', 'bloqueado', 'cancelado', 'finalizado', 'no_disponible']
+    if nuevo_estado not in estados_validos:
+        raise ValueError(f"Estado '{nuevo_estado}' no válido. Usar: {', '.join(estados_validos)}")
+    
+    return TurnoRepository.cambiar_estado(turno_id, nuevo_estado)
+
+
 def _expirar_turnos_pasados() -> None:
     """Marca como no disponibles los turnos vencidos que sigan en estado disponible."""
     TurnoRepository.marcar_pasados_no_disponible()
@@ -120,6 +160,64 @@ def listar_turnos_por_cliente(id_cliente: int) -> List[Turno]:
     return TurnoRepository.obtener_por_cliente(id_cliente)
 
 
+def listar_turnos_por_cliente_con_detalle(id_cliente: int) -> List[Dict[str, Any]]:
+    """Lista turnos de un cliente con información completa de pago y servicios.
+    
+    Args:
+        id_cliente: ID del cliente
+        
+    Returns:
+        Lista de diccionarios con turno + pago + servicios
+    """
+    from repositories.pago_repository import PagoRepository
+    
+    _expirar_turnos_pasados()
+    turnos = TurnoRepository.obtener_por_cliente(id_cliente)
+    
+    resultado = []
+    for turno in turnos:
+        turno_dict = turno.to_dict()
+        
+        # Obtener pago asociado
+        if turno.id:
+            try:
+                pago = PagoRepository.obtener_por_turno(turno.id)
+                if pago:
+                    turno_dict['pago'] = {
+                        'id': pago.id,
+                        'monto_turno': pago.monto_turno,
+                        'monto_servicios': pago.monto_servicios,
+                        'monto_total': pago.monto_total,
+                        'estado': pago.estado,
+                        'metodo_pago': pago.metodo_pago,
+                        'fecha_creacion': pago.fecha_creacion,
+                        'fecha_completado': pago.fecha_completado
+                    }
+                else:
+                    print(f"DEBUG: No hay pago para turno {turno.id}")
+            except Exception as e:
+                print(f"DEBUG: Error obteniendo pago para turno {turno.id}: {e}")
+            
+            # Obtener servicios adicionales
+            try:
+                servicios = TurnoXServicioRepository.listar_por_turno(turno.id)
+                if servicios:
+                    turno_dict['servicios'] = [
+                        {
+                            'id_servicio': s.id_servicio,
+                            'cantidad': s.cantidad,
+                            'precio_unitario': s.precio_unitario_congelado
+                        }
+                        for s in servicios
+                    ]
+            except Exception as e:
+                print(f"DEBUG: Error obteniendo servicios para turno {turno.id}: {e}")
+        
+        resultado.append(turno_dict)
+    
+    return resultado
+
+
 def listar_turnos_por_estado(estado: str) -> List[Turno]:
     """Lista turnos por estado."""
     _expirar_turnos_pasados()
@@ -176,7 +274,7 @@ def cambiar_estado_turno(turno_id: int, nuevo_estado: str) -> bool:
     obtener_turno_por_id(turno_id)
     
     # Validar estados permitidos
-    estados_validos = ['disponible', 'reservado', 'bloqueado', 'cancelado', 'finalizado', 'no_disponible']
+    estados_validos = ['disponible', 'pendiente_pago', 'reservado', 'bloqueado', 'cancelado', 'finalizado', 'no_disponible']
     if nuevo_estado not in estados_validos:
         raise ValueError(f"Estado inválido. Debe ser uno de: {', '.join(estados_validos)}")
     

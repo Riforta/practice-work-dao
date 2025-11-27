@@ -22,6 +22,21 @@ export interface Turno {
   reserva_created_at?: string;
   id_usuario_bloqueo?: number;
   motivo_bloqueo?: string;
+  pago?: {
+    id: number;
+    monto_turno: number;
+    monto_servicios: number;
+    monto_total: number;
+    estado: string;
+    metodo_pago?: string;
+    fecha_creacion?: string;
+    fecha_completado?: string;
+  };
+  servicios?: Array<{
+    id_servicio: number;
+    cantidad: number;
+    precio_unitario: number;
+  }>;
 }
 
 export interface CanchaRef {
@@ -47,6 +62,9 @@ const normalizeTurno = (raw: any): Turno => ({
   reserva_created_at: raw?.reserva_created_at,
   id_usuario_bloqueo: raw?.id_usuario_bloqueo ?? undefined,
   motivo_bloqueo: raw?.motivo_bloqueo ?? undefined,
+  // Mantener campos adicionales que vienen del backend (pago y servicios)
+  pago: raw?.pago,
+  servicios: raw?.servicios,
 });
 
 const normalizeCancha = (raw: any): CanchaRef => ({

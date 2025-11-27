@@ -1,11 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import turnosApi, { type Turno, type CanchaRef } from '../../services/turnos.service';
+import { type Turno, type CanchaRef } from '../../services/turnos.service';
+import http from '../../services/http';
+import { type ServicioAdicional } from '../../services/servicios.service';
 
 type NavState = {
   turno: Turno;
   cancha: CanchaRef;
+  serviciosDisponibles?: ServicioAdicional[];
 };
 
 const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
@@ -43,6 +46,7 @@ export default function PagoReserva() {
     return user.id_cliente ?? user.cliente_id ?? null;
   }, [user]);
   const [pago, setPago] = useState({ numero: '', nombre: '', vencimiento: '', cvv: '' });
+  const [serviciosSeleccionados, setServiciosSeleccionados] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -64,11 +68,29 @@ export default function PagoReserva() {
     );
   }
 
-  const { turno, cancha } = state;
+  const { turno, cancha, serviciosDisponibles = [] } = state;
+
+  // Calcular precio total con servicios seleccionados
+  const precioTotalConServicios = useMemo(() => {
+    const precioBase = turno.precio_final || 0;
+    const precioServicios = serviciosSeleccionados.reduce((total, idServicio) => {
+      const servicio = serviciosDisponibles.find(s => s.id === idServicio);
+      return total + (servicio?.precio_actual || 0);
+    }, 0);
+    return precioBase + precioServicios;
+  }, [turno.precio_final, serviciosSeleccionados, serviciosDisponibles]);
+
+  const toggleServicio = (idServicio: number) => {
+    setServiciosSeleccionados(prev => 
+      prev.includes(idServicio)
+        ? prev.filter(id => id !== idServicio)
+        : [...prev, idServicio]
+    );
+  };
 
   const handlePagar = async () => {
     setError('');
-    if (!clienteSesionId) {
+    if (!clienteSesionId || !user) {
       setError('Inicia sesión para continuar.');
       return;
     }
@@ -98,11 +120,31 @@ export default function PagoReserva() {
 
     setLoading(true);
     try {
-      await turnosApi.reservarSimple(turno.id!, clienteSesionId);
-      navigate('/reservas');
-    } catch (err) {
+      // Preparar servicios seleccionados con precio_unitario para el pago
+      const servicios = serviciosSeleccionados.map(idServicio => {
+        const servicio = serviciosDisponibles.find(s => s.id === idServicio);
+        return {
+          id_servicio: idServicio,
+          cantidad: 1,
+          precio_unitario: servicio?.precio_actual || 0
+        };
+      });
+      
+      // Reservar el turno: crea pago → valida → confirma → reserva turno → agrega servicios
+      // id_cliente: ID del Cliente (tabla Cliente) que hace la reserva
+      // Nota: id_usuario_registro NO se envía (solo lo usa el admin al crear turnos)
+      await http.post(`/turnos/${turno.id}/reservar`, {
+        id_cliente: clienteSesionId,
+        monto_turno: turno.precio_final || 0,
+        metodo_pago: 'tarjeta',
+        servicios: servicios
+      });
+      
+      navigate('/mis-reservas');
+    } catch (err: any) {
       console.error(err);
-      setError('No se pudo completar el pago/reserva.');
+      const mensaje = err?.response?.data?.detail || err?.message || 'No se pudo completar el pago/reserva.';
+      setError(mensaje);
     } finally {
       setLoading(false);
     }
@@ -118,6 +160,7 @@ export default function PagoReserva() {
         </header>
 
         <div className="rounded-2xl bg-white/10 border border-white/10 p-5 shadow-xl backdrop-blur-md space-y-4">
+          {/* Resumen del turno */}
           <div className="rounded-lg bg-white/5 p-3 text-sm text-emerald-100/90">
             <p className="font-semibold">{cancha.nombre}</p>
             <p className="text-emerald-200">{cancha.tipo_deporte ?? 'Deporte'}</p>
@@ -125,9 +168,42 @@ export default function PagoReserva() {
               {new Date(turno.fecha_hora_inicio).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })} -{' '}
               {new Date(turno.fecha_hora_fin).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
             </p>
-            <p className="font-semibold">{currency.format(turno.precio_final)}</p>
+            <p className="font-semibold mt-2">Precio base: {currency.format(turno.precio_final)}</p>
           </div>
 
+          {/* Servicios adicionales */}
+          {serviciosDisponibles.length > 0 && (
+            <div className="rounded-lg bg-white/5 p-4 space-y-3">
+              <h3 className="text-lg font-semibold text-emerald-300">Servicios Adicionales</h3>
+              <div className="space-y-2">
+                {serviciosDisponibles.map(servicio => (
+                  <label key={servicio.id} className="flex items-center gap-3 p-2 rounded hover:bg-white/5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={serviciosSeleccionados.includes(servicio.id!)}
+                      onChange={() => toggleServicio(servicio.id!)}
+                      className="w-5 h-5 rounded border-emerald-500 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900"
+                    />
+                    <div className="flex-1">
+                      <p className="text-white font-medium">{servicio.nombre}</p>
+                      <p className="text-emerald-300 text-sm">{currency.format(servicio.precio_actual)}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              
+              {/* Total con servicios */}
+              {serviciosSeleccionados.length > 0 && (
+                <div className="pt-3 border-t border-white/10">
+                  <p className="text-lg font-bold text-emerald-400">
+                    Total a pagar: {currency.format(precioTotalConServicios)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Formulario de pago */}
           <div className="grid gap-3">
             <label className="text-sm">
               Nombre en la tarjeta

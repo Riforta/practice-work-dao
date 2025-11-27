@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useModal } from '../../contexts/ModalContext'
 import turnosApi, { type Turno } from '../../services/turnos.service'
+import serviciosApi, { type ServicioAdicional } from '../../services/servicios.service'
 
 interface Cancha {
   id: number
@@ -23,15 +24,18 @@ export default function CanchasPublicas() {
   const navigate = useNavigate()
   const [canchas, setCanchas] = useState<Cancha[]>([])
   const [turnosPorCancha, setTurnosPorCancha] = useState<Record<number, Turno[]>>({})
+  const [serviciosDisponibles, setServiciosDisponibles] = useState<ServicioAdicional[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deporteFilter, setDeporteFilter] = useState<string>('todos')
+  const [fechaFilter, setFechaFilter] = useState<string>('')
+  const [fechaAplicada, setFechaAplicada] = useState<string>('') // Fecha realmente aplicada
 
   const isAuthenticated = !!user
 
   useEffect(() => {
     cargarDatos()
-  }, [])
+  }, [fechaAplicada]) // Solo recargar cuando se aplique el filtro
 
   const cargarDatos = async () => {
     try {
@@ -44,15 +48,31 @@ export default function CanchasPublicas() {
       const canchasActivas = canchasData.filter((c: Cancha) => c.activa === 1)
       setCanchas(canchasActivas)
 
+      // Cargar servicios adicionales disponibles
+      const servicios = await serviciosApi.list()
+      setServiciosDisponibles(servicios.filter(s => s.activo))
+
       // Obtener turnos disponibles para cada cancha
       const turnosMap: Record<number, Turno[]> = {}
       for (const cancha of canchasActivas) {
         try {
-          const turnosCancha = await turnosApi.listByCancha(cancha.id)
+          let turnosCancha = await turnosApi.listByCancha(cancha.id)
+          
+          // Filtrar por fecha si hay filtro activo
+          if (fechaAplicada) {
+            const fechaInicio = new Date(fechaAplicada + 'T00:00:00')
+            const fechaFin = new Date(fechaAplicada + 'T23:59:59')
+            
+            turnosCancha = turnosCancha.filter(t => {
+              const fechaTurno = new Date(t.fecha_hora_inicio)
+              return fechaTurno >= fechaInicio && fechaTurno <= fechaFin
+            })
+          }
+          
           // Filtrar solo turnos disponibles
           turnosMap[cancha.id] = turnosCancha
             .filter(t => t.estado === 'disponible')
-            .slice(0, 5) // Mostrar solo los próximos 5
+            .slice(0, 10) // Mostrar los próximos 10
         } catch (err) {
           turnosMap[cancha.id] = []
         }
@@ -96,11 +116,12 @@ export default function CanchasPublicas() {
       openModal('login')
       return
     }
-    // Navegar a la página de pago con los datos del turno y cancha
+    // Navegar a la página de pago con los datos del turno, cancha y servicios disponibles
     navigate('/reservas/pago', { 
       state: { 
         turno, 
-        cancha 
+        cancha,
+        serviciosDisponibles
       } 
     })
   }
@@ -129,47 +150,80 @@ export default function CanchasPublicas() {
         )}
 
         {/* Filtros */}
-        <div className="mb-6 flex gap-3">
-          <button
-            onClick={() => setDeporteFilter('todos')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              deporteFilter === 'todos'
-                ? 'bg-emerald-500 text-white'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}
-          >
-            Todas
-          </button>
-          <button
-            onClick={() => setDeporteFilter('futbol')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              deporteFilter === 'futbol'
-                ? 'bg-emerald-500 text-white'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}
-          >
-            Fútbol
-          </button>
-          <button
-            onClick={() => setDeporteFilter('basquet')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              deporteFilter === 'basquet'
-                ? 'bg-emerald-500 text-white'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}
-          >
-            Básquet
-          </button>
-          <button
-            onClick={() => setDeporteFilter('padel')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              deporteFilter === 'padel'
-                ? 'bg-emerald-500 text-white'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}
-          >
-            Pádel
-          </button>
+        <div className="mb-6 space-y-4">
+          {/* Filtros de deporte */}
+          <div className="flex gap-3 flex-wrap">
+            <button
+              onClick={() => setDeporteFilter('todos')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                deporteFilter === 'todos'
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }`}
+            >
+              Todas
+            </button>
+            <button
+              onClick={() => setDeporteFilter('futbol')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                deporteFilter === 'futbol'
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }`}
+            >
+              Fútbol
+            </button>
+            <button
+              onClick={() => setDeporteFilter('basquet')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                deporteFilter === 'basquet'
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }`}
+            >
+              Básquet
+            </button>
+            <button
+              onClick={() => setDeporteFilter('padel')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                deporteFilter === 'padel'
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }`}
+            >
+              Pádel
+            </button>
+          </div>
+          
+          {/* Filtro de fecha */}
+          <div className="flex gap-3 items-center">
+            <label className="text-sm font-medium text-slate-300">
+              Filtrar por fecha:
+            </label>
+            <input
+              type="date"
+              value={fechaFilter}
+              onChange={(e) => setFechaFilter(e.target.value)}
+              className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            <button
+              onClick={() => setFechaAplicada(fechaFilter)}
+              className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-medium transition-all"
+            >
+              Buscar
+            </button>
+            {fechaAplicada && (
+              <button
+                onClick={() => {
+                  setFechaFilter('')
+                  setFechaAplicada('')
+                }}
+                className="px-4 py-2 rounded-lg bg-white/10 text-white/70 hover:bg-white/20 font-medium transition-all"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Grid de Canchas */}

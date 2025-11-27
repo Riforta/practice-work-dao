@@ -77,17 +77,17 @@ class Pago:
         """Crea un objeto Pago desde una fila de la base de datos"""
         return cls(
             id=row['id'],
-            id_turno=row.get('id_turno'),
-            id_inscripcion=row.get('id_inscripcion'),
-            monto_turno=row.get('monto_turno'),
-            monto_servicios=row.get('monto_servicios', 0.0),
+            id_turno=row['id_turno'],
+            id_inscripcion=row['id_inscripcion'],
+            monto_turno=row['monto_turno'],
+            monto_servicios=row['monto_servicios'] if row['monto_servicios'] is not None else 0.0,
             monto_total=row['monto_total'],
             id_cliente=row['id_cliente'],
-            id_usuario_registro=row.get('id_usuario_registro'),
-            estado=row.get('estado', 'iniciado'),
-            metodo_pago=row.get('metodo_pago'),
-            id_gateway_externo=row.get('id_gateway_externo'),
-            fecha_creacion=row.get('fecha_creacion'),
-            fecha_expiracion=row.get('fecha_expiracion'),
-            fecha_completado=row.get('fecha_completado')
+            id_usuario_registro=row['id_usuario_registro'],
+            estado=row['estado'] if row['estado'] else 'iniciado',
+            metodo_pago=row['metodo_pago'],
+            id_gateway_externo=row['id_gateway_externo'],
+            fecha_creacion=row['fecha_creacion'],
+            fecha_expiracion=row['fecha_expiracion'],
+            fecha_completado=row['fecha_completado']
         )

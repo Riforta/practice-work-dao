@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 from api.dependencies.auth import require_role, require_admin
 from models.usuario import Usuario
@@ -17,14 +18,83 @@ router = APIRouter()
 @router.post("/turnos/{turno_id}/reservar", status_code=status.HTTP_200_OK)
 def reservar_turno_endpoint(turno_id: int, request: Dict[str, Any],
                             current_user: Usuario = Depends(require_role("cliente"))):
-    """CU-1: Registra una reserva sobre un turno disponible."""
+    """
+    CU-1: Registra una reserva sobre un turno disponible.
+    Orquesta: pagos_service (pagos), turnos_service (estados turno), turno_servicios_service (servicios).
+    
+    Body:
+    {
+        "id_cliente": 1,
+        "monto_turno": 5000.0,
+        "metodo_pago": "tarjeta",  // Opcional
+        "servicios": [{"id_servicio": 1, "cantidad": 1, "precio_unitario": 500}, ...]  // Opcional
+    }
+    """
     try:
-        turno = reservas_service.ReservasService.registrar_reserva(
-            turno_id=turno_id,
-            id_cliente=request.get("id_cliente"),
-            id_usuario_registro=request.get("id_usuario_registro")
+        from services import pagos_service, turno_servicios_service
+        
+        id_cliente = request.get("id_cliente")
+        monto_turno = request.get("monto_turno", 0.0)
+        metodo_pago = request.get("metodo_pago", "tarjeta")
+        servicios = request.get("servicios", [])
+        
+        # Calcular monto de servicios
+        monto_servicios = sum(s.get('precio_unitario', 0) * s.get('cantidad', 1) for s in servicios)
+        
+        # 1. Validar que el turno existe y está disponible
+        turno = turnos_service.validar_turno_disponible(turno_id)
+        
+        # 2. Marcar turno como pendiente de pago
+        turnos_service.cambiar_estado_turno(turno_id, 'pendiente_pago')
+        
+        # 3. Crear el pago (estado 'iniciado')
+        pago = pagos_service.crear_pago_turno(
+            id_turno=turno_id,
+            id_cliente=id_cliente,
+            monto_turno=monto_turno,
+            monto_servicios=monto_servicios,
+            metodo_pago=metodo_pago
         )
-        return turno.to_dict()
+        
+        # 4. Simular validación de pago (en producción: integración con gateway)
+        # TODO: Integrar con MercadoPago/Stripe/etc.
+        pago_valido = True  # Simulación: siempre válido para desarrollo
+        
+        if not pago_valido:
+            # Si falla: marcar pago fallido y liberar turno
+            pagos_service.marcar_pago_fallido(pago.id)
+            turnos_service.cambiar_estado_turno(turno_id, 'disponible')
+            raise HTTPException(status_code=402, detail="Pago rechazado")
+        
+        # 5. Confirmar el pago (estado 'completado')
+        pago_confirmado = pagos_service.confirmar_pago(
+            pago_id=pago.id,
+            metodo_pago=metodo_pago,
+            id_gateway_externo=f"SIM-{pago.id}-{datetime.now().timestamp()}"
+        )
+        
+        # 6. Reservar el turno (estado 'reservado', actualiza id_cliente y reserva_created_at)
+        turno_reservado = reservas_service.ReservasService.registrar_reserva(
+            turno_id=turno_id,
+            id_cliente=id_cliente
+        )
+        
+        # 7. Agregar servicios adicionales si los hay
+        if servicios:
+            for servicio_data in servicios:
+                turno_servicios_service.agregar_servicio_desde_dict(
+                    id_turno=turno_id,
+                    id_servicio=servicio_data['id_servicio'],
+                    cantidad=servicio_data.get('cantidad', 1),
+                    precio_unitario=servicio_data['precio_unitario']
+                )
+        
+        return {
+            "turno": turno_reservado.to_dict(),
+            "pago": pago_confirmado.to_dict()
+        }
+    except HTTPException:
+        raise
     except ValueError as ve:
         raise HTTPException(status_code=409, detail=str(ve))
     except LookupError as le:
@@ -164,9 +234,8 @@ def listar_turnos_por_cancha(id_cancha: int):
 
 @router.get("/turnos/cliente/{id_cliente}")
 def listar_turnos_por_cliente(id_cliente: int):
-    """Lista turnos de un cliente específico."""
-    turnos = turnos_service.listar_turnos_por_cliente(id_cliente)
-    return [t.to_dict() for t in turnos]
+    """Lista turnos de un cliente específico con información de pago y servicios."""
+    return turnos_service.listar_turnos_por_cliente_con_detalle(id_cliente)
 
 
 @router.get("/turnos/estado/{estado}")
