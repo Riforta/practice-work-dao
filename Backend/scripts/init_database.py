@@ -62,7 +62,6 @@ def crear_tablas():
                 "telefono" TEXT NOT NULL,
                 "email" TEXT,
                 "id_usuario" INTEGER UNIQUE,
-                PRIMARY KEY("id" AUTOINCREMENT),
                 FOREIGN KEY("id_usuario") REFERENCES "Usuario"("id")
             )
         """)
@@ -305,10 +304,10 @@ def insertar_datos_basicos():
         # 3. CANCHAS
         print("  → Insertando canchas...")
         canchas = [
-            ('Cancha Fútbol 5 - Principal', 'Fútbol 5', 'Cancha de césped sintético con iluminación', 1, 8000.0),
-            ('Cancha Fútbol 7 - Grande', 'Fútbol 7', 'Cancha amplia con tribunas', 1, 12000.0),
-            ('Cancha Tenis 1', 'Tenis', 'Cancha de polvo de ladrillo', 1, 5000.0),
-            ('Cancha Paddle 1', 'Paddle', 'Cancha con paredes de vidrio', 1, 6000.0),
+            ('Cancha Fútbol 5 - Principal', 'Futbol', 'Cancha de césped sintético con iluminación', 1, 8000.0),
+            ('Cancha Fútbol 7 - Grande', 'Futbol', 'Cancha amplia con tribunas', 1, 12000.0),
+            ('Cancha Padel 1', 'Padel', 'Cancha de polvo de ladrillo', 1, 5000.0),
+            ('Cancha Padel 2', 'Padel', 'Cancha con paredes de vidrio', 1, 6000.0),
             ('Cancha Básquet', 'Básquet', 'Cancha techada con piso sintético', 1, 10000.0)
         ]
         
@@ -458,6 +457,9 @@ def resetear_base_datos():
     print("Se eliminarán TODOS los datos existentes.\n")
     
     try:
+        # Desactivar foreign keys temporalmente para poder eliminar tablas
+        cursor.execute("PRAGMA foreign_keys = OFF")
+        
         # Obtener todas las tablas
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'")
         tablas = [row[0] for row in cursor.fetchall()]
@@ -476,6 +478,10 @@ def resetear_base_datos():
                 cursor.execute(f"DROP INDEX IF EXISTS {indice}")
         
         conn.commit()
+        
+        # Reactivar foreign keys
+        cursor.execute("PRAGMA foreign_keys = ON")
+        
         print("\n✓ Base de datos reseteada\n")
         
     except Exception as e:
