@@ -1,8 +1,8 @@
 """Servicio de autenticación y manejo de tokens JWT."""
 
 from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
-from jose import jwt, JWTError
+from datetime import datetime, timedelta, timezone
+from jose import jwt, JWTError, ExpiredSignatureError
 from passlib.hash import pbkdf2_sha256
 
 from models.usuario import Usuario
@@ -11,7 +11,7 @@ from repositories.usuario_repository import UsuarioRepository
 # Configuración JWT (en producción, usar variables de entorno)
 SECRET = "dev-secret-key-change-me"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 5  # 5 minutos
+ACCESS_TOKEN_EXPIRE_MINUTES = 1  # 1 minuto
 
 
 class AuthService:
@@ -59,14 +59,17 @@ class AuthService:
         Returns:
             Token JWT como string
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
+        exp_time = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        
         payload = {
-            "sub": usuario.nombre_usuario,  # Subject (identificador único)
+            "sub": usuario.nombre_usuario,
             "user_id": usuario.id,
             "id_rol": usuario.id_rol,
-            "iat": now,  # Issued at
-            "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),  # Expiration
+            "iat": int(now.timestamp()),
+            "exp": int(exp_time.timestamp()),
         }
+        
         token = jwt.encode(payload, SECRET, algorithm=ALGORITHM)
         return token
     
@@ -79,13 +82,22 @@ class AuthService:
             token: Token JWT a validar
             
         Returns:
-            Usuario si el token es válido, None si es inválido o expirado
+            Usuario si el token es válido
             
         Raises:
-            ValueError: Si el token es inválido con detalle del error
+            ValueError: Si el token es inválido o expirado con detalle del error
         """
         try:
+            # jwt.decode automáticamente valida 'exp' y lanza ExpiredSignatureError si expiró
             payload = jwt.decode(token, SECRET, algorithms=[ALGORITHM])
+            
+            # Validación adicional de expiración
+            now = datetime.now(timezone.utc)
+            exp_time = datetime.fromtimestamp(payload['exp'], tz=timezone.utc)
+            
+            if (exp_time - now).total_seconds() < 0:
+                raise ValueError(f"Token expirado (hace {abs((exp_time - now).total_seconds()):.0f} segundos)")
+            
             nombre_usuario: str = payload.get("sub")
             
             if nombre_usuario is None:
@@ -99,8 +111,10 @@ class AuthService:
             
             return usuario
         
+        except ExpiredSignatureError as e:
+            raise ValueError(f"Token expirado: {str(e)}")
         except JWTError as e:
-            raise ValueError(f"Token inválido o expirado: {str(e)}")
+            raise ValueError(f"Token inválido: {str(e)}")
         except Exception as e:
             raise ValueError(f"Error validando token: {str(e)}")
     

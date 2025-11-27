@@ -22,13 +22,14 @@ def crear_admin():
     
     usuario_data = {
         'nombre_usuario': 'admin',
-        'email': 'admin@admin.com',
+        'email': 'admin@canchas.com',
         'password': 'admin123',
         'id_rol': 1  # 1 = Administrador
     }
     
     try:
-        usuario = usuarios_service.registrar_usuario(usuario_data)
+        # Usar crear_usuario en vez de registrar_usuario (admin no necesita cliente)
+        usuario = usuarios_service.crear_usuario(usuario_data)
         
         print("✅ Usuario administrador creado exitosamente!\n")
         print(f"   📋 Detalles:")

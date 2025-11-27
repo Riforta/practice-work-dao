@@ -15,7 +15,7 @@ import sqlite3
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
-import bcrypt
+from passlib.hash import pbkdf2_sha256  # ← Cambiado de bcrypt a pbkdf2_sha256
 
 # Agregar el directorio raíz al path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -292,7 +292,8 @@ def insertar_datos_basicos():
         
         # 2. USUARIO ADMIN POR DEFECTO
         print("  → Creando usuario administrador...")
-        password_hash = bcrypt.hashpw("admin123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        # ✅ Usar pbkdf2_sha256 igual que en auth_service.py
+        password_hash = pbkdf2_sha256.hash("admin123")
         
         cursor.execute("""
             INSERT OR IGNORE INTO Usuario (nombre_usuario, email, password_hash, id_rol)
