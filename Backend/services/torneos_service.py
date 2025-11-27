@@ -24,7 +24,7 @@ def obtener_torneo_por_id(torneo_id: int) -> Torneo:
 
 
 def listar_torneos() -> List[Torneo]:
-    return TorneoRepository.obtener_todos()
+    return TorneoRepository.listar_todos()
 
 
 def actualizar_torneo(torneo_id: int, data: Dict[str, Any]) -> Torneo:
