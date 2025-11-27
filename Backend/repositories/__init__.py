@@ -14,8 +14,6 @@ from .equipo_repository import EquipoRepository
 from .partido_repository import PartidoRepository
 from .equipo_miembro_repository import EquipoMiembroRepository
 from .inscripcion_repository import InscripcionRepository
-from .pedido_repository import PedidoRepository
-from .pedido_item_repository import PedidoItemRepository
 from .pago_repository import PagoRepository
 from .rol_repository import RolRepository
 from .turno_repository import TurnoRepository
@@ -32,8 +30,6 @@ __all__ = [
     'PartidoRepository',
     'EquipoMiembroRepository',
     'InscripcionRepository',
-    'PedidoRepository',
-    'PedidoItemRepository',
     'PagoRepository',
     'RolRepository',
     'TurnoRepository',
