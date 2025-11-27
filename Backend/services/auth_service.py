@@ -11,7 +11,7 @@ from repositories.usuario_repository import UsuarioRepository
 # Configuración JWT (en producción, usar variables de entorno)
 SECRET = "dev-secret-key-change-me"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1  # 1 minuto
+ACCESS_TOKEN_EXPIRE_MINUTES =  60 * 24 # 1 día
 
 
 class AuthService:
