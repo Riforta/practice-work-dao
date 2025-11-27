@@ -52,6 +52,16 @@ class InscripcionRepository:
             conn.close()
 
     @staticmethod
+    def listar_todas() -> List[Inscripcion]:
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Inscripcion ORDER BY fecha_inscripcion")
+            return [Inscripcion.from_db_row(r) for r in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    @staticmethod
     def actualizar(ins: Inscripcion) -> bool:
         if not ins.id:
             raise ValueError("La inscripción debe tener ID para actualizar")
