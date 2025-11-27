@@ -18,6 +18,8 @@ excepciones (`ValueError` para validaciones, `LookupError` para no encontrado,
 
 from typing import List, Optional, Dict, Any
 
+from services import roles_service
+from services import usuarios_service
 from models.cliente import Cliente
 from repositories.cliente_repository import ClienteRepository
 
@@ -30,15 +32,25 @@ def _validar_datos_cliente(data: Dict[str, Any], para_actualizar: bool = False) 
 	nombre = data.get('nombre')
 	apellido = data.get('apellido')
 	telefono = data.get('telefono')
+	dni = data.get('dni')
+	id_usuario = data.get('id_usuario')
 
 	if not para_actualizar:
-		# En creación, nombre, apellido y teléfono son obligatorios
+		# En creación, nombre, apellido, teléfono y dni son obligatorios
 		if not nombre or not str(nombre).strip():
 			raise ValueError("El nombre es obligatorio")
 		if not apellido or not str(apellido).strip():
 			raise ValueError("El apellido es obligatorio")
 		if not telefono or not str(telefono).strip():
 			raise ValueError("El teléfono es obligatorio")
+		if not dni or not str(dni).strip():
+			raise ValueError("El DNI es obligatorio")
+		usuario = usuarios_service.obtener_usuario_por_id(id_usuario)
+		if usuario is None:
+			raise ValueError(f"No existe un usuario con ID {id_usuario} para vincular al cliente")
+		rol = roles_service.obtener_rol_por_id(usuario.id_rol)
+		if rol.nombre != 'cliente':
+			raise ValueError("El usuario vinculado debe tener rol 'cliente'")
 	else:
 		# En actualización, si se suministran campos requeridos, validar que no sean vacíos
 		if 'nombre' in data and (not data.get('nombre') or not str(data.get('nombre')).strip()):

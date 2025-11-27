@@ -10,7 +10,6 @@ class Cliente:
     apellido: Optional[str] = None
     dni: Optional[str] = None
     telefono: str = ""
-    email: Optional[str] = None
     id_usuario: int = None
     
     def __post_init__(self):
@@ -29,7 +28,6 @@ class Cliente:
             'apellido': self.apellido,
             'dni': self.dni,
             'telefono': self.telefono,
-            'email': self.email,
             'id_usuario': self.id_usuario
         }
     
@@ -42,7 +40,6 @@ class Cliente:
             apellido=data.get('apellido'),
             dni=data.get('dni'),
             telefono=data.get('telefono', ''),
-            email=data.get('email'),
             id_usuario=data.get('id_usuario')
         )
     
@@ -55,6 +52,5 @@ class Cliente:
             apellido=row['apellido'],
             dni=row['dni'],
             telefono=row['telefono'],
-            email=row['email'],
             id_usuario=row['id_usuario']
         )
