@@ -97,7 +97,7 @@ def require_role(rol_descripcion: str):
     def role_checker(current_user: Usuario = Depends(get_current_user)) -> Usuario:
         rol = RolRepository.obtener_por_id(current_user.id_rol)
         
-        if not rol or rol.descripcion.lower() != rol_descripcion.lower():
+        if not rol or rol.nombre_rol.lower() != rol_descripcion.lower():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Se requiere rol: {rol_descripcion}"

@@ -1,13 +1,15 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Dict, Any
 
+from api.dependencies.auth import require_admin
+from models.usuario import Usuario
 from services import servicios_adicionales_service
 
 router = APIRouter()
 
 
 @router.post("/servicios_adicionales/", status_code=status.HTTP_201_CREATED)
-def crear_servicio(payload: Dict[str, Any]):
+def crear_servicio(payload: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     try:
         s = servicios_adicionales_service.crear_servicio(payload)
         return s.to_dict()
@@ -33,7 +35,7 @@ def obtener_servicio(servicio_id: int):
 
 
 @router.put("/servicios_adicionales/{servicio_id}", response_model=Dict[str, Any])
-def actualizar_servicio(servicio_id: int, payload: Dict[str, Any]):
+def actualizar_servicio(servicio_id: int, payload: Dict[str, Any], current_user: Usuario = Depends(require_admin)):
     try:
         s = servicios_adicionales_service.actualizar_servicio(servicio_id, payload)
         return s.to_dict()
@@ -46,7 +48,7 @@ def actualizar_servicio(servicio_id: int, payload: Dict[str, Any]):
 
 
 @router.delete("/servicios_adicionales/{servicio_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_servicio(servicio_id: int):
+def eliminar_servicio(servicio_id: int, current_user: Usuario = Depends(require_admin)):
     try:
         servicios_adicionales_service.eliminar_servicio(servicio_id)
         return None
