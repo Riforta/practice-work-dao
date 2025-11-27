@@ -18,7 +18,24 @@ type FormValues = {
 	estado?: string | null;
 };
 
-const estados = ['planificado', 'inscripciones_abiertas', 'en_curso', 'finalizado', 'cancelado'];
+const estadoLabels: Record<string, string> = {
+	planificado: 'Planificado',
+	inscripciones_abiertas: 'Inscripciones abiertas',
+	en_curso: 'En curso',
+	finalizado: 'Finalizado',
+	cancelado: 'Cancelado',
+};
+const estadoKeys = Object.keys(estadoLabels);
+
+const normalizeEstadoValue = (value?: string | null) => {
+	if (!value) return estadoKeys[0];
+	const lower = value.toLowerCase();
+	if (estadoKeys.includes(lower)) return lower;
+	const normalized = lower.replace(/\s+/g, '_');
+	if (estadoKeys.includes(normalized)) return normalized;
+	const match = estadoKeys.find((key) => estadoLabels[key].toLowerCase() === lower);
+	return match ?? estadoKeys[0];
+};
 
 const toFieldNumber = (value?: number | null) =>
 	typeof value === 'number' && Number.isFinite(value) ? value : undefined;
@@ -105,7 +122,7 @@ export default function ModificarTorneo() {
 					costo_inscripcion: toFieldNumber(torneoData.costo_inscripcion),
 					cupos: toFieldNumber(torneoData.cupos),
 					reglas: torneoData.reglas,
-					estado: torneoData.estado ?? estados[0],
+					estado: normalizeEstadoValue(torneoData.estado),
 				});
 				setTurnos(turnosData);
 				setCanchas(canchasData);
@@ -223,7 +240,7 @@ export default function ModificarTorneo() {
 				costo_inscripcion: toPayloadNumberOrZero(values.costo_inscripcion),
 				cupos: toPayloadNumberOrNull(values.cupos),
 				reglas: values.reglas ?? null,
-				estado: values.estado ?? estados[0],
+				estado: normalizeEstadoValue(values.estado),
 			});
 
 			const turnosAAsignar = selectedTurnos.filter((id) => !originalTurnos.includes(id));
@@ -241,8 +258,8 @@ export default function ModificarTorneo() {
 			const equiposAQuitar = originalEquipos.filter((id) => !selectedEquipos.includes(id));
 
             console.log('originalEquipos', originalEquipos);
-            console.log('selectedEquipos', selectedEquipos);
-            console.log('equiposAAgregar', equiposAAgregar);
+        console.log('selectedEquipos', selectedEquipos);
+        console.log('equiposAAgregar', equiposAAgregar);
 
 			if (equiposAQuitar.length) {
 				const inscripcionesAEliminar = equiposAQuitar
@@ -403,9 +420,9 @@ export default function ModificarTorneo() {
 							<label className="text-sm">
 								Estado
 								<select {...register('estado')} className="mt-2 w-full rounded-lg bg-slate-900/70 px-3 py-2 text-sm">
-									{estados.map((estado) => (
+									{estadoKeys.map((estado) => (
 										<option key={estado} value={estado}>
-											{estado}
+											{estadoLabels[estado]}
 										</option>
 									))}
 								</select>

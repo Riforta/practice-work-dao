@@ -2,10 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import torneosApi, { type Torneo, getTorneoIdFromMotivo } from '../../services/torneo.service';
 import turnosApi, { type Turno } from '../../services/turnos.service';
-import inscripcionesApi, { type Inscripcion } from '../../services/inscripciones.service';
-import equiposService, { type Equipo } from '../../services/equipos.service';
 
-const estados = ['Planificado', 'Inscripciones abiertas', 'En curso', 'Finalizado', 'Cancelado'];
+const estados = ['planificado', 'inscripciones_abiertas', 'en_curso', 'finalizado', 'cancelado'];
 
 const formatDate = (value?: string | null) => {
 	if (!value) return '-';
@@ -24,21 +22,13 @@ export default function ConsultarTorneo() {
 	const [search, setSearch] = useState('');
 	const [estadoFiltro, setEstadoFiltro] = useState<'todos' | string>('todos');
 	const [actionId, setActionId] = useState<number | null>(null);
-	const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
-	const [equipos, setEquipos] = useState<Equipo[]>([]);
 
 	const fetchTorneos = async () => {
 		setLoading(true);
 		setError('');
 		try {
-			const [torneosData, inscripcionesData, equiposData] = await Promise.all([
-				torneosApi.list(),
-				inscripcionesApi.list(),
-				equiposService.getAllEquipos(),
-			]);
-			setTorneos(torneosData);
-			setInscripciones(inscripcionesData);
-			setEquipos(equiposData);
+			const data = await torneosApi.list();
+			setTorneos(data);
 		} catch (err) {
 			console.error(err);
 			setError('No se pudieron cargar los torneos.');
@@ -67,35 +57,6 @@ export default function ConsultarTorneo() {
 		}, {});
 	}, [torneos]);
 
-	const equiposMap = useMemo(() => {
-		const map = new Map<number, Equipo>();
-		equipos.forEach((equipo) => {
-			if (equipo.id) {
-				map.set(equipo.id, equipo);
-			}
-		});
-		return map;
-	}, [equipos]);
-
-	const participantesPorTorneo = useMemo(() => {
-		const map = new Map<number, number[]>();
-		inscripciones.forEach((inscripcion) => {
-			const lista = map.get(inscripcion.id_torneo) ?? [];
-			lista.push(inscripcion.id_equipo);
-			map.set(inscripcion.id_torneo, lista);
-		});
-		return map;
-	}, [inscripciones]);
-
-	const getParticipantesInfo = (torneo: Torneo) => {
-		const ids = torneo.id ? participantesPorTorneo.get(torneo.id) ?? [] : [];
-		const nombres = ids.map((equipoId) => equiposMap.get(equipoId)?.nombre_equipo ?? `Equipo ${equipoId}`);
-		const total = ids.length;
-		const capacidad = typeof torneo.cupos === 'number' ? torneo.cupos : null;
-		const restantes = capacidad != null ? Math.max(capacidad - total, 0) : null;
-		return { ids, nombres, total, capacidad, restantes };
-	};
-
 	const handleDelete = async (torneo: Torneo) => {
 		if (!torneo.id) return;
 		const confirmed = window.confirm('Esto eliminará el torneo y liberará sus turnos bloqueados. ¿Continuar?');
@@ -111,18 +72,8 @@ export default function ConsultarTorneo() {
 			if (relacionados.length) {
 				await torneosApi.releaseTurnosFromTorneo(relacionados);
 			}
-			if (torneo.id) {
-				const inscripcionesRelacionadas = inscripciones.filter((insc) => insc.id_torneo === torneo.id && insc.id);
-				const inscripcionesIds = inscripcionesRelacionadas
-					.map((item) => item.id!)
-					.filter((value): value is number => Boolean(value));
-				if (inscripcionesIds.length) {
-					await inscripcionesApi.removeMany(inscripcionesIds);
-				}
-			}
 			await torneosApi.remove(torneo.id);
 			setTorneos((prev) => prev.filter((item) => item.id !== torneo.id));
-			setInscripciones((prev) => prev.filter((item) => item.id_torneo !== torneo.id));
 		} catch (err) {
 			console.error(err);
 			setError('No se pudo eliminar el torneo.');
@@ -198,7 +149,6 @@ export default function ConsultarTorneo() {
 									<th className="px-4 py-3">Deporte</th>
 									<th className="px-4 py-3">Período</th>
 									<th className="px-4 py-3">Cupos</th>
-									<th className="px-4 py-3">Equipos</th>
 									<th className="px-4 py-3">Estado</th>
 									<th className="px-4 py-3">Acciones</th>
 								</tr>
@@ -226,34 +176,7 @@ export default function ConsultarTorneo() {
 												<span className="mx-1">→</span>
 												<span>{formatDate(torneo.fecha_fin)}</span>
 											</td>
-												<td className="px-4 py-3 text-sm text-emerald-100">
-													{(() => {
-														const info = getParticipantesInfo(torneo);
-														return info.capacidad != null ? (
-															<div>
-																<p className="font-semibold">{info.total} / {info.capacidad} equipos</p>
-																<p className="text-xs text-emerald-200">{info.restantes} cupos libres</p>
-															</div>
-														) : (
-															<p className="font-semibold">{info.total} equipos inscritos</p>
-														);
-													})()}
-												</td>
-												<td className="px-4 py-3 text-xs text-emerald-100">
-													{(() => {
-														const info = getParticipantesInfo(torneo);
-														if (!info.nombres.length) {
-															return <span>Sin equipos asociados</span>;
-														}
-														return (
-															<ul className="list-disc space-y-1 pl-4">
-																{info.nombres.map((nombre, idx) => (
-																	<li key={`${torneo.id}-equipo-${idx}`}>{nombre}</li>
-																))}
-															</ul>
-														);
-													})()}
-												</td>
+											<td className="px-4 py-3 text-sm">{torneo.cupos ?? '-'}</td>
 											<td className="px-4 py-3">
 												<span className="rounded-full bg-white/10 px-3 py-1 text-xs capitalize text-emerald-200">
 													{torneo.estado ?? 'sin estado'}
