@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import * as authService from '../services/auth.service'
 
 type User = any
 
@@ -40,6 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const logout = () => {
+    // Llamar al servicio que limpia localStorage
+    authService.logout()
+    // Limpiar estado local
     setToken(null)
     setUser(null)
   }

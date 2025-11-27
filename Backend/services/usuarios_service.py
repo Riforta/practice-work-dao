@@ -57,20 +57,16 @@ def registrar_usuario(usuario_data: Dict[str, Any], cliente_data: Dict[str, Any]
             nombre_usuario=nombre_usuario,
             email=email,
             password_hash=hashed,
-            id_rol=id_rol,
-            activo=0,  # Inactivo al registrarse
+            id_rol=id_rol
         )
 
         # Guardar usuario
         usuario.id = UsuarioRepository.crear(usuario)
         usuario_creado = usuario  # Guardar referencia para rollback
-
-        AuthService.marcar_activo(usuario.id, activo=True)
-        usuario.activo = 1
         
         # Vincular cliente al usuario creado
         cliente_data['id_usuario'] = usuario.id
-        cliente = clientes_service.crear_cliente(cliente_data)
+        cliente = clientes_service.crear_cliente(cliente_data, skip_rol_validation=True)
     
         token = AuthService.generar_token(usuario)
 
@@ -129,8 +125,7 @@ def crear_usuario(data: Dict[str, Any]) -> Usuario:
         nombre_usuario=username or '',
         email=email or '',
         password_hash=hashed,
-        id_rol=data.get('id_rol'),
-        activo=data.get('activo', 1),
+        id_rol=data.get('id_rol')
     )
 
     try:

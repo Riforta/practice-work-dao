@@ -11,7 +11,7 @@ from repositories.usuario_repository import UsuarioRepository
 # Configuración JWT (en producción, usar variables de entorno)
 SECRET = "dev-secret-key-change-me"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
+ACCESS_TOKEN_EXPIRE_MINUTES = 5  # 5 minutos
 
 
 class AuthService:
@@ -44,10 +44,6 @@ class AuthService:
             password_ok = False
         
         if not password_ok:
-            return None
-        
-        # Verificar que el usuario esté activo
-        if not user.activo:
             return None
         
         return user
@@ -100,9 +96,6 @@ class AuthService:
             
             if usuario is None:
                 raise ValueError("Usuario no encontrado")
-            
-            if not usuario.activo:
-                raise ValueError("Usuario inactivo")
             
             return usuario
         
@@ -177,17 +170,3 @@ class AuthService:
     #     Ahora se requiere que todo cliente tenga un Usuario asociado.
     #     """
     #     pass
-    
-    @staticmethod
-    def marcar_activo(usuario_id: int, activo: bool = True) -> bool:
-        """
-        Marca un usuario como activo o inactivo.
-        
-        Args:
-            usuario_id: ID del usuario
-            activo: True para activar, False para desactivar
-            
-        Returns:
-            True si se actualizó correctamente
-        """
-        return UsuarioRepository.activar(usuario_id, activo)

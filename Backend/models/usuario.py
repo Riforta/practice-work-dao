@@ -10,7 +10,6 @@ class Usuario:
     email: str = ""
     password_hash: str = ""
     id_rol: Optional[int] = None
-    activo: int = 1
     
     def __post_init__(self):
         """Validación básica"""
@@ -29,8 +28,7 @@ class Usuario:
             'nombre_usuario': self.nombre_usuario,
             'email': self.email,
             'password_hash': self.password_hash,
-            'id_rol': self.id_rol,
-            'activo': self.activo
+            'id_rol': self.id_rol
         }
     
     @classmethod
@@ -41,8 +39,7 @@ class Usuario:
             nombre_usuario=data.get('nombre_usuario', ''),
             email=data.get('email', ''),
             password_hash=data.get('password_hash', ''),
-            id_rol=data.get('id_rol'),
-            activo=data.get('activo', 1)
+            id_rol=data.get('id_rol')
         )
     
     @classmethod
@@ -53,6 +50,5 @@ class Usuario:
             nombre_usuario=row['nombre_usuario'],
             email=row['email'],
             password_hash=row['password_hash'],
-            id_rol=row['id_rol'],
-            activo=row['activo']
+            id_rol=row['id_rol']
         )

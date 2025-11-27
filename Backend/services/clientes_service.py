@@ -24,10 +24,15 @@ from models.cliente import Cliente
 from repositories.cliente_repository import ClienteRepository
 
 
-def _validar_datos_cliente(data: Dict[str, Any], para_actualizar: bool = False) -> None:
+def _validar_datos_cliente(data: Dict[str, Any], para_actualizar: bool = False, skip_rol_validation: bool = False) -> None:
 	"""Valida los campos mínimos para crear/actualizar un cliente.
 
 	Lanza ValueError en caso de datos inválidos.
+	
+	Args:
+		data: Datos del cliente a validar
+		para_actualizar: Si es True, solo valida campos provistos
+		skip_rol_validation: Si es True, omite validación de rol (usado en registro de usuario)
 	"""
 	nombre = data.get('nombre')
 	apellido = data.get('apellido')
@@ -45,12 +50,25 @@ def _validar_datos_cliente(data: Dict[str, Any], para_actualizar: bool = False) 
 			raise ValueError("El teléfono es obligatorio")
 		if not dni or not str(dni).strip():
 			raise ValueError("El DNI es obligatorio")
-		usuario = usuarios_service.obtener_usuario_por_id(id_usuario)
-		if usuario is None:
-			raise ValueError(f"No existe un usuario con ID {id_usuario} para vincular al cliente")
-		rol = roles_service.obtener_rol_por_id(usuario.id_rol)
-		if rol.nombre != 'cliente':
-			raise ValueError("El usuario vinculado debe tener rol 'cliente'")
+
+		# id_usuario es OPCIONAL. Si se provee, validar su existencia y rol
+		if id_usuario is not None:
+			try:
+				usuario = usuarios_service.obtener_usuario_por_id(int(id_usuario))
+			except Exception:
+				raise ValueError("El usuario vinculado no existe")
+			
+			# Validar rol 'cliente' SOLO si NO estamos en registro de usuario
+			# (skip_rol_validation se usa cuando usuario y cliente se crean juntos)
+			if not skip_rol_validation and usuario is not None:
+				rol = roles_service.obtener_rol_por_id(usuario.id_rol)
+				if rol and getattr(rol, 'nombre', getattr(rol, 'nombre_rol', '')).lower() != 'cliente':
+					raise ValueError("El usuario vinculado debe tener rol 'cliente'")
+			
+			# Evitar duplicar vínculo si ese usuario ya tiene cliente
+			existente = ClienteRepository.obtener_por_id_usuario(int(id_usuario))
+			if existente is not None:
+				raise ValueError("El usuario ya está vinculado a un cliente")
 	else:
 		# En actualización, si se suministran campos requeridos, validar que no sean vacíos
 		if 'nombre' in data and (not data.get('nombre') or not str(data.get('nombre')).strip()):
@@ -59,14 +77,31 @@ def _validar_datos_cliente(data: Dict[str, Any], para_actualizar: bool = False) 
 			raise ValueError("El apellido no puede estar vacío si se proporciona")
 		if 'telefono' in data and (not data.get('telefono') or not str(data.get('telefono')).strip()):
 			raise ValueError("El teléfono no puede estar vacío si se proporciona")
+		# Si se desea vincular o cambiar 'id_usuario' en actualización
+		if 'id_usuario' in data and data.get('id_usuario') is not None:
+			try:
+				usuario = usuarios_service.obtener_usuario_por_id(int(data.get('id_usuario')))
+			except Exception:
+				raise ValueError("El usuario vinculado no existe")
+			rol = roles_service.obtener_rol_por_id(usuario.id_rol)
+			if rol and getattr(rol, 'nombre', getattr(rol, 'nombre_rol', '')).lower() != 'cliente':
+				raise ValueError("El usuario vinculado debe tener rol 'cliente'")
+			# Evitar duplicar vínculo (excepto si es el mismo cliente)
+			existente = ClienteRepository.obtener_por_id_usuario(int(data.get('id_usuario')))
+			if existente is not None and existente.id != data.get('cliente_id_actual'):
+				raise ValueError("El usuario ya está vinculado a otro cliente")
 
 
-def crear_cliente(data: Dict[str, Any]) -> Cliente:
+def crear_cliente(data: Dict[str, Any], skip_rol_validation: bool = False) -> Cliente:
 	"""Crea un cliente luego de validar y verificar unicidad de DNI.
 
 	Devuelve la instancia creada con su `id`.
+	
+	Args:
+		data: Datos del cliente
+		skip_rol_validation: Si es True, omite validación de rol (usado en registro usuario+cliente)
 	"""
-	_validar_datos_cliente(data, para_actualizar=False)
+	_validar_datos_cliente(data, para_actualizar=False, skip_rol_validation=skip_rol_validation)
 
 	dni = data.get('dni')
 	if dni and ClienteRepository.existe_dni(dni):
@@ -117,6 +152,8 @@ def actualizar_cliente(cliente_id: int, data: Dict[str, Any]) -> Cliente:
 	if existente is None:
 		raise LookupError(f"Cliente con ID {cliente_id} no encontrado")
 
+	# Agregar cliente_id_actual para validar duplicado de id_usuario
+	data['cliente_id_actual'] = cliente_id
 	_validar_datos_cliente(data, para_actualizar=True)
 
 	# Si se provee dni, verificar que no exista en otro cliente

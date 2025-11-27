@@ -8,9 +8,8 @@ from services import clientes_service
 router = APIRouter()
 
 
-'''
 @router.post("/clientes/", status_code=status.HTTP_201_CREATED)
-def crear_cliente(cliente_data: Dict[str, Any]):
+def crear_cliente(cliente_data: Dict[str, Any], admin_check: Usuario = Depends(require_admin)):
     try:
         cliente = clientes_service.crear_cliente(cliente_data)
         return cliente.to_dict()
@@ -18,7 +17,7 @@ def crear_cliente(cliente_data: Dict[str, Any]):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-'''
+
 
 @router.get("/clientes/")
 def listar_clientes():
