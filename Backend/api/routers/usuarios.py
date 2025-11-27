@@ -60,14 +60,16 @@ def registrar_usuario_cliente(payload: Dict[str, Any]):
         # 3. Registrar usuario + cliente (usuarios_service maneja el vínculo y rollback)
         usuario, cliente, token = usuarios_service.registrar_usuario(usuario_data, cliente_data)
         
-        # 6. Preparar respuesta usando to_dict()
-        user_dict = usuario.to_dict()
-        user_dict.pop('password_hash', None)  # Nunca exponer password_hash
-        
+        # 4. Preparar respuesta consistente con el endpoint /login
         return {
             "token": token,
-            "user": user_dict,
-            "cliente": cliente.to_dict(),
+            "user": {
+                "id": usuario.id,
+                "nombre_usuario": usuario.nombre_usuario,
+                "email": usuario.email,
+                "id_rol": usuario.id_rol,
+                "id_cliente": cliente.id
+            },
             "message": "Usuario y cliente registrados exitosamente"
         }
         
