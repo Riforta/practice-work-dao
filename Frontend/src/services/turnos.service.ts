@@ -112,7 +112,7 @@ const remove = async (id: number): Promise<void> => {
 // -------- Acciones de reserva/estado --------
 
 const reservarSimple = async (turno_id: number, id_cliente: number, id_usuario_registro?: number): Promise<Turno> => {
-  const response = await http.post(`${endpoint}/${turno_id}/reservar-simple`, {
+  const response = await http.post(`${endpoint}/${turno_id}/reservar`, {
     id_cliente,
     id_usuario_registro,
   });
@@ -120,7 +120,7 @@ const reservarSimple = async (turno_id: number, id_cliente: number, id_usuario_r
 };
 
 const cancelarReserva = async (turno_id: number): Promise<Turno> => {
-  const response = await http.post(`${endpoint}/${turno_id}/cancelar`);
+  const response = await http.post(`${endpoint}/${turno_id}/cancelar-reserva`);
   return normalizeTurno(response.data);
 };
 

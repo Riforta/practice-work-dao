@@ -16,8 +16,7 @@ router = APIRouter()
 
 @router.post("/turnos/{turno_id}/reservar", status_code=status.HTTP_200_OK)
 def reservar_turno_endpoint(turno_id: int, request: Dict[str, Any],
-                            current_user: Usuario = Depends(require_role("cliente")),
-                            admin_check: Usuario = Depends(require_admin)):
+                            current_user: Usuario = Depends(require_role("cliente"))):
     """CU-1: Registra una reserva sobre un turno disponible."""
     try:
         turno = reservas_service.ReservasService.registrar_reserva(
@@ -102,8 +101,8 @@ def modificar_reserva_endpoint(turno_id: int, request: Dict[str, Any], current_u
 
 @router.post("/turnos/{turno_id}/cancelar-reserva")
 @router.post("/turnos/{turno_id}/cancelar")  # Alias para compatibilidad
-def cancelar_reserva_endpoint(turno_id: int, request: Optional[Dict[str, Any]] = None, current_user: Usuario = Depends(require_role("cliente")),
-                            admin_check: Usuario = Depends(require_admin)):
+def cancelar_reserva_endpoint(turno_id: int, request: Optional[Dict[str, Any]] = None, 
+                              current_user: Usuario = Depends(require_role("cliente"))):
     """CU-4: Cancela una reserva y devuelve el turno a disponible."""
     try:
         id_usuario_cancelacion = request.get("id_usuario_cancelacion") if request else None
