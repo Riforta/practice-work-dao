@@ -68,18 +68,24 @@ export default function ConsultarServicios() {
           </div>
           <div className="flex gap-3">
             <button
+              onClick={() => navigate('/')}
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 min-w-[10rem]"
+            >
+              Volver
+            </button>
+            <button
               onClick={() => void loadServicios()}
-              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-60"
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-60 min-w-[10rem]"
               disabled={loading}
             >
               {loading ? 'Actualizando...' : 'Refrescar'}
             </button>
-            <Link
-              to="/servicios/nuevo"
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+            <button
+              onClick={() => navigate('/servicios/nuevo')}
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 min-w-[10rem]"
             >
-              + Registrar servicio
-            </Link>
+              Registrar servicio
+            </button>
           </div>
         </header>
 
@@ -164,15 +170,6 @@ export default function ConsultarServicios() {
             </table>
           </div>
         </section>
-
-        <div className="text-center">
-          <Link
-            to="/"
-            className="inline-block rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400 hover:text-white"
-          >
-            Volver al inicio
-          </Link>
-        </div>
       </div>
     </div>
   );

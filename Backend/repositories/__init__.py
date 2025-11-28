@@ -11,9 +11,8 @@ from .servicio_adicional_repository import ServicioAdicionalRepository
 from .usuario_repository import UsuarioRepository
 from .torneo_repository import TorneoRepository
 from .equipo_repository import EquipoRepository
-from .partido_repository import PartidoRepository
 from .equipo_miembro_repository import EquipoMiembroRepository
-from .inscripcion_repository import InscripcionRepository
+from .equipo_torneo_repository import EquipoTorneoRepository
 from .pago_repository import PagoRepository
 from .rol_repository import RolRepository
 from .turno_repository import TurnoRepository
@@ -26,9 +25,8 @@ __all__ = [
     'ServicioAdicionalRepository',
     'UsuarioRepository',
     'TorneoRepository',
-    'PartidoRepository',
     'EquipoMiembroRepository',
-    'InscripcionRepository',
+    'EquipoTorneoRepository',
     'PagoRepository',
     'RolRepository',
     'TurnoRepository',

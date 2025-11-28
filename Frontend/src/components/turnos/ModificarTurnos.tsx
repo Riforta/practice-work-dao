@@ -3,15 +3,17 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import turnosApi from '../../services/turnos.service';
 import type { CanchaRef, Turno } from '../../services/turnos.service';
+import clientesApi from '../../services/clientes.service';
+import type { Cliente } from '../../services/clientes.service';
 
 type FormValues = {
   id_cancha: number;
-  fecha_hora_inicio: string;
-  fecha_hora_fin: string;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
   estado: string;
   precio_final: number;
   id_cliente?: number;
-  id_usuario_registro?: number;
   motivo_bloqueo?: string;
 };
 
@@ -23,6 +25,11 @@ export default function ModificarTurnos() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [canchas, setCanchas] = useState<CanchaRef[]>([]);
+  const [todosLosClientes, setTodosLosClientes] = useState<Cliente[]>([]);
+  const [clientesBusqueda, setClientesBusqueda] = useState<Cliente[]>([]);
+  const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
   const {
     register,
@@ -33,12 +40,12 @@ export default function ModificarTurnos() {
   } = useForm<FormValues>({
     defaultValues: {
       id_cancha: 0,
-      fecha_hora_inicio: '',
-      fecha_hora_fin: '',
+      fecha: '',
+      hora_inicio: '',
+      hora_fin: '',
       estado: 'disponible',
       precio_final: 0,
       id_cliente: undefined,
-      id_usuario_registro: undefined,
       motivo_bloqueo: '',
     },
   });
@@ -51,32 +58,56 @@ export default function ModificarTurnos() {
         return;
       }
       try {
-        const [turno, canchasList] = await Promise.all([
+        const [turno, canchasList, clientesList] = await Promise.all([
           turnosApi.getById(Number(id)),
           turnosApi.listCanchas(),
+          clientesApi.list(),
         ]);
         setCanchas(canchasList);
-        const parseDate = (value: string) => {
-          if (!value) return '';
-          // Adaptar ISO a formato datetime-local (sin Z y sin segundos)
-          const d = new Date(value);
-          if (Number.isNaN(d.getTime())) return value;
-          const pad = (n: number) => n.toString().padStart(2, '0');
-          return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
-            d.getMinutes()
-          )}`;
+        setTodosLosClientes(clientesList);
+        setClientesBusqueda(clientesList); // Inicialmente mostrar todos
+        
+        // Separar fecha y hora de los datetime (parsear directamente sin conversión de zona horaria)
+        const parseDateTime = (value: string) => {
+          if (!value) return { fecha: '', hora: '' };
+          
+          // Parsear directamente del string ISO sin conversión de zona horaria
+          // Formato esperado: "2025-11-28T08:00:00" o "2025-11-28T08:00:00.000Z"
+          const cleanValue = value.replace('Z', '').split('.')[0]; // Quitar Z y milisegundos
+          const [fecha, hora] = cleanValue.split('T');
+          
+          if (!fecha || !hora) return { fecha: '', hora: '' };
+          
+          // Tomar solo HH:MM (sin segundos)
+          const horaSinSegundos = hora.substring(0, 5);
+          
+          return { fecha, hora: horaSinSegundos };
         };
+
+        const inicio = parseDateTime(turno.fecha_hora_inicio);
+        const fin = parseDateTime(turno.fecha_hora_fin);
 
         reset({
           id_cancha: turno.id_cancha,
-          fecha_hora_inicio: parseDate(turno.fecha_hora_inicio),
-          fecha_hora_fin: parseDate(turno.fecha_hora_fin),
+          fecha: inicio.fecha,
+          hora_inicio: inicio.hora,
+          hora_fin: fin.hora,
           estado: turno.estado,
           precio_final: turno.precio_final,
           id_cliente: turno.id_cliente,
-          id_usuario_registro: turno.id_usuario_registro,
           motivo_bloqueo: turno.motivo_bloqueo,
         });
+        
+        // Si hay cliente, cargarlo para mostrarlo
+        if (turno.id_cliente) {
+          try {
+            const cliente = await clientesApi.getById(turno.id_cliente);
+            setClienteSeleccionado(cliente);
+            setTerminoBusqueda(`${cliente.nombre} ${cliente.apellido || ''}`.trim());
+          } catch (err) {
+            console.warn('No se pudo cargar el cliente:', err);
+          }
+        }
       } catch (err) {
         console.error(err);
         setError('No se pudo cargar el turno.');
@@ -88,15 +119,59 @@ export default function ModificarTurnos() {
     void loadData();
   }, [id, reset]);
 
+  // Filtrado de clientes local
+  useEffect(() => {
+    const termino = terminoBusqueda.trim().toLowerCase();
+    
+    if (!termino) {
+      // Si no hay término, mostrar todos
+      setClientesBusqueda(todosLosClientes);
+      return;
+    }
+
+    // Filtrar localmente
+    const filtrados = todosLosClientes.filter((cliente) => {
+      const nombreCompleto = `${cliente.nombre} ${cliente.apellido || ''}`.toLowerCase();
+      const dni = cliente.dni?.toLowerCase() || '';
+      return nombreCompleto.includes(termino) || dni.includes(termino);
+    });
+    
+    setClientesBusqueda(filtrados);
+  }, [terminoBusqueda, todosLosClientes]);
+
   const onSubmit = async (values: FormValues) => {
     if (!id) return;
     setError('');
     try {
-      await turnosApi.update(Number(id), values as Partial<Turno>);
+      // Combinar fecha con hora_inicio y hora_fin, y convertir a ISO
+      const fechaInicio = `${values.fecha}T${values.hora_inicio}:00`;
+      const fechaFin = `${values.fecha}T${values.hora_fin}:00`;
+      
+      const dataToSend: any = {
+        id_cancha: values.id_cancha,
+        // Enviar directamente sin convertir a ISO (el backend lo manejará)
+        fecha_hora_inicio: fechaInicio,
+        fecha_hora_fin: fechaFin,
+        estado: values.estado,
+        precio_final: values.precio_final,
+      };
+      
+      // Solo agregar campos opcionales si tienen valor
+      if (values.id_cliente) {
+        dataToSend.id_cliente = values.id_cliente;
+      }
+      
+      if (values.motivo_bloqueo && values.motivo_bloqueo.trim()) {
+        dataToSend.motivo_bloqueo = values.motivo_bloqueo;
+      }
+      
+      console.log('Datos a enviar:', dataToSend);
+      await turnosApi.update(Number(id), dataToSend);
       navigate('/turnos');
-    } catch (err) {
-      console.error(err);
-      setError('No se pudo actualizar el turno. Intenta nuevamente.');
+    } catch (err: any) {
+      console.error('Error completo:', err);
+      const errorMsg = err.response?.data?.detail || 'No se pudo actualizar el turno. Intenta nuevamente.';
+      setError(errorMsg);
     }
   };
 
@@ -111,9 +186,13 @@ export default function ModificarTurnos() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4 py-10">
+    <div 
+      className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4 py-10"
+      onClick={() => setMostrarSugerencias(false)}
+    >
       <form
         onSubmit={handleSubmit(onSubmit)}
+        onClick={(e) => e.stopPropagation()}
         className="w-full max-w-3xl space-y-4 rounded-2xl bg-white/10 p-6 shadow-2xl backdrop-blur-md border border-white/10"
       >
         <div className="space-y-1">
@@ -155,25 +234,35 @@ export default function ModificarTurnos() {
           </label>
 
           <label className="block text-sm">
-            Fecha y hora inicio
+            Fecha
             <input
-              type="datetime-local"
-              {...register('fecha_hora_inicio', { required: 'La fecha de inicio es obligatoria' })}
+              type="date"
+              {...register('fecha', { required: 'La fecha es obligatoria' })}
               className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
             />
-            {errors.fecha_hora_inicio && (
-              <span className="text-xs text-red-300">{errors.fecha_hora_inicio.message}</span>
+            {errors.fecha && (
+              <span className="text-xs text-red-300">{errors.fecha.message}</span>
             )}
           </label>
 
           <label className="block text-sm">
-            Fecha y hora fin
+            Hora inicio
             <input
-              type="datetime-local"
-              {...register('fecha_hora_fin', { required: 'La fecha de fin es obligatoria' })}
+              type="time"
+              {...register('hora_inicio', { required: 'La hora de inicio es obligatoria' })}
               className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
             />
-            {errors.fecha_hora_fin && <span className="text-xs text-red-300">{errors.fecha_hora_fin.message}</span>}
+            {errors.hora_inicio && <span className="text-xs text-red-300">{errors.hora_inicio.message}</span>}
+          </label>
+
+          <label className="block text-sm">
+            Hora fin
+            <input
+              type="time"
+              {...register('hora_fin', { required: 'La hora de fin es obligatoria' })}
+              className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+            {errors.hora_fin && <span className="text-xs text-red-300">{errors.hora_fin.message}</span>}
           </label>
 
           <label className="block text-sm">
@@ -192,24 +281,54 @@ export default function ModificarTurnos() {
             {errors.precio_final && <span className="text-xs text-red-300">{errors.precio_final.message}</span>}
           </label>
 
-          <label className="block text-sm">
-            ID Cliente (opcional)
+          <label className="block text-sm md:col-span-2 relative">
+            Cliente (opcional)
             <input
-              type="number"
-              {...register('id_cliente', { valueAsNumber: true })}
+              type="text"
+              value={terminoBusqueda}
+              onChange={(e) => {
+                setTerminoBusqueda(e.target.value);
+                setMostrarSugerencias(true);
+                if (!e.target.value) {
+                  setClienteSeleccionado(null);
+                  reset({ ...watch(), id_cliente: undefined });
+                }
+              }}
+              onFocus={() => {
+                setMostrarSugerencias(true);
+                // Si no hay búsqueda, mostrar todos
+                if (!terminoBusqueda.trim()) {
+                  setClientesBusqueda(todosLosClientes);
+                }
+              }}
               className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              placeholder="Ej: 5"
+              placeholder="Buscar cliente por nombre..."
             />
-          </label>
-
-          <label className="block text-sm">
-            ID Usuario registro (opcional)
-            <input
-              type="number"
-              {...register('id_usuario_registro', { valueAsNumber: true })}
-              className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              placeholder="Ej: 1"
-            />
+            {mostrarSugerencias && !clienteSeleccionado && clientesBusqueda.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full rounded-lg bg-slate-800 border border-white/20 shadow-lg max-h-48 overflow-y-auto">
+                {clientesBusqueda.map((cliente) => (
+                  <button
+                    key={cliente.id}
+                    type="button"
+                    onClick={() => {
+                      setClienteSeleccionado(cliente);
+                      setTerminoBusqueda(`${cliente.nombre} ${cliente.apellido || ''}`.trim());
+                      setMostrarSugerencias(false);
+                      reset({ ...watch(), id_cliente: cliente.id });
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-white/10 text-sm text-white"
+                  >
+                    <div className="font-semibold">{cliente.nombre} {cliente.apellido}</div>
+                    {cliente.dni && <div className="text-xs text-emerald-200">DNI: {cliente.dni}</div>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {clienteSeleccionado && (
+              <div className="mt-2 text-xs text-emerald-200">
+                Cliente seleccionado: {clienteSeleccionado.nombre} {clienteSeleccionado.apellido} (ID: {clienteSeleccionado.id})
+              </div>
+            )}
           </label>
 
           {estadoSeleccionado === 'bloqueado' && (

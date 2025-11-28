@@ -83,6 +83,7 @@ def require_admin(
 def require_role(rol_descripcion: str):
     """
     Factory de dependencias que verifica un rol específico.
+    Los administradores siempre tienen acceso independientemente del rol requerido.
     
     Usage:
         @router.post("/torneos")
@@ -92,7 +93,18 @@ def require_role(rol_descripcion: str):
     def role_checker(current_user: Usuario = Depends(get_current_user)) -> Usuario:
         rol = RolRepository.obtener_por_id(current_user.id_rol)
         
-        if not rol or rol.nombre_rol.lower() != rol_descripcion.lower():
+        if not rol:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Se requiere rol: {rol_descripcion}"
+            )
+        
+        # Los administradores tienen acceso a todo
+        if rol.nombre_rol.lower() in ["admin", "administrador"]:
+            return current_user
+        
+        # Verificar si tiene el rol específico requerido
+        if rol.nombre_rol.lower() != rol_descripcion.lower():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Se requiere rol: {rol_descripcion}"

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-// Asegúrate de que la ruta sea correcta
 import service from '../../services/equipos.service'; 
-import { Link, useNavigate } from 'react-router-dom';
-import backgroundImage from "./imagenes/cancha_bas.jpg";
+import equipoMiembroService from '../../services/equipoMiembro.service';
+import { useNavigate } from 'react-router-dom';
 
 export default function ConsultarEquipo() {
   const [rows, setRows] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(false); // Estado para mostrar "Cargando..."
+  const [miembrosCount, setMiembrosCount] = useState<Record<number, number>>({});
   const navigate = useNavigate();
 
   // Función unificada para cargar datos
@@ -23,6 +23,23 @@ export default function ConsultarEquipo() {
         data = await service.getAllEquipos();
       }
       setRows(data);
+      
+      // Cargar cantidad de miembros para cada equipo
+      const counts: Record<number, number> = {};
+      await Promise.all(
+        data.map(async (equipo: any) => {
+          const equipoId = equipo.id || equipo.Id;
+          if (equipoId) {
+            try {
+              const miembros = await equipoMiembroService.listarMiembrosPorEquipo(equipoId);
+              counts[equipoId] = miembros.length;
+            } catch {
+              counts[equipoId] = 0;
+            }
+          }
+        })
+      );
+      setMiembrosCount(counts);
     } catch (error) {
       console.error('Error cargando Equipos:', error);
     } finally {
@@ -62,79 +79,106 @@ export default function ConsultarEquipo() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-no-repeat bg-cover bg-center"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "scroll" // evita parallax/repintados raros
-      }}>
-      {/* Wrapper centrado horizontalmente y con espacio superior */}
-      <div className="w-full max-w-6xl mx-auto px-6 py-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="bg-white text-red-900 px-6 py-3 rounded hover:bg-gray-100 shadow text-4xl md:text-5xl font-extrabold" >Gestión de Equipos
+    <div className="min-h-screen bg-slate-950 text-white px-4 py-10">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-sm uppercase tracking-widest text-emerald-200">Equipos</p>
+            <h1 className="text-3xl font-bold">Gestión de equipos</h1>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate('/')}
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 min-w-[10rem]"
+            >
+              Volver
+            </button>
+            <button
+              onClick={() => fetchEquipos(filter)}
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-60 min-w-[10rem]"
+              disabled={loading}
+            >
+              {loading ? 'Actualizando...' : 'Refrescar'}
+            </button>
+            <button
+              onClick={() => navigate('/equipos/RegistrarEquipo')}
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 min-w-[10rem]"
+            >
+              Registrar equipo
+            </button>
+          </div>
+        </header>
 
-          </h2>
-          <Link to="/equipos/RegistrarEquipo" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            + Nueva equipo
-          </Link>
-        </div>
+        <section className="bg-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <label className="text-sm text-emerald-100">
+              Buscar por nombre
+              <input 
+                type="search"
+                className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                placeholder="Buscar..."
+                value={filter}
+                onChange={handleSearchChange}
+              />
+            </label>
+          </div>
 
-        {/* Barra de búsqueda */}
-        <div className="mb-6">
-          <input 
-            type="text"
-            className="bg-white w-full max-w-md p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="🔍 Buscar por nombre..."
-            value={filter}
-            onChange={handleSearchChange}
-          />
-        </div>
-
-        {/* Tabla */}
-        <div className="overflow-auto bg-white rounded-lg shadow max-h-[60vh]">
-            <table className="w-full text-sm text-left text-gray-500">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-100 text-center">
-                    <tr>
-                        <th className="px-6 py-3">Nombre</th>
-                        <th className="px-6 py-3">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody className="text-center">
-                    {loading ? (
-                        <tr><td colSpan={5} className="py-4">Cargando...</td></tr>
-                    ) : rows.length === 0 ? (
-                        <tr><td colSpan={5} className="py-4">No se encontraron Equipos
-                        </td></tr>
-                    ) : (
-                        rows.map((item: any) => (
-                            <tr key={item.Id || item.id} className="border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">{item.nombre_equipo}</td>
-                                <td className="px-6 py-4 space-x-2">
-                                    <button
-                                        onClick={() => navigate(`/equipos/ModificarEquipo/${item.Id || item.id}`)}
-                                        className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs">
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteUser(item.Id || item.id)}
-                                        className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs">
-                                        Eliminar
-                                    </button>
-                                </td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
+          <div className="max-h-[65vh] overflow-y-auto rounded-2xl border border-white/5">
+            <table className="min-w-full text-left text-sm">
+              <thead className="sticky top-0 bg-slate-900/80 text-xs uppercase tracking-wide text-emerald-200">
+                <tr>
+                  <th className="px-4 py-3">Nombre</th>
+                  <th className="px-4 py-3">Miembros</th>
+                  <th className="px-4 py-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-6 text-center text-emerald-100">
+                      Cargando equipos...
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-6 text-center text-emerald-100">
+                      No se encontraron equipos.
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map((item: any) => {
+                    const equipoId = item.Id || item.id;
+                    return (
+                      <tr key={equipoId} className="border-t border-white/5 hover:bg-white/5">
+                        <td className="px-4 py-3 text-sm font-semibold">{item.nombre_equipo}</td>
+                        <td className="px-4 py-3 text-sm text-emerald-100">
+                          {miembrosCount[equipoId] ?? 0}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <button
+                              onClick={() => navigate(`/equipos/ModificarEquipo/${equipoId}`)}
+                              className="rounded-lg bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-100 hover:bg-white/20"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(equipoId)}
+                              className="rounded-lg bg-red-500/80 px-3 py-1 text-xs font-semibold text-white hover:bg-red-500"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
             </table>
-        </div>
-        
-        <div className="mt-6 text-center">
-          <Link to='/' className='bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-100 shadow'>Volver al menú</Link>
-        </div>
-    </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

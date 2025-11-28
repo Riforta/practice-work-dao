@@ -9,8 +9,7 @@ from .turno_servicio import TurnoServicio
 from .torneo import Torneo
 from .equipo import Equipo
 from .equipo_miembro import EquipoMiembro
-from .inscripcion import Inscripcion
-from .partido import Partido
+from .equipo_torneo import EquipoTorneo
 from .pago import Pago
 
 __all__ = [
@@ -24,7 +23,6 @@ __all__ = [
     'Torneo',
     'Equipo',
     'EquipoMiembro',
-    'Inscripcion',
-    'Partido',
+    'EquipoTorneo',
     'Pago'
 ]

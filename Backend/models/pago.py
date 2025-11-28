@@ -4,10 +4,9 @@ from typing import Optional
 
 @dataclass
 class Pago:
-    """Modelo de entidad para Pago - vinculado directamente a Turno o Inscripción"""
+    """Modelo de entidad para Pago - vinculado directamente a Turno"""
     id: Optional[int] = None
     id_turno: Optional[int] = None
-    id_inscripcion: Optional[int] = None
     monto_turno: Optional[float] = None
     monto_servicios: float = 0.0
     monto_total: float = 0.0
@@ -22,23 +21,18 @@ class Pago:
     
     def __post_init__(self):
         """Validación básica"""
-        if self.id is not None:
-            # Debe tener id_turno O id_inscripcion (exclusivo)
-            if not self.id_turno and not self.id_inscripcion:
-                raise ValueError("El pago debe estar vinculado a un turno o una inscripción")
-            if self.id_turno and self.id_inscripcion:
-                raise ValueError("El pago no puede estar vinculado a turno e inscripción simultáneamente")
-            if self.monto_total < 0:
-                raise ValueError("El monto total no puede ser negativo")
-            if not self.id_cliente:
-                raise ValueError("El id de cliente es obligatorio")
+        # Solo validar cuando el pago ya está creado (tiene id)
+        # Los pagos manuales pueden no tener id_turno asociado
+        if self.monto_total < 0:
+            raise ValueError("El monto total no puede ser negativo")
+        if not self.id_cliente:
+            raise ValueError("El id de cliente es obligatorio")
     
     def to_dict(self):
         """Convierte el objeto a diccionario"""
         return {
             'id': self.id,
             'id_turno': self.id_turno,
-            'id_inscripcion': self.id_inscripcion,
             'monto_turno': self.monto_turno,
             'monto_servicios': self.monto_servicios,
             'monto_total': self.monto_total,
@@ -58,7 +52,6 @@ class Pago:
         return cls(
             id=data.get('id'),
             id_turno=data.get('id_turno'),
-            id_inscripcion=data.get('id_inscripcion'),
             monto_turno=data.get('monto_turno'),
             monto_servicios=data.get('monto_servicios', 0.0),
             monto_total=data.get('monto_total', 0.0),
@@ -78,7 +71,6 @@ class Pago:
         return cls(
             id=row['id'],
             id_turno=row['id_turno'],
-            id_inscripcion=row['id_inscripcion'],
             monto_turno=row['monto_turno'],
             monto_servicios=row['monto_servicios'] if row['monto_servicios'] is not None else 0.0,
             monto_total=row['monto_total'],

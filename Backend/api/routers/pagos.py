@@ -3,14 +3,66 @@ from typing import List, Dict, Any, Optional
 
 from services import pagos_service
 from api.dependencies.auth import get_current_user
+from models.usuario import Usuario
 
 router = APIRouter()
+
+
+@router.get("/pagos/", response_model=List[Dict[str, Any]])
+def listar_todos_pagos(
+    current_user: Usuario = Depends(get_current_user)
+):
+    """Lista todos los pagos del sistema (para admin)"""
+    try:
+        pagos = pagos_service.listar_todos_pagos()
+        return [p.to_dict() for p in pagos]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/pagos/manual", status_code=status.HTTP_201_CREATED)
+def crear_pago_manual(
+    payload: Dict[str, Any],
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Crea un pago manual (por admin, para pagos en efectivo u otros).
+    
+    Body esperado:
+    {
+        "id_cliente": 1,
+        "id_turno": 123,  // opcional
+        "monto_turno": 5000.0,
+        "monto_servicios": 0.0,
+        "monto_total": 5000.0,
+        "metodo_pago": "efectivo",
+        "estado": "completado"  // iniciado, completado, fallido
+    }
+    """
+    try:
+        pago = pagos_service.crear_pago_manual(
+            id_cliente=payload['id_cliente'],
+            id_turno=payload.get('id_turno'),
+            monto_turno=payload.get('monto_turno', 0.0),
+            monto_servicios=payload.get('monto_servicios', 0.0),
+            monto_total=payload['monto_total'],
+            metodo_pago=payload.get('metodo_pago'),
+            estado=payload.get('estado', 'confirmado'),
+            id_usuario_registro=current_user.id
+        )
+        return pago.to_dict()
+    except KeyError as e:
+        raise HTTPException(status_code=400, detail=f'Campo requerido faltante: {e}')
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/pagos/turno", status_code=status.HTTP_201_CREATED)
 def crear_pago_para_turno(
     payload: Dict[str, Any],
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """
     Crea un pago para reservar un turno.
@@ -38,7 +90,7 @@ def crear_pago_para_turno(
             monto_turno=payload['monto_turno'],
             monto_servicios=payload.get('monto_servicios', 0.0),
             servicios=payload.get('servicios'),
-            id_usuario_registro=current_user.get('id'),
+            id_usuario_registro=current_user.id,
             metodo_pago=payload.get('metodo_pago')
         )
         return pago.to_dict()
@@ -55,7 +107,7 @@ def crear_pago_para_turno(
 @router.post("/pagos/inscripcion", status_code=status.HTTP_201_CREATED)
 def crear_pago_para_inscripcion(
     payload: Dict[str, Any],
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """
     Crea un pago para una inscripción de torneo.
@@ -73,7 +125,7 @@ def crear_pago_para_inscripcion(
             id_inscripcion=payload['id_inscripcion'],
             id_cliente=payload['id_cliente'],
             monto_total=payload['monto_total'],
-            id_usuario_registro=current_user.get('id'),
+            id_usuario_registro=current_user.id,
             metodo_pago=payload.get('metodo_pago')
         )
         return pago.to_dict()
@@ -91,7 +143,7 @@ def crear_pago_para_inscripcion(
 def confirmar_pago(
     pago_id: int,
     payload: Dict[str, Any],
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """
     Confirma un pago y marca el turno/inscripción como pagado.
@@ -120,7 +172,7 @@ def confirmar_pago(
 @router.post("/pagos/{pago_id}/marcar-fallido", status_code=status.HTTP_200_OK)
 def marcar_pago_fallido_endpoint(
     pago_id: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """
     Marca un pago como fallido y libera el turno/inscripción.
@@ -136,7 +188,7 @@ def marcar_pago_fallido_endpoint(
 
 @router.post("/pagos/procesar-expirados", status_code=status.HTTP_200_OK)
 def procesar_pagos_expirados_endpoint(
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """
     Procesa todos los pagos expirados (debe ejecutarse periódicamente).
@@ -153,7 +205,7 @@ def procesar_pagos_expirados_endpoint(
 @router.get("/pagos/cliente/{id_cliente}", response_model=List[Dict[str, Any]])
 def listar_pagos_por_cliente(
     id_cliente: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """Lista todos los pagos de un cliente"""
     pagos = pagos_service.listar_pagos_por_cliente(id_cliente)
@@ -163,7 +215,7 @@ def listar_pagos_por_cliente(
 @router.get("/pagos/turno/{id_turno}", response_model=Dict[str, Any])
 def obtener_pago_por_turno(
     id_turno: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """Obtiene el pago asociado a un turno"""
     pago = pagos_service.obtener_pago_por_turno(id_turno)
@@ -175,7 +227,7 @@ def obtener_pago_por_turno(
 @router.get("/pagos/inscripcion/{id_inscripcion}", response_model=Dict[str, Any])
 def obtener_pago_por_inscripcion(
     id_inscripcion: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """Obtiene el pago asociado a una inscripción"""
     pago = pagos_service.obtener_pago_por_inscripcion(id_inscripcion)
@@ -187,7 +239,7 @@ def obtener_pago_por_inscripcion(
 @router.get("/pagos/{pago_id}", response_model=Dict[str, Any])
 def obtener_pago(
     pago_id: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """Obtiene un pago por su ID"""
     try:
@@ -200,7 +252,7 @@ def obtener_pago(
 @router.delete("/pagos/{pago_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_pago(
     pago_id: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user)
 ):
     """Elimina un pago (usar con precaución)"""
     # TODO: Agregar validación de rol admin

@@ -38,9 +38,7 @@ def actualizar_torneo(torneo_id: int, data: Dict[str, Any]) -> Torneo:
     torneo_actualizado.id = torneo_id
 
     try:
-        ok = TorneoRepository.actualizar(torneo_actualizado)
-        if not ok:
-            raise Exception('No se actualizó el torneo')
+        TorneoRepository.actualizar(torneo_actualizado)
         return torneo_actualizado
     except Exception as e:
         raise Exception(f'Error al actualizar torneo: {e}')

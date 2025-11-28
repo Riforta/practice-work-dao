@@ -32,6 +32,12 @@ import Torneo from './components/torneo/Torneo.tsx'
 import ConsultarTorneo from './components/torneo/ConsultarTorneo.tsx'
 import RegistrarTorneo from './components/torneo/RegistrarTorneo.tsx'
 import ModificarTorneo from './components/torneo/ModificarTorneo.tsx'
+import ConsultarPagos from './components/pagos/ConsultarPagos.tsx'
+import RegistrarPago from './components/pagos/RegistrarPago.tsx'
+import ConsultarClientes from './components/clientes/ConsultarClientes.tsx'
+import RegistrarCliente from './components/clientes/RegistrarCliente.tsx'
+import ModificarCliente from './components/clientes/ModificarCliente.tsx'
+import Reportes from './components/reportes/Reportes.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/common/ProtectedRoute.tsx'
@@ -216,6 +222,42 @@ function App() {
                   <Route path="/turnos/:id/editar" element={
                     <ProtectedRoute requireAdmin>
                       <ModificarTurnos />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Pagos - Admin */}
+                  <Route path="/pagos" element={
+                    <ProtectedRoute requireAdmin>
+                      <ConsultarPagos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/pagos/registrar" element={
+                    <ProtectedRoute requireAdmin>
+                      <RegistrarPago />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Clientes - Admin */}
+                  <Route path="/clientes" element={
+                    <ProtectedRoute requireAdmin>
+                      <ConsultarClientes />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/clientes/registrar" element={
+                    <ProtectedRoute requireAdmin>
+                      <RegistrarCliente />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/clientes/modificar/:id" element={
+                    <ProtectedRoute requireAdmin>
+                      <ModificarCliente />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Reportes - Admin */}
+                  <Route path="/reportes" element={
+                    <ProtectedRoute requireAdmin>
+                      <Reportes />
                     </ProtectedRoute>
                   } />
                 </Routes>

@@ -43,7 +43,7 @@ def obtener_cliente(cliente_id: int):
 
 
 @router.put("/clientes/{cliente_id}")
-def actualizar_cliente(cliente_id: int, cliente_data: Dict[str, Any], current_user: Usuario = Depends(require_role("admin"))):
+def actualizar_cliente(cliente_id: int, cliente_data: Dict[str, Any], current_user: Usuario = Depends(require_role("cliente"))):
     try:
         cliente = clientes_service.actualizar_cliente(cliente_id, cliente_data)
         return cliente.to_dict()

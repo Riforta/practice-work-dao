@@ -34,7 +34,6 @@ def crear_pago_turno(
     
     pago_data = {
         'id_turno': id_turno,
-        'id_inscripcion': None,
         'monto_turno': monto_turno,
         'monto_servicios': monto_servicios,
         'monto_total': monto_turno + monto_servicios,
@@ -57,53 +56,7 @@ def crear_pago_turno(
         raise Exception(f'Error al crear pago de turno: {e}')
 
 
-def crear_pago_inscripcion(
-    id_inscripcion: int,
-    id_cliente: int,
-    monto_total: float,
-    id_usuario_registro: Optional[int] = None,
-    metodo_pago: Optional[str] = None
-) -> Pago:
-    """
-    Crea un registro de pago para una inscripción de torneo.
-    SOLO gestiona el pago, NO modifica la inscripción.
-    
-    Args:
-        id_inscripcion: ID de la inscripción
-        id_cliente: ID del cliente (capitán del equipo)
-        monto_total: Costo de inscripción del torneo
-        id_usuario_registro: Usuario que registra
-        metodo_pago: Método de pago utilizado
-    
-    Returns:
-        Pago creado con estado 'iniciado' y fecha_expiracion en 15 minutos
-    """
-    # Crear el pago
-    fecha_creacion = datetime.now().isoformat()
-    fecha_expiracion = (datetime.now() + timedelta(minutes=15)).isoformat()
-    
-    pago_data = {
-        'id_turno': None,
-        'id_inscripcion': id_inscripcion,
-        'monto_turno': None,
-        'monto_servicios': 0.0,
-        'monto_total': monto_total,
-        'id_cliente': id_cliente,
-        'id_usuario_registro': id_usuario_registro,
-        'estado': 'iniciado',
-        'metodo_pago': metodo_pago,
-        'fecha_creacion': fecha_creacion,
-        'fecha_expiracion': fecha_expiracion,
-        'fecha_completado': None
-    }
-    
-    pago = Pago.from_dict(pago_data)
-    
-    try:
-        pago.id = PagoRepository.crear(pago)
-        return pago
-    except Exception as e:
-        raise Exception(f'Error al crear pago de inscripción: {e}')
+# FUNCIÓN ELIMINADA: crear_pago_inscripcion ya no existe porque se eliminó la tabla Inscripcion
 
 
 def confirmar_pago(
@@ -149,8 +102,8 @@ def confirmar_pago(
         
         PagoRepository.actualizar(pago)
         
-        # NO modificamos el turno/inscripción aquí
-        # Eso lo hace registrar_reserva() o crear_inscripcion()
+        # NO modificamos el turno aquí
+        # Eso lo hace registrar_reserva()
         
         return pago
     except Exception as e:
@@ -217,14 +170,70 @@ def obtener_pago_por_turno(id_turno: int) -> Optional[Pago]:
     return PagoRepository.obtener_por_turno(id_turno)
 
 
-def obtener_pago_por_inscripcion(id_inscripcion: int) -> Optional[Pago]:
-    """Obtiene el pago asociado a una inscripción"""
-    return PagoRepository.obtener_por_inscripcion(id_inscripcion)
+# FUNCIÓN ELIMINADA: obtener_pago_por_inscripcion ya no existe porque se eliminó la tabla Inscripcion
 
 
 def listar_pagos_por_cliente(id_cliente: int) -> List[Pago]:
     """Lista todos los pagos de un cliente"""
     return PagoRepository.listar_por_cliente(id_cliente)
+
+
+def listar_todos_pagos() -> List[Pago]:
+    """Lista todos los pagos del sistema (para administradores)"""
+    return PagoRepository.listar_todos()
+
+
+def crear_pago_manual(
+    id_cliente: int,
+    monto_total: float,
+    id_turno: Optional[int] = None,
+    monto_turno: float = 0.0,
+    monto_servicios: float = 0.0,
+    metodo_pago: Optional[str] = None,
+    estado: str = 'completado',
+    id_usuario_registro: Optional[int] = None
+) -> Pago:
+    """
+    Crea un pago manual registrado por el administrador.
+    Útil para pagos en efectivo o fuera del sistema de reservas.
+    
+    Args:
+        id_cliente: ID del cliente que paga
+        monto_total: Monto total del pago
+        id_turno: ID del turno (opcional, puede ser None)
+        monto_turno: Monto del turno
+        monto_servicios: Monto de servicios adicionales
+        metodo_pago: Método de pago (efectivo, transferencia, etc.)
+        estado: Estado del pago (por defecto 'completado')
+        id_usuario_registro: Usuario que registra el pago
+    
+    Returns:
+        Pago creado
+    """
+    fecha_creacion = datetime.now().isoformat()
+    fecha_completado = datetime.now().isoformat() if estado == 'completado' else None
+    
+    pago_data = {
+        'id_turno': id_turno,
+        'monto_turno': monto_turno,
+        'monto_servicios': monto_servicios,
+        'monto_total': monto_total,
+        'id_cliente': id_cliente,
+        'id_usuario_registro': id_usuario_registro,
+        'estado': estado,
+        'metodo_pago': metodo_pago,
+        'fecha_creacion': fecha_creacion,
+        'fecha_expiracion': None,  # Los pagos manuales no expiran
+        'fecha_completado': fecha_completado
+    }
+    
+    pago = Pago.from_dict(pago_data)
+    
+    try:
+        pago.id = PagoRepository.crear(pago)
+        return pago
+    except Exception as e:
+        raise Exception(f'Error al crear pago manual: {e}')
 
 
 def eliminar_pago(pago_id: int) -> bool:

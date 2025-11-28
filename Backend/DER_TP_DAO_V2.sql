@@ -84,31 +84,16 @@ CREATE TABLE `EquipoMiembro` (
   PRIMARY KEY (`id_equipo`, `id_cliente`)
 );
 
-CREATE TABLE `Inscripcion` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `id_equipo` integer NOT NULL,
-  `id_torneo` integer NOT NULL,
+CREATE TABLE `EquipoXTorneo` (
+  `id_equipo` integer,
+  `id_torneo` integer,
   `fecha_inscripcion` timestamp DEFAULT (now()),
-  `estado` varchar(255) NOT NULL DEFAULT 'pendiente_pago'
-);
-
-CREATE TABLE `Partido` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `id_torneo` integer NOT NULL,
-  `id_turno` integer UNIQUE,
-  `id_equipo_local` integer,
-  `id_equipo_visitante` integer,
-  `id_equipo_ganador` integer,
-  `ronda` varchar(255),
-  `marcador_local` integer,
-  `marcador_visitante` integer,
-  `estado` varchar(255)
+  PRIMARY KEY (`id_equipo`, `id_torneo`)
 );
 
 CREATE TABLE `Pago` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `id_turno` integer UNIQUE,
-  `id_inscripcion` integer UNIQUE,
   `monto_turno` float,
   `monto_servicios` float DEFAULT 0,
   `monto_total` float NOT NULL,
@@ -123,8 +108,6 @@ CREATE TABLE `Pago` (
 );
 
 CREATE UNIQUE INDEX `Turno_index_0` ON `Turno` (`id_cancha`, `fecha_hora_inicio`);
-
-CREATE UNIQUE INDEX `Inscripcion_index_1` ON `Inscripcion` (`id_equipo`, `id_torneo`);
 
 ALTER TABLE `Usuario` ADD FOREIGN KEY (`id_rol`) REFERENCES `Rol` (`id`);
 
@@ -148,23 +131,11 @@ ALTER TABLE `EquipoMiembro` ADD FOREIGN KEY (`id_equipo`) REFERENCES `Equipo` (`
 
 ALTER TABLE `EquipoMiembro` ADD FOREIGN KEY (`id_cliente`) REFERENCES `Cliente` (`id`);
 
-ALTER TABLE `Inscripcion` ADD FOREIGN KEY (`id_equipo`) REFERENCES `Equipo` (`id`);
+ALTER TABLE `EquipoXTorneo` ADD FOREIGN KEY (`id_equipo`) REFERENCES `Equipo` (`id`);
 
-ALTER TABLE `Inscripcion` ADD FOREIGN KEY (`id_torneo`) REFERENCES `Torneo` (`id`);
-
-ALTER TABLE `Partido` ADD FOREIGN KEY (`id_torneo`) REFERENCES `Torneo` (`id`);
-
-ALTER TABLE `Partido` ADD FOREIGN KEY (`id_turno`) REFERENCES `Turno` (`id`);
-
-ALTER TABLE `Partido` ADD FOREIGN KEY (`id_equipo_local`) REFERENCES `Equipo` (`id`);
-
-ALTER TABLE `Partido` ADD FOREIGN KEY (`id_equipo_visitante`) REFERENCES `Equipo` (`id`);
-
-ALTER TABLE `Partido` ADD FOREIGN KEY (`id_equipo_ganador`) REFERENCES `Equipo` (`id`);
+ALTER TABLE `EquipoXTorneo` ADD FOREIGN KEY (`id_torneo`) REFERENCES `Torneo` (`id`);
 
 ALTER TABLE `Pago` ADD FOREIGN KEY (`id_turno`) REFERENCES `Turno` (`id`);
-
-ALTER TABLE `Pago` ADD FOREIGN KEY (`id_inscripcion`) REFERENCES `Inscripcion` (`id`);
 
 ALTER TABLE `Pago` ADD FOREIGN KEY (`id_cliente`) REFERENCES `Cliente` (`id`);
 

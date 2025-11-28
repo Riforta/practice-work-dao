@@ -1,13 +1,11 @@
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import {
-  RectangleStackIcon,
-  ShoppingCartIcon,
-  ChevronDownIcon,
   InboxIcon,
   UserCircleIcon,
   BanknotesIcon,
   HomeIcon,
   CalendarIcon,
+  UsersIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -19,7 +17,6 @@ export default function Sidebar() {
   // Determinar rol del usuario
   const isAdmin = user?.id_rol === 1;
   const isCliente = user?.id_rol === 2;
-  const isGuest = !user; // Sin autenticar
 
   // Navegación pública (usuarios no autenticados)
   const navigationPublic = [
@@ -37,10 +34,11 @@ export default function Sidebar() {
   // Navegación admin (usuarios con rol administrador)
   const navigationAdmin = [
     { name: 'Inicio', href: '/', icon: HomeIcon, current: false },
-    { name: 'Reservas', href: '/reservas', icon: RectangleStackIcon, current: false },
     { name: 'Canchas', href: '/canchas', icon: InboxIcon, current: false },
+    { name: 'Clientes', href: '/clientes', icon: UsersIcon, current: false },
     { name: 'Equipos', href: '/equipos', icon: UserCircleIcon, current: false },
     { name: 'Pagos', href: '/pagos', icon: BanknotesIcon, current: false },
+    { name: 'Reportes', href: '/reportes', icon: ChartBarIcon, current: false },
     { name: 'Torneos', href: '/torneos', icon: UserCircleIcon, current: false },
     { name: 'Servicios', href: '/servicios', icon: UserCircleIcon, current: false },
     { name: 'Turnos', href: '/turnos', icon: UserCircleIcon, current: false },
