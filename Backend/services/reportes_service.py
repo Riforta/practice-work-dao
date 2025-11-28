@@ -23,11 +23,18 @@ class ReportesService:
         Returns:
             Lista de diccionarios con información de reservas por cliente
         """
-        # Obtener todos los turnos reservados
-        turnos = TurnoRepository.obtener_todos_filtrados(
+        # Obtener todos los turnos reservados y completados
+        turnos_reservados = TurnoRepository.obtener_todos_filtrados(
             estado='reservado',
             id_cliente=id_cliente
         )
+        turnos_completados = TurnoRepository.obtener_todos_filtrados(
+            estado='completado',
+            id_cliente=id_cliente
+        )
+        
+        # Combinar ambas listas
+        turnos = turnos_reservados + turnos_completados
         
         # Agrupar por cliente
         reservas_por_cliente: Dict[int, List[Dict[str, Any]]] = {}
@@ -95,11 +102,18 @@ class ReportesService:
         Returns:
             Lista de diccionarios con reservas agrupadas por cancha
         """
-        # Obtener todos los turnos reservados
-        turnos = TurnoRepository.obtener_todos_filtrados(
+        # Obtener todos los turnos reservados y completados
+        turnos_reservados = TurnoRepository.obtener_todos_filtrados(
             estado='reservado',
             id_cancha=id_cancha
         )
+        turnos_completados = TurnoRepository.obtener_todos_filtrados(
+            estado='completado',
+            id_cancha=id_cancha
+        )
+        
+        # Combinar ambas listas
+        turnos = turnos_reservados + turnos_completados
         
         # Filtrar por fecha
         fecha_inicio_dt = datetime.fromisoformat(fecha_inicio)
@@ -164,14 +178,16 @@ class ReportesService:
         Returns:
             Lista de diccionarios con estadísticas de cada cancha
         """
-        # Obtener todas las reservas
+        # Obtener todas las reservas (reservadas y completadas)
         turnos_reservados = TurnoRepository.obtener_todos_filtrados(estado='reservado')
+        turnos_completados = TurnoRepository.obtener_todos_filtrados(estado='completado')
+        todos_turnos = turnos_reservados + turnos_completados
         
         # Contar reservas por cancha
         conteo_por_cancha: Dict[int, int] = {}
         ingresos_por_cancha: Dict[int, float] = {}
         
-        for turno in turnos_reservados:
+        for turno in todos_turnos:
             conteo_por_cancha[turno.id_cancha] = conteo_por_cancha.get(turno.id_cancha, 0) + 1
             ingresos_por_cancha[turno.id_cancha] = ingresos_por_cancha.get(turno.id_cancha, 0) + turno.precio_final
         
@@ -209,12 +225,16 @@ class ReportesService:
         if anio is None:
             anio = datetime.now().year
         
-        # Obtener todas las reservas del año
+        # Obtener todas las reservas del año (reservadas y completadas)
         turnos_reservados = TurnoRepository.obtener_todos_filtrados(estado='reservado')
+        turnos_completados = TurnoRepository.obtener_todos_filtrados(estado='completado')
+        
+        # Combinar ambas listas
+        todos_turnos = turnos_reservados + turnos_completados
         
         # Filtrar por año
         turnos_anio = []
-        for turno in turnos_reservados:
+        for turno in todos_turnos:
             try:
                 fecha_turno = datetime.fromisoformat(turno.fecha_hora_inicio)
                 if fecha_turno.year == anio:
@@ -302,14 +322,16 @@ class ReportesService:
         todas_canchas = CanchaRepository.listar_todas()
         todos_clientes = ClienteRepository.listar_todos()
         turnos_reservados = TurnoRepository.obtener_todos_filtrados(estado='reservado')
+        turnos_completados = TurnoRepository.obtener_todos_filtrados(estado='completado')
+        todos_turnos = turnos_reservados + turnos_completados
         todos_pagos = PagoRepository.listar_todos()
         
         # Calcular métricas
         total_ingresos = sum(p.monto_total for p in todos_pagos if p.estado == 'completado')
-        total_reservas = len(turnos_reservados)
+        total_reservas = len(todos_turnos)
         
         # Clientes activos (con al menos una reserva)
-        clientes_con_reserva = set(t.id_cliente for t in turnos_reservados if t.id_cliente)
+        clientes_con_reserva = set(t.id_cliente for t in todos_turnos if t.id_cliente)
         
         return {
             'total_canchas': len(todas_canchas),

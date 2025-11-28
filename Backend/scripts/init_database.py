@@ -265,26 +265,76 @@ def insertar_datos_basicos():
         
         print("    ✓ 3 roles insertados")
         
-        # 2. USUARIO ADMIN POR DEFECTO
-        print("  → Creando usuario administrador...")
+        # 2. USUARIOS
+        print("  → Creando usuarios...")
         # ✅ Usar pbkdf2_sha256 igual que en auth_service.py
         password_hash = pbkdf2_sha256.hash("admin123")
         
-        cursor.execute("""
-            INSERT OR IGNORE INTO Usuario (nombre_usuario, email, password_hash, id_rol)
-            VALUES (?, ?, ?, ?)
-        """, ('admin', 'admin@canchas.com', password_hash, 1))
+        usuarios = [
+            ('admin', 'admin@canchas.com', password_hash, 1),
+            ('empleado1', 'empleado1@canchas.com', pbkdf2_sha256.hash("emp123"), 3),
+            ('empleado2', 'empleado2@canchas.com', pbkdf2_sha256.hash("emp123"), 3),
+            ('jperez', 'jperez@email.com', pbkdf2_sha256.hash("cliente123"), 2),
+            ('mrodriguez', 'mrodriguez@email.com', pbkdf2_sha256.hash("cliente123"), 2),
+            ('lgomez', 'lgomez@email.com', pbkdf2_sha256.hash("cliente123"), 2),
+            ('asanchez', 'asanchez@email.com', pbkdf2_sha256.hash("cliente123"), 2),
+            ('cmartinez', 'cmartinez@email.com', pbkdf2_sha256.hash("cliente123"), 2),
+            ('pfernandez', 'pfernandez@email.com', pbkdf2_sha256.hash("cliente123"), 2),
+            ('rlopez', 'rlopez@email.com', pbkdf2_sha256.hash("cliente123"), 2),
+            ('jgarcia', 'jgarcia@email.com', pbkdf2_sha256.hash("cliente123"), 2),
+        ]
         
-        print("    ✓ Usuario admin creado (usuario: admin, password: admin123)")
+        for usuario in usuarios:
+            cursor.execute("""
+                INSERT OR IGNORE INTO Usuario (nombre_usuario, email, password_hash, id_rol)
+                VALUES (?, ?, ?, ?)
+            """, usuario)
         
-        # 3. CANCHAS
+        print(f"    ✓ {len(usuarios)} usuarios creados (password para admin: admin123, empleados: emp123, clientes: cliente123)")
+        
+        # 3. CLIENTES
+        print("  → Insertando clientes...")
+        cursor.execute("SELECT id FROM Usuario WHERE id_rol = 2")
+        usuario_ids = [row[0] for row in cursor.fetchall()]
+        
+        clientes = [
+            ('Juan', 'Pérez', '12345678', '3515551234', 'jperez@email.com', usuario_ids[0] if len(usuario_ids) > 0 else None),
+            ('María', 'Rodríguez', '23456789', '3515552345', 'mrodriguez@email.com', usuario_ids[1] if len(usuario_ids) > 1 else None),
+            ('Luis', 'Gómez', '34567890', '3515553456', 'lgomez@email.com', usuario_ids[2] if len(usuario_ids) > 2 else None),
+            ('Ana', 'Sánchez', '45678901', '3515554567', 'asanchez@email.com', usuario_ids[3] if len(usuario_ids) > 3 else None),
+            ('Carlos', 'Martínez', '56789012', '3515555678', 'cmartinez@email.com', usuario_ids[4] if len(usuario_ids) > 4 else None),
+            ('Paula', 'Fernández', '67890123', '3515556789', 'pfernandez@email.com', usuario_ids[5] if len(usuario_ids) > 5 else None),
+            ('Roberto', 'López', '78901234', '3515557890', 'rlopez@email.com', usuario_ids[6] if len(usuario_ids) > 6 else None),
+            ('Julia', 'García', '89012345', '3515558901', 'jgarcia@email.com', usuario_ids[7] if len(usuario_ids) > 7 else None),
+            # Clientes sin usuario asociado
+            ('Diego', 'Torres', '90123456', '3515559012', 'dtorres@email.com', None),
+            ('Sofía', 'Ruiz', '01234567', '3515550123', 'sruiz@email.com', None),
+            ('Martín', 'Silva', '11223344', '3515551122', 'msilva@email.com', None),
+            ('Laura', 'Díaz', '22334455', '3515552233', 'ldiaz@email.com', None),
+            ('Gabriel', 'Castro', '33445566', '3515553344', 'gcastro@email.com', None),
+            ('Valentina', 'Morales', '44556677', '3515554455', 'vmorales@email.com', None),
+            ('Facundo', 'Romero', '55667788', '3515555566', 'fromero@email.com', None),
+        ]
+        
+        for cliente in clientes:
+            cursor.execute("""
+                INSERT OR IGNORE INTO Cliente (nombre, apellido, dni, telefono, email, id_usuario)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, cliente)
+        
+        print(f"    ✓ {len(clientes)} clientes insertados")
+        
+        # 4. CANCHAS
         print("  → Insertando canchas...")
         canchas = [
-            ('Cancha Fútbol 5 - Principal', 'Futbol', 'Cancha de césped sintético con iluminación', 1, 8000.0),
-            ('Cancha Fútbol 7 - Grande', 'Futbol', 'Cancha amplia con tribunas', 1, 12000.0),
-            ('Cancha Padel 1', 'Padel', 'Cancha de polvo de ladrillo', 1, 5000.0),
-            ('Cancha Padel 2', 'Padel', 'Cancha con paredes de vidrio', 1, 6000.0),
-            ('Cancha Básquet', 'Básquet', 'Cancha techada con piso sintético', 1, 10000.0)
+            ('Cancha Fútbol 5 - Principal', 'Fútbol', 'Cancha de césped sintético con iluminación', 1, 8000.0),
+            ('Cancha Fútbol 7 - Grande', 'Fútbol', 'Cancha amplia con tribunas', 1, 12000.0),
+            ('Cancha Fútbol 11 - Estadio', 'Fútbol', 'Cancha reglamentaria con césped natural', 1, 20000.0),
+            ('Cancha Padel 1', 'Pádel', 'Cancha de polvo de ladrillo', 1, 5000.0),
+            ('Cancha Padel 2', 'Pádel', 'Cancha con paredes de vidrio', 1, 6000.0),
+            ('Cancha Padel 3 - VIP', 'Pádel', 'Cancha premium con vestuarios', 1, 7500.0),
+            ('Cancha Básquet - Techada', 'Básquet', 'Cancha techada con piso sintético', 1, 10000.0),
+            ('Cancha Básquet - Exterior', 'Básquet', 'Cancha al aire libre', 1, 7000.0),
         ]
         
         for cancha in canchas:
@@ -295,16 +345,21 @@ def insertar_datos_basicos():
         
         print(f"    ✓ {len(canchas)} canchas insertadas")
         
-        # 4. SERVICIOS ADICIONALES
+        # 5. SERVICIOS ADICIONALES
         print("  → Insertando servicios adicionales...")
         servicios = [
-            ('Pelota de fútbol', 500.0, 1),
+            ('Pelota de fútbol profesional', 800.0, 1),
+            ('Pelota de básquet', 700.0, 1),
+            ('Pelota de paddle', 600.0, 1),
             ('Iluminación nocturna', 1500.0, 1),
             ('Vestuario VIP', 1000.0, 1),
             ('Arbitraje profesional', 3000.0, 1),
-            ('Set de pecheras', 800.0, 1),
-            ('Raquetas de paddle', 1200.0, 1),
-            ('Bebidas y snacks', 2000.0, 1)
+            ('Set de pecheras (10 unidades)', 800.0, 1),
+            ('Raquetas de paddle (2 unidades)', 1200.0, 1),
+            ('Bebidas y snacks', 2000.0, 1),
+            ('Conos de entrenamiento', 500.0, 1),
+            ('Toallas', 300.0, 1),
+            ('Botiquín de primeros auxilios', 1500.0, 1),
         ]
         
         for servicio in servicios:
@@ -315,58 +370,279 @@ def insertar_datos_basicos():
         
         print(f"    ✓ {len(servicios)} servicios adicionales insertados")
         
-        # 5. TURNOS DE EJEMPLO (próximos 3 días)
-        print("  → Generando turnos disponibles...")
+        # 6. TURNOS Y RESERVAS (últimos 30 días + próximos 7 días)
+        print("  → Generando turnos y reservas...")
         
-        # Obtener IDs de canchas
+        # Obtener IDs necesarios
         cursor.execute("SELECT id FROM Cancha")
         cancha_ids = [row[0] for row in cursor.fetchall()]
         
+        cursor.execute("SELECT id FROM Cliente")
+        cliente_ids = [row[0] for row in cursor.fetchall()]
+        
+        cursor.execute("SELECT id FROM Usuario WHERE id_rol = 1 OR id_rol = 3")
+        empleado_ids = [row[0] for row in cursor.fetchall()]
+        
+        cursor.execute("SELECT id, precio_actual FROM ServicioAdicional WHERE activo = 1")
+        servicios_disponibles = cursor.fetchall()
+        
+        import random
+        
         turnos_creados = 0
-        for dia in range(3):  # Próximos 3 días
-            fecha = datetime.now() + timedelta(days=dia)
+        reservas_creadas = 0
+        
+        # Generar turnos históricos (últimos 30 días) con reservas
+        for dia_offset in range(-30, 0):
+            fecha = datetime.now() + timedelta(days=dia_offset)
             
+            # Solo horarios laborales para datos históricos
             for cancha_id in cancha_ids:
-                # Obtener precio de la cancha
                 cursor.execute("SELECT precio_hora FROM Cancha WHERE id = ?", (cancha_id,))
-                precio = cursor.fetchone()[0]
+                precio_base = cursor.fetchone()[0]
                 
-                # Generar turnos de 08:00 a 22:00 (cada 1 hora)
                 for hora in range(8, 22):
                     inicio = fecha.replace(hour=hora, minute=0, second=0, microsecond=0)
                     fin = inicio + timedelta(hours=1)
                     
-                    cursor.execute("""
-                        INSERT OR IGNORE INTO Turno 
-                        (id_cancha, fecha_hora_inicio, fecha_hora_fin, estado, precio_final)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (cancha_id, inicio.isoformat(), fin.isoformat(), 'disponible', precio))
+                    # 70% de probabilidad de estar reservado (histórico)
+                    if random.random() < 0.7:
+                        cliente_id = random.choice(cliente_ids)
+                        empleado_id = random.choice(empleado_ids)
+                        estado = 'completado' if random.random() < 0.95 else 'cancelado'
+                        
+                        cursor.execute("""
+                            INSERT OR IGNORE INTO Turno 
+                            (id_cancha, fecha_hora_inicio, fecha_hora_fin, estado, precio_final, 
+                             id_cliente, id_usuario_registro, reserva_created_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (cancha_id, inicio.isoformat(), fin.isoformat(), estado, precio_base,
+                              cliente_id, empleado_id, inicio.isoformat()))
+                        
+                        turno_id = cursor.lastrowid
+                        
+                        # Agregar servicios adicionales aleatorios (40% de probabilidad)
+                        if turno_id and random.random() < 0.4:
+                            num_servicios = random.randint(1, 3)
+                            servicios_elegidos = random.sample(servicios_disponibles, min(num_servicios, len(servicios_disponibles)))
+                            
+                            for servicio_id, precio_servicio in servicios_elegidos:
+                                cantidad = random.randint(1, 2)
+                                cursor.execute("""
+                                    INSERT OR IGNORE INTO TurnoXServicio 
+                                    (id_turno, id_servicio, cantidad, precio_unitario_congelado)
+                                    VALUES (?, ?, ?, ?)
+                                """, (turno_id, servicio_id, cantidad, precio_servicio))
+                        
+                        # Crear pago correspondiente si está completado
+                        if turno_id and estado == 'completado':
+                            # Calcular monto de servicios
+                            cursor.execute("""
+                                SELECT COALESCE(SUM(cantidad * precio_unitario_congelado), 0)
+                                FROM TurnoXServicio
+                                WHERE id_turno = ?
+                            """, (turno_id,))
+                            monto_servicios = cursor.fetchone()[0]
+                            
+                            monto_total = precio_base + monto_servicios
+                            metodo = random.choice(['efectivo', 'tarjeta', 'transferencia', 'mercadopago'])
+                            
+                            cursor.execute("""
+                                INSERT OR IGNORE INTO Pago
+                                (id_turno, monto_turno, monto_servicios, monto_total, id_cliente,
+                                 id_usuario_registro, estado, metodo_pago, fecha_creacion, fecha_completado)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (turno_id, precio_base, monto_servicios, monto_total, cliente_id,
+                                  empleado_id, 'completado', metodo, inicio.isoformat(), fin.isoformat()))
+                        
+                        reservas_creadas += 1
+                    else:
+                        # Turno disponible o bloqueado (5% bloqueados)
+                        if random.random() < 0.05:
+                            empleado_id = random.choice(empleado_ids)
+                            motivo = random.choice(['Mantenimiento programado', 'Evento privado', 'Reparaciones'])
+                            cursor.execute("""
+                                INSERT OR IGNORE INTO Turno 
+                                (id_cancha, fecha_hora_inicio, fecha_hora_fin, estado, precio_final,
+                                 id_usuario_bloqueo, motivo_bloqueo)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                            """, (cancha_id, inicio.isoformat(), fin.isoformat(), 'bloqueado', precio_base,
+                                  empleado_id, motivo))
+                        else:
+                            cursor.execute("""
+                                INSERT OR IGNORE INTO Turno 
+                                (id_cancha, fecha_hora_inicio, fecha_hora_fin, estado, precio_final)
+                                VALUES (?, ?, ?, ?, ?)
+                            """, (cancha_id, inicio.isoformat(), fin.isoformat(), 'disponible', precio_base))
+                    
+                    turnos_creados += 1
+        
+        # Generar turnos futuros (próximos 7 días)
+        for dia_offset in range(0, 7):
+            fecha = datetime.now() + timedelta(days=dia_offset)
+            
+            for cancha_id in cancha_ids:
+                cursor.execute("SELECT precio_hora FROM Cancha WHERE id = ?", (cancha_id,))
+                precio_base = cursor.fetchone()[0]
+                
+                for hora in range(8, 22):
+                    inicio = fecha.replace(hour=hora, minute=0, second=0, microsecond=0)
+                    fin = inicio + timedelta(hours=1)
+                    
+                    # 30% reservado en el futuro
+                    if random.random() < 0.3:
+                        cliente_id = random.choice(cliente_ids)
+                        empleado_id = random.choice(empleado_ids)
+                        
+                        cursor.execute("""
+                            INSERT OR IGNORE INTO Turno 
+                            (id_cancha, fecha_hora_inicio, fecha_hora_fin, estado, precio_final,
+                             id_cliente, id_usuario_registro, reserva_created_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (cancha_id, inicio.isoformat(), fin.isoformat(), 'reservado', precio_base,
+                              cliente_id, empleado_id, datetime.now().isoformat()))
+                        
+                        turno_id = cursor.lastrowid
+                        
+                        # Servicios para reservas futuras (30% probabilidad)
+                        if turno_id and random.random() < 0.3:
+                            num_servicios = random.randint(1, 2)
+                            servicios_elegidos = random.sample(servicios_disponibles, min(num_servicios, len(servicios_disponibles)))
+                            
+                            for servicio_id, precio_servicio in servicios_elegidos:
+                                cursor.execute("""
+                                    INSERT OR IGNORE INTO TurnoXServicio 
+                                    (id_turno, id_servicio, cantidad, precio_unitario_congelado)
+                                    VALUES (?, ?, ?, ?)
+                                """, (turno_id, servicio_id, 1, precio_servicio))
+                        
+                        # Crear pago pendiente
+                        if turno_id:
+                            cursor.execute("""
+                                SELECT COALESCE(SUM(cantidad * precio_unitario_congelado), 0)
+                                FROM TurnoXServicio
+                                WHERE id_turno = ?
+                            """, (turno_id,))
+                            monto_servicios = cursor.fetchone()[0]
+                            
+                            monto_total = precio_base + monto_servicios
+                            fecha_exp = (inicio + timedelta(hours=-2)).isoformat()  # Expira 2 horas antes
+                            
+                            cursor.execute("""
+                                INSERT OR IGNORE INTO Pago
+                                (id_turno, monto_turno, monto_servicios, monto_total, id_cliente,
+                                 id_usuario_registro, estado, fecha_creacion, fecha_expiracion)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (turno_id, precio_base, monto_servicios, monto_total, cliente_id,
+                                  empleado_id, 'pendiente', datetime.now().isoformat(), fecha_exp))
+                        
+                        reservas_creadas += 1
+                    else:
+                        cursor.execute("""
+                            INSERT OR IGNORE INTO Turno 
+                            (id_cancha, fecha_hora_inicio, fecha_hora_fin, estado, precio_final)
+                            VALUES (?, ?, ?, ?, ?)
+                        """, (cancha_id, inicio.isoformat(), fin.isoformat(), 'disponible', precio_base))
                     
                     turnos_creados += 1
         
         print(f"    ✓ {turnos_creados} turnos generados")
+        print(f"    ✓ {reservas_creadas} reservas creadas con pagos")
         
-        # 6. TORNEO DE EJEMPLO
-        print("  → Creando torneo de ejemplo...")
-        fecha_inicio = (datetime.now() + timedelta(days=7)).date().isoformat()
-        fecha_fin = (datetime.now() + timedelta(days=14)).date().isoformat()
+        # 7. EQUIPOS Y TORNEOS
+        print("  → Creando equipos y torneos...")
         
-        cursor.execute("""
-            INSERT OR IGNORE INTO Torneo 
-            (nombre, tipo_deporte, fecha_inicio, fecha_fin, costo_inscripcion, cupos, reglas, estado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            'Torneo Apertura 2025',
-            'Fútbol 5',
-            fecha_inicio,
-            fecha_fin,
-            5000.0,
-            16,
-            'Torneo eliminación directa. Máximo 8 jugadores por equipo.',
-            'inscripcion_abierta'
-        ))
+        # Crear equipos
+        equipos = [
+            ('Los Tigres FC', 1),  # Capitán: Juan Pérez
+            ('Águilas United', 3),  # Capitán: Luis Gómez
+            ('Leones de Oro', 5),  # Capitán: Carlos Martínez
+            ('Halcones Rojos', 7),  # Capitán: Roberto López
+            ('Cóndores FC', 9),  # Capitán: Diego Torres
+            ('Pumas Basket', 2),  # Capitán: María Rodríguez (básquet)
+            ('Dragones Basket', 4),  # Capitán: Ana Sánchez
+            ('Raquetas Pro', 6),  # Capitán: Paula Fernández (paddle)
+            ('Paddle Masters', 8),  # Capitán: Julia García
+        ]
         
-        print("    ✓ 1 torneo de ejemplo creado")
+        for nombre_equipo, id_capitan in equipos:
+            cursor.execute("""
+                INSERT OR IGNORE INTO Equipo (nombre_equipo, id_capitan)
+                VALUES (?, ?)
+            """, (nombre_equipo, id_capitan))
+        
+        # Asignar miembros a equipos
+        cursor.execute("SELECT id FROM Equipo")
+        equipo_ids = [row[0] for row in cursor.fetchall()]
+        
+        # Distribuir clientes en equipos (3-5 miembros por equipo)
+        cliente_idx = 0
+        for equipo_id in equipo_ids[:5]:  # Solo equipos de fútbol
+            num_miembros = random.randint(3, 5)
+            for _ in range(num_miembros):
+                if cliente_idx < len(cliente_ids):
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO EquipoMiembro (id_equipo, id_cliente)
+                        VALUES (?, ?)
+                    """, (equipo_id, cliente_ids[cliente_idx]))
+                    cliente_idx += 1
+        
+        print(f"    ✓ {len(equipos)} equipos creados con miembros")
+        
+        # Crear torneos
+        fecha_inicio_1 = (datetime.now() - timedelta(days=15)).date().isoformat()
+        fecha_fin_1 = (datetime.now() + timedelta(days=15)).date().isoformat()
+        
+        fecha_inicio_2 = (datetime.now() + timedelta(days=7)).date().isoformat()
+        fecha_fin_2 = (datetime.now() + timedelta(days=21)).date().isoformat()
+        
+        fecha_inicio_3 = (datetime.now() + timedelta(days=30)).date().isoformat()
+        fecha_fin_3 = (datetime.now() + timedelta(days=44)).date().isoformat()
+        
+        torneos = [
+            ('Torneo Apertura 2025 - Fútbol 5', 'Fútbol', fecha_inicio_1, fecha_fin_1, 
+             5000.0, 8, 'Torneo eliminación directa. Máximo 8 jugadores por equipo.', 'en_curso'),
+            ('Copa Primavera - Básquet', 'Básquet', fecha_inicio_2, fecha_fin_2,
+             8000.0, 6, 'Torneo round-robin. Equipos de 5 jugadores.', 'inscripcion_abierta'),
+            ('Torneo Verano - Paddle', 'Pádel', fecha_inicio_3, fecha_fin_3,
+             3000.0, 12, 'Torneo parejas. Eliminación doble.', 'inscripcion_abierta'),
+            ('Liga Local - Fútbol 7', 'Fútbol', fecha_inicio_2, fecha_fin_2,
+             7000.0, 10, 'Liga con partidos todos contra todos.', 'inscripcion_abierta'),
+        ]
+        
+        for torneo in torneos:
+            cursor.execute("""
+                INSERT OR IGNORE INTO Torneo 
+                (nombre, tipo_deporte, fecha_inicio, fecha_fin, costo_inscripcion, 
+                 cupos, reglas, estado)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, torneo)
+        
+        # Inscribir equipos en torneos
+        cursor.execute("SELECT id FROM Torneo")
+        torneo_ids = [row[0] for row in cursor.fetchall()]
+        
+        # Torneo 1 (Fútbol): equipos 1-4 inscritos
+        for i in range(4):
+            cursor.execute("""
+                INSERT OR IGNORE INTO EquipoXTorneo (id_equipo, id_torneo, fecha_inscripcion)
+                VALUES (?, ?, ?)
+            """, (equipo_ids[i], torneo_ids[0], (datetime.now() - timedelta(days=20)).isoformat()))
+        
+        # Torneo 2 (Básquet): equipos 6-7 inscritos
+        for i in range(2):
+            cursor.execute("""
+                INSERT OR IGNORE INTO EquipoXTorneo (id_equipo, id_torneo, fecha_inscripcion)
+                VALUES (?, ?, ?)
+            """, (equipo_ids[5+i], torneo_ids[1], datetime.now().isoformat()))
+        
+        # Torneo 3 (Paddle): equipos 8-9 inscritos
+        for i in range(2):
+            cursor.execute("""
+                INSERT OR IGNORE INTO EquipoXTorneo (id_equipo, id_torneo, fecha_inscripcion)
+                VALUES (?, ?, ?)
+            """, (equipo_ids[7+i], torneo_ids[2], datetime.now().isoformat()))
+        
+        print(f"    ✓ {len(torneos)} torneos creados con inscripciones")
         
         conn.commit()
         print("\n✓ Datos básicos insertados exitosamente")
@@ -401,11 +677,31 @@ def mostrar_resumen():
             print(f"  {tabla:20} {count:>4} registros")
         
         print("\n" + "="*60)
-        print("CREDENCIALES DE ADMINISTRADOR")
+        print("CREDENCIALES DE ACCESO")
         print("="*60)
-        print("  Usuario:   admin")
-        print("  Password:  admin123")
-        print("  Email:     admin@canchas.com")
+        print("\n  ADMINISTRADOR:")
+        print("    Usuario:   admin")
+        print("    Password:  admin123")
+        print("    Email:     admin@canchas.com")
+        
+        print("\n  EMPLEADOS:")
+        print("    Usuario:   empleado1 / empleado2")
+        print("    Password:  emp123")
+        
+        print("\n  CLIENTES (con usuario):")
+        print("    Usuario:   jperez, mrodriguez, lgomez, etc.")
+        print("    Password:  cliente123")
+        
+        print("\n" + "="*60)
+        print("DATOS DE PRUEBA GENERADOS")
+        print("="*60)
+        print("  • 15 clientes registrados")
+        print("  • 8 canchas (Fútbol, Básquet, Pádel)")
+        print("  • 12 servicios adicionales")
+        print("  • ~4,200 turnos (últimos 30 días + próximos 7 días)")
+        print("  • ~2,000 reservas con pagos")
+        print("  • 9 equipos formados")
+        print("  • 4 torneos activos")
         
         print("\n" + "="*60)
         print("PRÓXIMOS PASOS")
@@ -417,7 +713,8 @@ def mostrar_resumen():
         print("     POST /api/auth/login")
         print("     {\"nombre_usuario\": \"admin\", \"password\": \"admin123\"}")
         print("")
-        print("  3. Crear clientes y probar reservas")
+        print("  3. Probar reportes con datos históricos reales")
+        print("  4. Validar reservas, pagos y torneos")
         print("="*60 + "\n")
         
     finally:
