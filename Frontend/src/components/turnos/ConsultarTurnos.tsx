@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import turnosApi from '../../services/turnos.service';
 import type { Turno, CanchaRef } from '../../services/turnos.service';
+import clientesApi from '../../services/clientes.service';
+import type { Cliente } from '../../services/clientes.service';
 
 const estados = ['todos', 'disponible', 'reservado', 'bloqueado', 'cancelado', 'finalizado'];
 const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
@@ -16,19 +18,23 @@ const formatDate = (value: string) => {
 export default function ConsultarTurnos() {
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [canchas, setCanchas] = useState<CanchaRef[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [estadoFiltro, setEstadoFiltro] = useState<string>('todos');
   const [canchaFiltro, setCanchaFiltro] = useState<number | 'todos'>('todos');
+  const [fechaFiltro, setFechaFiltro] = useState<string>('');
+  const [horarioFiltro, setHorarioFiltro] = useState<string>('');
   const navigate = useNavigate();
 
   const loadData = async () => {
     setLoading(true);
     setError('');
     try {
-      const [t, c] = await Promise.all([turnosApi.list(), turnosApi.listCanchas()]);
+      const [t, c, cl] = await Promise.all([turnosApi.list(), turnosApi.listCanchas(), clientesApi.list()]);
       setTurnos(t);
       setCanchas(c);
+      setClientes(cl);
     } catch (err) {
       console.error(err);
       setError('No se pudieron cargar los turnos.');
@@ -47,13 +53,36 @@ export default function ConsultarTurnos() {
     return map;
   }, [canchas]);
 
+  const clienteMap = useMemo(() => {
+    const map = new Map<number, Cliente>();
+    clientes.forEach((c) => map.set(c.id, c));
+    return map;
+  }, [clientes]);
+
   const filtered = useMemo(() => {
     return turnos.filter((t) => {
       const pasaEstado = estadoFiltro === 'todos' ? true : t.estado === estadoFiltro;
       const pasaCancha = canchaFiltro === 'todos' ? true : t.id_cancha === canchaFiltro;
-      return pasaEstado && pasaCancha;
+      
+      // Filtro por fecha (solo la parte de fecha, sin hora)
+      let pasaFecha = true;
+      if (fechaFiltro) {
+        const fechaInicio = new Date(t.fecha_hora_inicio);
+        const fechaBuscada = new Date(fechaFiltro);
+        pasaFecha = fechaInicio.toDateString() === fechaBuscada.toDateString();
+      }
+      
+      // Filtro por horario (hora de inicio)
+      let pasaHorario = true;
+      if (horarioFiltro) {
+        const fechaInicio = new Date(t.fecha_hora_inicio);
+        const horaInicio = fechaInicio.toTimeString().substring(0, 5); // HH:MM
+        pasaHorario = horaInicio === horarioFiltro;
+      }
+      
+      return pasaEstado && pasaCancha && pasaFecha && pasaHorario;
     });
-  }, [turnos, estadoFiltro, canchaFiltro]);
+  }, [turnos, estadoFiltro, canchaFiltro, fechaFiltro, horarioFiltro]);
 
   const handleDelete = async (id?: number) => {
     if (!id) return;
@@ -82,23 +111,29 @@ export default function ConsultarTurnos() {
           </div>
           <div className="flex gap-3">
             <button
+              onClick={() => navigate('/')}
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 min-w-[10rem]"
+            >
+              Volver
+            </button>
+            <button
               onClick={() => void loadData()}
-              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-60"
+              className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-60 min-w-[10rem]"
               disabled={loading}
             >
               {loading ? 'Actualizando...' : 'Refrescar'}
             </button>
-            <Link
-              to="/turnos/nuevo"
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+            <button
+              onClick={() => navigate('/turnos/nuevo')}
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 min-w-[10rem]"
             >
-              + Registrar turno
-            </Link>
+              Registrar turno
+            </button>
           </div>
         </header>
 
         <section className="bg-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/10">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="text-sm text-emerald-100">
               Filtrar por estado
               <select
@@ -114,7 +149,7 @@ export default function ConsultarTurnos() {
               </select>
             </label>
 
-            <label className="text-sm text-emerald-100 sm:col-span-2">
+            <label className="text-sm text-emerald-100">
               Filtrar por cancha
               <select
                 value={canchaFiltro}
@@ -131,6 +166,39 @@ export default function ConsultarTurnos() {
                 ))}
               </select>
             </label>
+
+            <label className="text-sm text-emerald-100">
+              Filtrar por fecha
+              <input
+                type="date"
+                value={fechaFiltro}
+                onChange={(e) => setFechaFiltro(e.target.value)}
+                className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+            </label>
+
+            <label className="text-sm text-emerald-100">
+              Filtrar por horario
+              <input
+                type="time"
+                value={horarioFiltro}
+                onChange={(e) => setHorarioFiltro(e.target.value)}
+                className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+            </label>
+          </div>
+          <div className="mt-3 text-right">
+            <button
+              onClick={() => {
+                setEstadoFiltro('todos');
+                setCanchaFiltro('todos');
+                setFechaFiltro('');
+                setHorarioFiltro('');
+              }}
+              className="rounded-lg border border-white/20 px-3 py-2 text-sm text-emerald-100 hover:border-emerald-400 hover:text-white"
+            >
+              Limpiar filtros
+            </button>
           </div>
         </section>
 
@@ -140,6 +208,7 @@ export default function ConsultarTurnos() {
               <thead className="bg-white/10 text-emerald-100 uppercase text-xs tracking-wider">
                 <tr>
                   <th className="px-4 py-3 text-left">Cancha</th>
+                  <th className="px-4 py-3 text-left">Cliente</th>
                   <th className="px-4 py-3 text-left">Inicio</th>
                   <th className="px-4 py-3 text-left">Fin</th>
                   <th className="px-4 py-3 text-left">Estado</th>
@@ -150,21 +219,27 @@ export default function ConsultarTurnos() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td className="px-4 py-6 text-center text-emerald-100" colSpan={6}>
+                    <td className="px-4 py-6 text-center text-emerald-100" colSpan={7}>
                       Cargando turnos...
                     </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-6 text-center text-emerald-100" colSpan={6}>
+                    <td className="px-4 py-6 text-center text-emerald-100" colSpan={7}>
                       No hay turnos para mostrar.
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((t) => (
+                  filtered.map((t) => {
+                    const cliente = t.id_cliente ? clienteMap.get(t.id_cliente) : null;
+                    const nombreCliente = cliente ? `${cliente.nombre} ${cliente.apellido || ''}`.trim() : 'Sin reservar';
+                    return (
                     <tr key={t.id} className="border-t border-white/5 hover:bg-white/5">
                       <td className="px-4 py-3 font-semibold">
                         {canchaMap.get(t.id_cancha)?.nombre ?? `Cancha ${t.id_cancha}`}
+                      </td>
+                      <td className="px-4 py-3 text-emerald-100">
+                        {nombreCliente}
                       </td>
                       <td className="px-4 py-3 text-emerald-100">{formatDate(t.fecha_hora_inicio)}</td>
                       <td className="px-4 py-3 text-emerald-100">{formatDate(t.fecha_hora_fin)}</td>
@@ -202,21 +277,13 @@ export default function ConsultarTurnos() {
                         </button>
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
         </section>
-
-        <div className="text-center">
-          <Link
-            to="/"
-            className="inline-block rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm text-emerald-100 hover:border-emerald-400 hover:text-white"
-          >
-            Volver al inicio
-          </Link>
-        </div>
       </div>
     </div>
   );

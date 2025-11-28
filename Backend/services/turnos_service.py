@@ -4,7 +4,7 @@ Este módulo implementa la lógica de negocio para gestionar turnos/reservas.
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from models.turno import Turno
 from repositories.turno_repository import TurnoRepository
@@ -68,15 +68,29 @@ def _validar_datos_turno(data: Dict[str, Any], para_actualizar: bool = False, tu
 
     # Validar formato y que fecha_fin sea posterior a fecha_inicio
     try:
-        inicio_dt = datetime.fromisoformat(str(data['fecha_hora_inicio']))
-        fin_dt = datetime.fromisoformat(str(data['fecha_hora_fin']))
+        # Manejar fechas con o sin zona horaria
+        inicio_str = str(data['fecha_hora_inicio']).replace('Z', '+00:00')
+        fin_str = str(data['fecha_hora_fin']).replace('Z', '+00:00')
+        
+        # Si no tiene zona horaria, agregarla para hacer la comparación
+        if '+' not in inicio_str and 'Z' not in str(data['fecha_hora_inicio']):
+            inicio_dt = datetime.fromisoformat(inicio_str).replace(tzinfo=timezone.utc)
+        else:
+            inicio_dt = datetime.fromisoformat(inicio_str)
+            
+        if '+' not in fin_str and 'Z' not in str(data['fecha_hora_fin']):
+            fin_dt = datetime.fromisoformat(fin_str).replace(tzinfo=timezone.utc)
+        else:
+            fin_dt = datetime.fromisoformat(fin_str)
     except Exception:
         raise ValueError("Formato de fecha/hora inválido. Usa ISO (YYYY-MM-DDTHH:MM).")
 
     if fin_dt <= inicio_dt:
         raise ValueError("La fecha de fin debe ser posterior a la fecha de inicio")
 
-    if inicio_dt < datetime.now():
+    # Comparar con datetime.now con timezone aware
+    ahora = datetime.now(timezone.utc)
+    if inicio_dt < ahora:
         raise ValueError("No se puede crear/actualizar un turno en una fecha/hora pasada")
 
     estado = data.get('estado', 'disponible')

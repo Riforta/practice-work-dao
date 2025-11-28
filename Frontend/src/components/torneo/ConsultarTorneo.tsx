@@ -85,28 +85,33 @@ export default function ConsultarTorneo() {
 	return (
 		<div className="min-h-screen bg-slate-950 text-white px-4 py-10">
 			<div className="mx-auto flex max-w-6xl flex-col gap-6">
-				<header className="space-y-3">
-					<div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-						<div>
-							<p className="text-xs uppercase tracking-widest text-emerald-300">Torneos</p>
-							<h1 className="text-3xl font-bold">Panel de torneos</h1>
-						</div>
-						<div className="flex flex-wrap gap-3">
-							<button
-								onClick={fetchTorneos}
-								className="rounded-lg border border-white/20 px-4 py-2 text-sm hover:border-emerald-400"
-							>
-								Refrescar
-							</button>
-							<Link
-								to="/torneos/RegistrarTorneo"
-								className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-emerald-400"
-							>
-								+ Nuevo torneo
-							</Link>
-						</div>
+				<header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+					<div>
+						<p className="text-sm uppercase tracking-widest text-emerald-200">Torneos</p>
+						<h1 className="text-3xl font-bold">Panel de torneos</h1>
+						{error && <p className="text-sm text-red-300 mt-2">{error}</p>}
 					</div>
-					{error && <p className="text-sm text-red-300">{error}</p>}
+					<div className="flex gap-3">
+						<button
+							onClick={() => navigate('/')}
+							className="min-w-[10rem] rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20"
+						>
+							Volver
+						</button>
+						<button
+							onClick={fetchTorneos}
+							className="min-w-[10rem] rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-60"
+							disabled={loading}
+						>
+							{loading ? 'Actualizando...' : 'Refrescar'}
+						</button>
+						<button
+							onClick={() => navigate('/torneos/RegistrarTorneo')}
+							className="min-w-[10rem] rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+						>
+							Registrar torneo
+						</button>
+					</div>
 				</header>
 
 				<section className="grid grid-cols-2 gap-4 md:grid-cols-5">

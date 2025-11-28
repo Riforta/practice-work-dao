@@ -316,6 +316,10 @@ class TurnoRepository:
         Se considera solape si:
         nuevo_inicio < existente_fin AND nuevo_fin > existente_inicio
         """
+        # Normalizar fechas: quitar la 'Z' si existe para comparar correctamente
+        fecha_hora_inicio = fecha_hora_inicio.replace('Z', '').replace('+00:00', '')
+        fecha_hora_fin = fecha_hora_fin.replace('Z', '').replace('+00:00', '')
+        
         conn = get_connection()
         try:
             cursor = conn.cursor()
@@ -331,9 +335,11 @@ class TurnoRepository:
             if excluir_id is not None:
                 sql += " AND id != ?"
                 params.append(excluir_id)
-
+            
             cursor.execute(sql, tuple(params))
             row = cursor.fetchone()
-            return (row[0] if row else 0) > 0
+            count = row[0] if row else 0
+            
+            return count > 0
         finally:
             conn.close()
