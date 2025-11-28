@@ -261,18 +261,6 @@ TP-DAO---4K1---G22---2025/
 - [ ] Calendario visual de reservas
 - [ ] Chat de soporte en vivo
 
-## 🧪 Testing
-
-```bash
-# Backend
-cd Backend
-pytest tests/
-
-# Frontend
-cd Frontend
-npm run test
-```
-
 ## 📝 Notas Técnicas
 
 ### Base de Datos
@@ -299,7 +287,7 @@ npm run test
 
 ## 📄 Licencia
 
-Este proyecto es parte de un trabajo práctico universitario para la materia Diseño y Arquitectura Orientada a Objetos.
+Este proyecto es parte de un trabajo práctico universitario para la materia Desarrollo de Aplicaciones con Objetos.
 
 ---
 
