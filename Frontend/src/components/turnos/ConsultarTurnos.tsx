@@ -24,7 +24,8 @@ export default function ConsultarTurnos() {
   const [estadoFiltro, setEstadoFiltro] = useState<string>('todos');
   const [canchaFiltro, setCanchaFiltro] = useState<number | 'todos'>('todos');
   const [fechaFiltro, setFechaFiltro] = useState<string>('');
-  const [horarioFiltro, setHorarioFiltro] = useState<string>('');
+  const [horarioInicioFiltro, setHorarioInicioFiltro] = useState<string>('');
+  const [horarioFinFiltro, setHorarioFinFiltro] = useState<string>('');
   const navigate = useNavigate();
 
   const loadData = async () => {
@@ -67,22 +68,46 @@ export default function ConsultarTurnos() {
       // Filtro por fecha (solo la parte de fecha, sin hora)
       let pasaFecha = true;
       if (fechaFiltro) {
-        const fechaInicio = new Date(t.fecha_hora_inicio);
-        const fechaBuscada = new Date(fechaFiltro);
-        pasaFecha = fechaInicio.toDateString() === fechaBuscada.toDateString();
+        try {
+          const fechaInicio = new Date(t.fecha_hora_inicio);
+          const fechaBuscada = new Date(fechaFiltro + 'T00:00:00');
+          pasaFecha = fechaInicio.toDateString() === fechaBuscada.toDateString();
+        } catch {
+          pasaFecha = false;
+        }
       }
       
-      // Filtro por horario (hora de inicio)
-      let pasaHorario = true;
-      if (horarioFiltro) {
-        const fechaInicio = new Date(t.fecha_hora_inicio);
-        const horaInicio = fechaInicio.toTimeString().substring(0, 5); // HH:MM
-        pasaHorario = horaInicio === horarioFiltro;
+      // Filtro por horario inicio
+      let pasaHorarioInicio = true;
+      if (horarioInicioFiltro) {
+        try {
+          const fechaInicio = new Date(t.fecha_hora_inicio);
+          const horaInicio = fechaInicio.getHours() * 60 + fechaInicio.getMinutes();
+          const [h, m] = horarioInicioFiltro.split(':').map(Number);
+          const horaBuscada = h * 60 + m;
+          pasaHorarioInicio = horaInicio >= horaBuscada;
+        } catch {
+          pasaHorarioInicio = false;
+        }
       }
       
-      return pasaEstado && pasaCancha && pasaFecha && pasaHorario;
+      // Filtro por horario fin
+      let pasaHorarioFin = true;
+      if (horarioFinFiltro) {
+        try {
+          const fechaInicio = new Date(t.fecha_hora_inicio);
+          const horaInicio = fechaInicio.getHours() * 60 + fechaInicio.getMinutes();
+          const [h, m] = horarioFinFiltro.split(':').map(Number);
+          const horaBuscada = h * 60 + m;
+          pasaHorarioFin = horaInicio <= horaBuscada;
+        } catch {
+          pasaHorarioFin = false;
+        }
+      }
+      
+      return pasaEstado && pasaCancha && pasaFecha && pasaHorarioInicio && pasaHorarioFin;
     });
-  }, [turnos, estadoFiltro, canchaFiltro, fechaFiltro, horarioFiltro]);
+  }, [turnos, estadoFiltro, canchaFiltro, fechaFiltro, horarioInicioFiltro, horarioFinFiltro]);
 
   const handleDelete = async (id?: number) => {
     if (!id) return;
@@ -173,16 +198,27 @@ export default function ConsultarTurnos() {
                 type="date"
                 value={fechaFiltro}
                 onChange={(e) => setFechaFiltro(e.target.value)}
+                max="9999-12-31"
                 className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
               />
             </label>
 
             <label className="text-sm text-emerald-100">
-              Filtrar por horario
+              Horario desde
               <input
                 type="time"
-                value={horarioFiltro}
-                onChange={(e) => setHorarioFiltro(e.target.value)}
+                value={horarioInicioFiltro}
+                onChange={(e) => setHorarioInicioFiltro(e.target.value)}
+                className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+            </label>
+
+            <label className="text-sm text-emerald-100">
+              Horario hasta
+              <input
+                type="time"
+                value={horarioFinFiltro}
+                onChange={(e) => setHorarioFinFiltro(e.target.value)}
                 className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
               />
             </label>
@@ -193,7 +229,8 @@ export default function ConsultarTurnos() {
                 setEstadoFiltro('todos');
                 setCanchaFiltro('todos');
                 setFechaFiltro('');
-                setHorarioFiltro('');
+                setHorarioInicioFiltro('');
+                setHorarioFinFiltro('');
               }}
               className="rounded-lg border border-white/20 px-3 py-2 text-sm text-emerald-100 hover:border-emerald-400 hover:text-white"
             >

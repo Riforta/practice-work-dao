@@ -63,55 +63,54 @@ export default function RegistrarCliente() {
 							)}
 						</label>
 
-						<label className="text-sm">
-							Apellido
-							<input
-								type="text"
-								{...register('apellido')}
-								className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm"
-								placeholder="Ej: Pérez"
-							/>
-							{errors.apellido && (
-								<span className="text-xs text-red-300">{errors.apellido.message}</span>
-							)}
-						</label>
-
-						<label className="text-sm">
-							DNI
-							<input
-								type="text"
-								{...register('dni', {
-									pattern: {
-										value: /^[0-9]{7,8}$/,
-										message: 'DNI inválido (7-8 dígitos)',
-									},
-								})}
-								className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm"
-								placeholder="Ej: 12345678"
-								maxLength={8}
-							/>
-							{errors.dni && <span className="text-xs text-red-300">{errors.dni.message}</span>}
-						</label>
-
-						<label className="text-sm">
-							Teléfono
-							<input
-								type="tel"
-								{...register('telefono', {
-									pattern: {
-										value: /^[0-9\s\-\+\(\)]{7,20}$/,
-										message: 'Teléfono inválido',
-									},
-								})}
-								className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm"
-								placeholder="Ej: 351-1234567"
-							/>
-							{errors.telefono && (
-								<span className="text-xs text-red-300">{errors.telefono.message}</span>
-							)}
-						</label>
-
-						<label className="text-sm md:col-span-2">
+					<label className="text-sm">
+						Apellido <span className="text-red-400">*</span>
+						<input
+							type="text"
+							{...register('apellido', {
+								required: 'El apellido es obligatorio',
+								minLength: { value: 2, message: 'Mínimo 2 caracteres' },
+							})}
+							className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm"
+							placeholder="Ej: Pérez"
+						/>
+						{errors.apellido && (
+							<span className="text-xs text-red-300">{errors.apellido.message}</span>
+						)}
+					</label>					<label className="text-sm">
+						DNI <span className="text-red-400">*</span>
+						<input
+							type="text"
+							{...register('dni', {
+								required: 'El DNI es obligatorio',
+								pattern: {
+									value: /^[0-9]{7,8}$/,
+									message: 'DNI inválido (7-8 dígitos)',
+								},
+							})}
+							className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm"
+							placeholder="Ej: 12345678"
+							maxLength={8}
+						/>
+						{errors.dni && <span className="text-xs text-red-300">{errors.dni.message}</span>}
+					</label>					<label className="text-sm">
+						Teléfono <span className="text-red-400">*</span>
+						<input
+							type="tel"
+							{...register('telefono', {
+								required: 'El teléfono es obligatorio',
+								pattern: {
+									value: /^[0-9\s\-\+\(\)]{7,20}$/,
+									message: 'Teléfono inválido',
+								},
+							})}
+							className="mt-2 w-full rounded-lg bg-slate-900/80 px-3 py-2 text-sm"
+							placeholder="Ej: 351-1234567"
+						/>
+						{errors.telefono && (
+							<span className="text-xs text-red-300">{errors.telefono.message}</span>
+						)}
+					</label>						<label className="text-sm md:col-span-2">
 							Email
 							<input
 								type="email"

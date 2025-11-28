@@ -118,25 +118,23 @@ export default function ConsultarClientes() {
 						<div className="overflow-x-auto">
 							<table className="w-full text-sm">
 								<thead>
-									<tr className="border-b border-white/10">
-										<th className="text-left py-3 px-2 font-semibold text-emerald-200">ID</th>
-										<th className="text-left py-3 px-2 font-semibold text-emerald-200">Nombre</th>
-										<th className="text-left py-3 px-2 font-semibold text-emerald-200">Apellido</th>
-										<th className="text-left py-3 px-2 font-semibold text-emerald-200">DNI</th>
-										<th className="text-left py-3 px-2 font-semibold text-emerald-200">Teléfono</th>
-										<th className="text-left py-3 px-2 font-semibold text-emerald-200">Email</th>
-										<th className="text-center py-3 px-2 font-semibold text-emerald-200">Acciones</th>
-									</tr>
+								<tr className="border-b border-white/10">
+									<th className="text-left py-3 px-2 font-semibold text-emerald-200">Nombre</th>
+									<th className="text-left py-3 px-2 font-semibold text-emerald-200">Apellido</th>
+									<th className="text-left py-3 px-2 font-semibold text-emerald-200">DNI</th>
+									<th className="text-left py-3 px-2 font-semibold text-emerald-200">Teléfono</th>
+									<th className="text-left py-3 px-2 font-semibold text-emerald-200">Email</th>
+									<th className="text-center py-3 px-2 font-semibold text-emerald-200">Acciones</th>
+								</tr>
 								</thead>
 								<tbody>
 									{clientesFiltrados.map((cliente) => (
 										<tr
-											key={cliente.id}
-											className="border-b border-white/5 hover:bg-white/5 transition-colors"
-										>
-											<td className="py-3 px-2">#{cliente.id}</td>
-											<td className="py-3 px-2 font-semibold">{cliente.nombre}</td>
-											<td className="py-3 px-2">{cliente.apellido || '-'}</td>
+										key={cliente.id}
+										className="border-b border-white/5 hover:bg-white/5 transition-colors"
+									>
+										<td className="py-3 px-2 font-semibold">{cliente.nombre}</td>
+										<td className="py-3 px-2">{cliente.apellido || '-'}</td>
 											<td className="py-3 px-2">{cliente.dni || '-'}</td>
 											<td className="py-3 px-2">{cliente.telefono || '-'}</td>
 											<td className="py-3 px-2 text-xs">
@@ -151,23 +149,23 @@ export default function ConsultarClientes() {
 													'-'
 												)}
 											</td>
-											<td className="py-3 px-2">
-												<div className="flex items-center justify-center gap-2">
-													<button
-														onClick={() => navigate(`/clientes/modificar/${cliente.id}`)}
-														className="rounded-lg bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-200 hover:bg-blue-500/30"
-													>
-														Editar
-													</button>
-													<button
-														onClick={() => handleDelete(cliente)}
-														disabled={deleteId === cliente.id}
-														className="rounded-lg bg-red-500/20 px-3 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/30 disabled:opacity-50"
-													>
-														{deleteId === cliente.id ? 'Eliminando...' : 'Eliminar'}
-													</button>
-												</div>
-											</td>
+										<td className="py-3 px-2">
+											<div className="flex items-center justify-center gap-2">
+												<button
+													onClick={() => navigate(`/clientes/modificar/${cliente.id}`)}
+													className="rounded-lg bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/30"
+												>
+													Editar
+												</button>
+												<button
+													onClick={() => handleDelete(cliente)}
+													disabled={deleteId === cliente.id}
+													className="rounded-lg bg-red-500/20 px-3 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/30 disabled:opacity-50"
+												>
+													{deleteId === cliente.id ? 'Eliminando...' : 'Eliminar'}
+												</button>
+											</div>
+										</td>
 										</tr>
 									))}
 								</tbody>

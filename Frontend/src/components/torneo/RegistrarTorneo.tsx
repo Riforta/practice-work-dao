@@ -19,7 +19,7 @@ type FormValues = {
 	estado?: string;
 };
 
-const deportes = ['Fútbol', 'Básquet', 'Pádel', 'Hockey'];
+const deportes = ['Fútbol', 'Básquet', 'Pádel'];
 const estados = ['planificado', 'inscripciones_abiertas', 'en_curso', 'finalizado', 'cancelado'];
 
 const formatDateRange = (inicio?: string, fin?: string) => {

@@ -71,6 +71,17 @@ export default function RegistrarPago() {
 	const [serviciosSeleccionados, setServiciosSeleccionados] = useState<Set<number>>(new Set());
 
 	const montoTurnoValue = watch('monto_turno');
+	const idTurnoValue = watch('id_turno');
+
+	// Actualizar monto cuando se selecciona un turno
+	useEffect(() => {
+		if (idTurnoValue && incluirTurno) {
+			const turno = turnos.find(t => t.id === Number(idTurnoValue));
+			if (turno && turno.precio_final) {
+				setValue('monto_turno', turno.precio_final);
+			}
+		}
+	}, [idTurnoValue, turnos, incluirTurno, setValue]);
 
 	const montoServicios = useMemo(() => {
 		return Array.from(serviciosSeleccionados).reduce((acc, id) => {
@@ -169,7 +180,7 @@ export default function RegistrarPago() {
 				monto_servicios: montoServicios,
 				monto_total: montoTotal,
 				metodo_pago: values.metodo_pago,
-				estado: 'completado',
+				estado: values.estado,
 			};
 
 			console.log('Enviando payload:', payload);

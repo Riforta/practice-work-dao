@@ -18,6 +18,7 @@ type FormValues = {
 	estado?: string | null;
 };
 
+const deportes = ['Fútbol', 'Básquet', 'Pádel'];
 const estadoLabels: Record<string, string> = {
 	planificado: 'Planificado',
 	inscripciones_abiertas: 'Inscripciones abiertas',
@@ -50,7 +51,7 @@ const formatRange = (inicio?: string | null, fin?: string | null) => {
 	if (!inicio) return 'Sin horario';
 	const start = new Date(inicio);
 	const end = fin ? new Date(fin) : null;
-	const formatter = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short' });
+	const formatter = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short' });
 	return end ? `${formatter.format(start)} → ${formatter.format(end)}` : formatter.format(start);
 };
 
@@ -303,16 +304,20 @@ export default function ModificarTorneo() {
 								{errors.nombre && <span className="text-xs text-red-300">{errors.nombre.message}</span>}
 							</label>
 
-							<label className="text-sm">
-								Tipo de deporte
-								<input
-									type="text"
-									{...register('tipo_deporte', { required: 'El deporte es obligatorio' })}
-									className="mt-2 w-full rounded-lg bg-slate-900/70 px-3 py-2 text-sm"
-								/>
-							</label>
-
-							<label className="text-sm">
+						<label className="text-sm">
+							Tipo de deporte
+							<select
+								{...register('tipo_deporte', { required: 'El deporte es obligatorio' })}
+								className="mt-2 w-full rounded-lg bg-slate-900/70 px-3 py-2 text-sm"
+							>
+								{deportes.map((deporte) => (
+									<option key={deporte} value={deporte} className="bg-slate-900">
+										{deporte}
+									</option>
+								))}
+							</select>
+							{errors.tipo_deporte && <span className="text-xs text-red-300">{errors.tipo_deporte.message}</span>}
+						</label>							<label className="text-sm">
 								Fecha de inicio
 								<input
 									type="date"
