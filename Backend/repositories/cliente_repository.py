@@ -121,6 +121,13 @@ class ClienteRepository:
             conn.close()
     
     @staticmethod
+    def listar_todos() -> List[Cliente]:
+        """
+        Alias de obtener_todos() para consistencia con otros repositories.
+        """
+        return ClienteRepository.obtener_todos()
+    
+    @staticmethod
     def buscar_por_nombre(nombre: str) -> List[Cliente]:
         """
         Busca clientes por nombre (coincidencia parcial).

@@ -37,6 +37,7 @@ import RegistrarPago from './components/pagos/RegistrarPago.tsx'
 import ConsultarClientes from './components/clientes/ConsultarClientes.tsx'
 import RegistrarCliente from './components/clientes/RegistrarCliente.tsx'
 import ModificarCliente from './components/clientes/ModificarCliente.tsx'
+import Reportes from './components/reportes/Reportes.tsx'
 import { ModalProvider } from './contexts/ModalContext'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/common/ProtectedRoute.tsx'
@@ -250,6 +251,13 @@ function App() {
                   <Route path="/clientes/modificar/:id" element={
                     <ProtectedRoute requireAdmin>
                       <ModificarCliente />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Reportes - Admin */}
+                  <Route path="/reportes" element={
+                    <ProtectedRoute requireAdmin>
+                      <Reportes />
                     </ProtectedRoute>
                   } />
                 </Routes>

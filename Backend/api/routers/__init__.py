@@ -14,6 +14,7 @@ from .equipos import router as equipos_router
 from .equipo_miembros import router as equipo_miembros_router
 from .equipo_torneo import router as equipo_torneo_router
 from .pagos import router as pagos_router
+from .reportes import router as reportes_router
 from .servicios_adicionales import router as servicios_adicionales_router
 from .torneos import router as torneos_router
 from .turnos import router as turnos_router
@@ -27,6 +28,7 @@ __all__ = [
 	"equipo_miembros_router",
 	"equipo_torneo_router",
 	"pagos_router",
+	"reportes_router",
 	"servicios_adicionales_router",
 	"torneos_router",
 	"turnos_router",
@@ -49,6 +51,7 @@ def register_routers(app: FastAPI, prefix: str = "/api") -> None:
 	app.include_router(equipo_miembros_router, prefix=prefix)
 	app.include_router(equipo_torneo_router, prefix=prefix)
 	app.include_router(pagos_router, prefix=prefix)
+	app.include_router(reportes_router, prefix=prefix)
 	app.include_router(servicios_adicionales_router, prefix=prefix)
 	app.include_router(torneos_router, prefix=prefix)
 	app.include_router(usuarios_router, prefix=prefix)

@@ -5,6 +5,7 @@ import {
   HomeIcon,
   CalendarIcon,
   UsersIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -37,6 +38,7 @@ export default function Sidebar() {
     { name: 'Clientes', href: '/clientes', icon: UsersIcon, current: false },
     { name: 'Equipos', href: '/equipos', icon: UserCircleIcon, current: false },
     { name: 'Pagos', href: '/pagos', icon: BanknotesIcon, current: false },
+    { name: 'Reportes', href: '/reportes', icon: ChartBarIcon, current: false },
     { name: 'Torneos', href: '/torneos', icon: UserCircleIcon, current: false },
     { name: 'Servicios', href: '/servicios', icon: UserCircleIcon, current: false },
     { name: 'Turnos', href: '/turnos', icon: UserCircleIcon, current: false },
