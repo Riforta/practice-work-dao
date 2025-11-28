@@ -1,147 +1,184 @@
 import React, { useState, useEffect } from 'react';
-// Asegúrate de que la ruta sea correcta
 import service from '../../../services/canchas.service'; 
-import { Link, useNavigate } from 'react-router-dom';
-import backgroundImage from "./imagenes/campnou.jpg";
+import { useNavigate } from 'react-router-dom';
 
 export default function ConsultarCanchaFutbol() {
   const [rows, setRows] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
-  const [loading, setLoading] = useState(false); // Estado para mostrar "Cargando..."
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  // Función unificada para cargar datos
   const fetchCanchas = async (searchTerm = '') => {
     setLoading(true);
+    setError('');
     try {
       let data;
       if (searchTerm) {
-        // Si hay texto, buscamos por nombre
         data = await service.getCanchaFutbolByName(searchTerm);
       } else {
-        // Si está vacío, traemos todas
         data = await service.getAllCanchasFutbol();
       }
       setRows(data);
-    } catch (error) {
-      console.error('Error cargando canchas:', error);
+    } catch (err) {
+      console.error('Error cargando canchas:', err);
+      setError('No se pudieron cargar las canchas de fútbol.');
     } finally {
       setLoading(false);
     }
   };
 
-  // useEffect con DEBOUNCE (El truco para no saturar)
   useEffect(() => {
-    // 1. Configuramos el temporizador (500ms)
     const timerId = setTimeout(() => {
       fetchCanchas(filter);
     }, 500);
 
-    // 2. Limpieza: Si el usuario escribe antes de 500ms, cancelamos el timer anterior
     return () => {
       clearTimeout(timerId);
     };
-  }, [filter]); // Se ejecuta cuando cambia el filtro
+  }, [filter]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(event.target.value);
   };
 
-  const handleDeleteUser = async (id: number) => {
+  const handleDelete = async (id: number) => {
     if(!window.confirm("¿Seguro que quieres eliminar esta cancha?")) return;
     
+    setDeleteId(id);
     try {
       await service.deleteCanchaFutbol(id);
-      // Recargamos la lista actual manteniendo el filtro
-      await fetchCanchas(filter); 
-    } catch (error) {
-      console.error('Error al eliminar:', error);
+      await fetchCanchas(filter);
+    } catch (err) {
+      console.error('Error al eliminar:', err);
+      setError('No se pudo eliminar la cancha. Puede tener turnos asociados.');
+    } finally {
+      setDeleteId(null);
     }
   };
 
+  const canchasFiltradas = filter
+    ? rows.filter((c) => c.nombre.toLowerCase().includes(filter.toLowerCase()))
+    : rows;
+
   return (
-    <div
-      className="min-h-screen bg-no-repeat bg-cover bg-center"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "scroll" // evita parallax/repintados raros
-      }}>
-      {/* Wrapper centrado horizontalmente y con espacio superior */}
-      <div className="w-full max-w-6xl mx-auto px-6 py-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="bg-white text-red-900 px-6 py-3 rounded hover:bg-gray-100 shadow text-4xl md:text-5xl font-extrabold" >Gestión de Canchas</h2>
-          <Link to="/canchas/futbol/RegistrarCancha" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            + Nueva Cancha
-          </Link>
-        </div>
+    <div className="min-h-screen bg-slate-950 text-white px-4 py-10">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-sm uppercase tracking-widest text-emerald-200">Canchas de Fútbol</p>
+            <h1 className="text-3xl font-bold">Gestión de Canchas de Fútbol</h1>
+            {error && <p className="text-sm text-red-300 mt-2">{error}</p>}
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate('/canchas')}
+              className="min-w-[10rem] rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20"
+            >
+              Volver
+            </button>
+            <button
+              onClick={() => fetchCanchas(filter)}
+              className="min-w-[10rem] rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-60"
+              disabled={loading}
+            >
+              {loading ? 'Actualizando...' : 'Refrescar'}
+            </button>
+            <button
+              onClick={() => navigate('/canchas/futbol/RegistrarCancha')}
+              className="min-w-[10rem] rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+            >
+              + Nueva Cancha
+            </button>
+          </div>
+        </header>
 
-        {/* Barra de búsqueda */}
-        <div className="mb-6">
-          <input 
-            type="text"
-            className="bg-white w-full max-w-md p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="🔍 Buscar por nombre..."
-            value={filter}
-            onChange={handleSearchChange}
-          />
-        </div>
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="mb-4">
+            <input
+              type="search"
+              value={filter}
+              onChange={handleSearchChange}
+              placeholder="Buscar por nombre..."
+              className="w-full rounded-lg bg-slate-900/80 px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
 
-        {/* Tabla */}
-        <div className="overflow-auto bg-white rounded-lg shadow max-h-[60vh]">
-            <table className="w-full text-sm text-left text-gray-500">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-100 text-center">
-                    <tr>
-                        <th className="px-6 py-3">Nombre</th>
-                        <th className="px-6 py-3">Deporte</th>
-                        <th className="px-6 py-3">Descripción</th>
-                        <th className="px-6 py-3">Estado</th>
-                        <th className='px-6 py-3'>Precio x Hora</th>
-                        <th className="px-6 py-3">Acciones</th>
-                    </tr>
+          {loading ? (
+            <p className="text-center text-emerald-100 py-8">Cargando canchas...</p>
+          ) : canchasFiltradas.length === 0 ? (
+            <p className="text-center text-emerald-100 py-8">
+              {filter ? 'No se encontraron canchas con ese criterio.' : 'No hay canchas de fútbol registradas.'}
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-3 px-2 font-semibold text-emerald-200">Nombre</th>
+                    <th className="text-left py-3 px-2 font-semibold text-emerald-200">Descripción</th>
+                    <th className="text-center py-3 px-2 font-semibold text-emerald-200">Estado</th>
+                    <th className="text-center py-3 px-2 font-semibold text-emerald-200">Precio/Hora</th>
+                    <th className="text-center py-3 px-2 font-semibold text-emerald-200">Acciones</th>
+                  </tr>
                 </thead>
-                <tbody className="text-center">
-                    {loading ? (
-                        <tr><td colSpan={6} className="py-4">Cargando...</td></tr>
-                    ) : rows.length === 0 ? (
-                        <tr><td colSpan={6} className="py-4">No se encontraron canchas</td></tr>
-                    ) : (
-                        rows.map((item: any) => (
-                            <tr key={item.Id || item.id} className="border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">{item.nombre}</td>
-                                <td className="px-6 py-4">{item.tipo_deporte}</td>
-                                <td className="px-6 py-4">{item.descripcion}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 rounded-full text-xs ${item.activa ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                        {item.activa ? 'Activa' : 'Inactiva'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">{item.precio_hora}</td>
-                                <td className="px-6 py-4 space-x-2">
-                                    <button
-                                        onClick={() => navigate(`/canchas/futbol/ModificarCanchaFutbol/${item.Id || item.id}`)}
-                                        className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs">
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteUser(item.Id || item.id)}
-                                        className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs">
-                                        Eliminar
-                                    </button>
-                                </td>
-                            </tr>
-                        ))
-                    )}
+                <tbody>
+                  {canchasFiltradas.map((item: any) => (
+                    <tr
+                      key={item.Id || item.id}
+                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                    >
+                      <td className="py-3 px-2 font-semibold">{item.nombre}</td>
+                      <td className="py-3 px-2 text-gray-300">{item.descripcion || '-'}</td>
+                      <td className="py-3 px-2 text-center">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          item.activa 
+                            ? 'bg-emerald-500/20 text-emerald-200' 
+                            : 'bg-red-500/20 text-red-200'
+                        }`}>
+                          {item.activa ? 'Activa' : 'Inactiva'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2 text-center font-semibold text-emerald-200">
+                        ${item.precio_hora}
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => navigate(`/canchas/futbol/ModificarCanchaFutbol/${item.Id || item.id}`)}
+                            className="rounded-lg bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/30"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.Id || item.id)}
+                            disabled={deleteId === (item.Id || item.id)}
+                            className="rounded-lg bg-red-500/20 px-3 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/30 disabled:opacity-50"
+                          >
+                            {deleteId === (item.Id || item.id) ? 'Eliminando...' : 'Eliminar'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
-            </table>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+          <p className="text-sm text-emerald-200">
+            <span className="font-semibold">Total de canchas:</span> {canchasFiltradas.length}
+            {filter && rows.length !== canchasFiltradas.length && (
+              <span className="ml-2 text-emerald-100/70">
+                (filtradas de {rows.length})
+              </span>
+            )}
+          </p>
         </div>
-        
-        <div className="mt-6 text-center">
-          <Link to='/' className='bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-100 shadow'>Volver al menú</Link>
-        </div>
-    </div>
+      </div>
     </div>
   );
 }

@@ -32,13 +32,13 @@ export default function Modal({ open, onClose, children }: ModalProps) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-4 overflow-y-auto">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      <div ref={containerRef} className="relative z-10 w-full max-w-md">
+      <div ref={containerRef} className="relative z-10 w-full max-w-md my-8">
         <div className="transform transition-all duration-200 ease-out scale-100 opacity-100">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
-            <div className="p-6">{children}</div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-6 overflow-y-auto">{children}</div>
           </div>
         </div>
       </div>

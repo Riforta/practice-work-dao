@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useModal } from '../../contexts/ModalContext'
@@ -22,6 +22,7 @@ export default function CanchasPublicas() {
   const { user } = useAuth()
   const { openModal } = useModal()
   const navigate = useNavigate()
+  const location = useLocation()
   const [canchas, setCanchas] = useState<Cancha[]>([])
   const [turnosPorCancha, setTurnosPorCancha] = useState<Record<number, Turno[]>>({})
   const [serviciosDisponibles, setServiciosDisponibles] = useState<ServicioAdicional[]>([])
@@ -32,6 +33,15 @@ export default function CanchasPublicas() {
   const [fechaAplicada, setFechaAplicada] = useState<string>('') // Fecha realmente aplicada
 
   const isAuthenticated = !!user
+
+  // Aplicar filtro de deporte desde la navegación
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const deporte = params.get('deporte')
+    if (deporte) {
+      setDeporteFilter(deporte)
+    }
+  }, [location.search])
 
   useEffect(() => {
     cargarDatos()

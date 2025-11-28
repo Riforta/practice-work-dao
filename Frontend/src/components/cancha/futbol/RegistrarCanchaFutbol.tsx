@@ -1,20 +1,19 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import service from "../../../services/canchas.service";
-import backgroundImage from "./imagenes/robben.jpg";
 
 type FormData = {
   nombre: string;
   tipo_deporte: string;
-  descripcion: string; // Quité el optional '?' para que coincida con el form
-  activa: boolean;     // Quité el optional '?'
-  precio_hora: number; 
+  descripcion: string;
+  activa: boolean;
+  precio_hora: number;
 };
 
 export default function RegistroCanchaFutbol() {
-  const [action, setAction] = useState("R");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     defaultValues: { tipo_deporte: "futbol", activa: true }
@@ -23,135 +22,143 @@ export default function RegistroCanchaFutbol() {
   const navigate = useNavigate();
 
   const onSubmit = async (data: FormData) => {
-    // 0. Limpiamos errores previos
     setErrorMessage("");
+    setLoading(true);
 
     try {
-      // --- PASO 1: VERIFICAR SI YA EXISTE ---
-      // Llamamos al servicio para buscar por nombre
       const coincidencias = await service.getCanchaFutbolByName(data.nombre);
       
-      // Verificamos si alguna de las coincidencias tiene el nombre EXACTO
-      // (Porque la búsqueda puede traer parecidos)
       const existeDuplicado = coincidencias.some((c: any) => 
         c.nombre.trim().toLowerCase() === data.nombre.trim().toLowerCase()
       );
 
       if (existeDuplicado) {
-        setErrorMessage("⚠️ Ya existe una cancha con ese nombre. Por favor elija otro.");
-        return; // <--- AQUÍ SE DETIENE SI EXISTE
+        setErrorMessage("Ya existe una cancha con ese nombre. Por favor elija otro.");
+        setLoading(false);
+        return;
       }
 
-      // --- PASO 2: CREAR LA CANCHA ---
-      // Si llegamos acá, es porque no existe. Procedemos a crear.
       await service.creatCanchaFutbol(data);
-
-      // --- PASO 3: REDIRECCIONAR ---
-      // Si no hubo error en el await anterior, redirigimos.
-      setAction("C"); // Opcional, ya que nos vamos de la página
       navigate("/canchas/futbol");
 
     } catch (error) {
       console.error(error);
       setErrorMessage("Error al conectar con el servidor. Intente nuevamente.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {action === "R" && (
+    <div className="min-h-screen bg-slate-950 text-white px-4 py-10">
+      <div className="max-w-2xl mx-auto space-y-6">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-sm uppercase tracking-widest text-emerald-200">Nueva Cancha</p>
+            <h1 className="text-3xl font-bold">Registrar Cancha de Fútbol</h1>
+          </div>
+          <button
+            onClick={() => navigate('/canchas/futbol')}
+            className="min-w-[10rem] rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20"
+          >
+            Volver
+          </button>
+        </header>
+
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="w-full max-w-md bg-white/10 backdrop-blur-md text-white rounded-lg p-6 shadow-lg"
+          className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4"
         >
-          <h5 className="text-center text-xl font-semibold mb-4">Registro de Cancha</h5>
-
           {errorMessage && (
-            <div className="bg-red-500/20 border border-red-500 text-red-100 p-3 rounded mb-4 text-sm text-center">
+            <div className="rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 p-3 text-sm">
               {errorMessage}
             </div>
           )}
 
-          <label className="block text-sm font-medium mb-1">Nombre</label>
-          <input
-            {...register("nombre", { required: "El nombre es requerido" })}
-            className="w-full mb-3 px-3 py-2 border border-white/30 bg-white/5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-white placeholder-gray-400"
-            placeholder="Nombre de la cancha"
-          />
-          {errors.nombre && <p className="text-red-400 text-sm mb-2">{errors.nombre.message}</p>}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-emerald-200">Nombre</label>
+            <input
+              {...register("nombre", { required: "El nombre es requerido" })}
+              className="w-full px-3 py-2 rounded-lg bg-slate-900/80 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Nombre de la cancha"
+            />
+            {errors.nombre && <p className="text-red-400 text-sm mt-1">{errors.nombre.message}</p>}
+          </div>
 
-          <label className="block text-sm font-medium mb-1">Deporte</label>
-          <select
-            {...register("tipo_deporte", { required: "Seleccione un deporte" })}
-            className="w-full mb-3 px-3 py-2 border border-white/30 bg-white/5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-white"
-          >
-            <option value="Futbol" className="bg-gray-700">Futbol</option>
-          </select>
-          {errors.tipo_deporte && <p className="text-red-400 text-sm mb-2">{errors.tipo_deporte.message}</p>}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-emerald-200">Tipo de Deporte</label>
+            <input
+              type="text"
+              value="Fútbol"
+              disabled
+              className="w-full px-3 py-2 rounded-lg bg-slate-800/50 border border-white/10 text-gray-400 cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-400 mt-1">Este campo se establece automáticamente.</p>
+          </div>
 
-          <label className="block text-sm font-medium mb-1">Descripción</label>
-          <textarea
-            {...register("descripcion")}
-            className="w-full mb-3 px-3 py-2 border border-white/30 bg-white/5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-white placeholder-gray-400"
-            rows={3}
-            placeholder="Descripción breve"
-          />
+          <div>
+            <label className="block text-sm font-medium mb-2 text-emerald-200">Descripción</label>
+            <textarea
+              {...register("descripcion")}
+              className="w-full px-3 py-2 rounded-lg bg-slate-900/80 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              rows={3}
+              placeholder="Descripción breve"
+            />
+          </div>
 
-        <label className="block mb-2 text-sm">Precio x Hora</label>
-        <input
-          type="number"
-          min={10}
-          step={1}
-          {...register("precio_hora", {
-            required: "El precio es requerido",
-            valueAsNumber: true,
-            min: { value: 10, message: "El precio debe ser mayor o igual a 10" },
-          })}
-          className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
-        />
-        {errors.precio_hora && <p className="text-red-400 text-sm mb-2">{errors.precio_hora.message}</p>}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-emerald-200">Precio por Hora</label>
+            <input
+              type="number"
+              min={10}
+              step={1}
+              {...register("precio_hora", {
+                required: "El precio es requerido",
+                valueAsNumber: true,
+                min: { value: 10, message: "El precio debe ser mayor o igual a 10" },
+              })}
+              className="w-full px-3 py-2 rounded-lg bg-slate-900/80 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="0"
+            />
+            {errors.precio_hora && <p className="text-red-400 text-sm mt-1">{errors.precio_hora.message}</p>}
+          </div>
 
-          <label className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2">
             <input
               type="checkbox"
               {...register("activa")}
               defaultChecked
-              className="w-4 h-4 rounded text-blue-500 bg-white/5 border-white/30"
+              className="w-4 h-4 rounded text-emerald-500 bg-slate-900/80 border-white/10 focus:ring-2 focus:ring-emerald-500"
             />
-            <span className="text-sm">Activa</span>
-          </label>
+            <label className="text-sm text-emerald-100">Cancha activa</label>
+          </div>
 
-          <div className="flex justify-center gap-3">
+          <div className="flex justify-end gap-3 pt-4">
             <button
-              type="submit"
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
+              type="button"
+              onClick={() => navigate('/canchas/futbol')}
+              disabled={loading}
+              className="px-4 py-2 rounded-lg bg-white/10 text-emerald-100 hover:bg-white/20 font-semibold transition-colors disabled:opacity-50"
             >
-              Registrar
+              Cancelar
             </button>
             <button
               type="button"
               onClick={() => { reset(); setErrorMessage(""); }}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
+              className="px-4 py-2 rounded-lg bg-white/10 text-emerald-100 hover:bg-white/20 font-semibold transition-colors"
             >
               Limpiar
             </button>
-            <Link
-              to="/canchas/futbol"
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-md shadow transition-colors"
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 font-semibold transition-colors disabled:opacity-50"
             >
-              Volver
-            </Link>
+              {loading ? 'Registrando...' : 'Registrar Cancha'}
+            </button>
           </div>
         </form>
-      )}
+      </div>
     </div>
   );
 }

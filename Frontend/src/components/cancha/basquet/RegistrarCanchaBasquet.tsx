@@ -1,159 +1,196 @@
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
-import service from "../../../services/canchas.service";
-import backgroundImage from "./imagenes/curry_hd_si.jpg";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import service from '../../../services/canchas.service';
 
-type FormData = {
+interface FormData {
   nombre: string;
-  tipo_deporte: string;
-  descripcion: string; // Quité el optional '?' para que coincida con el form
-  activa: boolean;     // Quité el optional '?'
+  descripcion: string;
+  activa: boolean;
   precio_hora: number;
-};
+  tipo_deporte: string;
+}
 
-export default function RegistroCanchaBasquet() {
-  const [action, setAction] = useState("R");
-  const [errorMessage, setErrorMessage] = useState("");
-  
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
-    defaultValues: { tipo_deporte: "basquet", activa: true }
-  });
-  
+export default function RegistrarCanchaBasquet() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<FormData>({
+    defaultValues: {
+      tipo_deporte: 'basquet',
+      activa: true,
+      precio_hora: 0
+    }
+  });
+
   const onSubmit = async (data: FormData) => {
-    // 0. Limpiamos errores previos
-    setErrorMessage("");
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
-      // --- PASO 1: VERIFICAR SI YA EXISTE ---
-      // Llamamos al servicio para buscar por nombre
-      const coincidencias = await service.getCanchaBasquetByName(data.nombre);
-      
-      // Verificamos si alguna de las coincidencias tiene el nombre EXACTO
-      // (Porque la búsqueda puede traer parecidos)
-      const existeDuplicado = coincidencias.some((c: any) => 
-        c.nombre.trim().toLowerCase() === data.nombre.trim().toLowerCase()
+      const allCanchas = await service.getAllCanchasBasquet();
+      const exists = allCanchas.some(
+        (c: any) => c.nombre.toLowerCase() === data.nombre.toLowerCase()
       );
 
-      if (existeDuplicado) {
-        setErrorMessage("⚠️ Ya existe una cancha con ese nombre. Por favor elija otro.");
-        return; // <--- AQUÍ SE DETIENE SI EXISTE
+      if (exists) {
+        setError('Ya existe una cancha de básquet con ese nombre.');
+        setLoading(false);
+        return;
       }
 
-      // --- PASO 2: CREAR LA CANCHA ---
-      // Si llegamos acá, es porque no existe. Procedemos a crear.
-      await service.creatCanchaBasquet(data);
+      const payload = {
+        ...data,
+        tipo_deporte: 'basquet'
+      };
 
-      // --- PASO 3: REDIRECCIONAR ---
-      // Si no hubo error en el await anterior, redirigimos.
-      setAction("C"); // Opcional, ya que nos vamos de la página
-      navigate("/canchas/basquet");
-
-    } catch (error) {
-      console.error(error);
-      setErrorMessage("Error al conectar con el servidor. Intente nuevamente.");
+      await service.creatCanchaBasquet(payload);
+      setSuccess('¡Cancha de básquet creada con éxito!');
+      setTimeout(() => {
+        navigate('/canchas/basquet');
+      }, 1500);
+    } catch (err: any) {
+      console.error('Error al crear cancha:', err);
+      setError(err?.response?.data?.detail || 'Error al crear la cancha.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {action === "R" && (
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="w-full max-w-md bg-white/10 backdrop-blur-md text-white rounded-lg p-6 shadow-lg"
-        >
-          <h5 className="text-center text-xl font-semibold mb-4">Registro de Cancha</h5>
-
-          {errorMessage && (
-            <div className="bg-red-500/20 border border-red-500 text-red-100 p-3 rounded mb-4 text-sm text-center">
-              {errorMessage}
-            </div>
-          )}
-
-          <label className="block text-sm font-medium mb-1">Nombre</label>
-          <input
-            {...register("nombre", { required: "El nombre es requerido" })}
-            className="w-full mb-3 px-3 py-2 border border-white/30 bg-white/5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-white placeholder-gray-400"
-            placeholder="Nombre de la cancha"
-          />
-          {errors.nombre && <p className="text-red-400 text-sm mb-2">{errors.nombre.message}</p>}
-
-          <label className="block text-sm font-medium mb-1">Deporte</label>
-          <select
-            {...register("tipo_deporte", { required: "Seleccione un deporte" })}
-            className="w-full mb-3 px-3 py-2 border border-white/30 bg-white/5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-white"
+    <div className="min-h-screen bg-slate-950 text-white px-4 py-10">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-sm uppercase tracking-widest text-emerald-200">Nueva Cancha</p>
+            <h1 className="text-3xl font-bold">Registrar Cancha de Básquet</h1>
+          </div>
+          <button
+            onClick={() => navigate('/canchas/basquet')}
+            className="min-w-[10rem] rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20"
           >
-            <option value="basquet" className="bg-gray-700">Basquet</option>
-            <option value="futbol" className="bg-gray-700">Futbol</option>
-            <option value="padel" className="bg-gray-700">Padel</option>
-          </select>
-          {errors.tipo_deporte && <p className="text-red-400 text-sm mb-2">{errors.tipo_deporte.message}</p>}
+            Volver
+          </button>
+        </header>
 
-          <label className="block text-sm font-medium mb-1">Descripción</label>
-          <textarea
-            {...register("descripcion")}
-            className="w-full mb-3 px-3 py-2 border border-white/30 bg-white/5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-white placeholder-gray-400"
-            rows={3}
-            placeholder="Descripción breve"
-          />
+        {error && (
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+            <p className="text-sm text-red-200">{error}</p>
+          </div>
+        )}
 
-        <label className="block mb-2 text-sm">Precio x Hora</label>
-        <input
-          type="number"
-          min={10}
-          step={1}
-          {...register("precio_hora", {
-            required: "El precio es requerido",
-            valueAsNumber: true,
-            min: { value: 10, message: "El precio debe ser mayor o igual a 10" },
-          })}
-          className="w-full mb-3 px-3 py-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
-        />
-        {errors.precio_hora && <p className="text-red-400 text-sm mb-2">{errors.precio_hora.message}</p>}
+        {success && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+            <p className="text-sm text-emerald-200">{success}</p>
+          </div>
+        )}
 
-          <label className="flex items-center gap-2 mb-4">
-            <input
-              type="checkbox"
-              {...register("activa")}
-              defaultChecked
-              className="w-4 h-4 rounded text-blue-500 bg-white/5 border-white/30"
-            />
-            <span className="text-sm">Activa</span>
-          </label>
+        <form onSubmit={handleSubmit(onSubmit)} className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-emerald-200">
+                Nombre de la Cancha *
+              </label>
+              <input
+                type="text"
+                {...register('nombre', { required: 'El nombre es obligatorio' })}
+                className="w-full rounded-lg bg-slate-900/80 px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Ej: Cancha Básquet Principal"
+              />
+              {errors.nombre && (
+                <p className="text-xs text-red-300 mt-1">{errors.nombre.message}</p>
+              )}
+            </div>
 
-          <div className="flex justify-center gap-3">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
-            >
-              Registrar
-            </button>
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-emerald-200">
+                Descripción
+              </label>
+              <textarea
+                {...register('descripcion')}
+                rows={4}
+                className="w-full rounded-lg bg-slate-900/80 px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Describe las características de la cancha..."
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-emerald-200">
+                Tipo de Deporte
+              </label>
+              <input
+                type="text"
+                value="Básquet"
+                disabled
+                className="w-full rounded-lg bg-slate-800/50 px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-400 mt-1">Este campo se establece automáticamente.</p>
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-emerald-200">
+                Precio por Hora *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                {...register('precio_hora', {
+                  required: 'El precio es obligatorio',
+                  min: { value: 0, message: 'El precio debe ser mayor o igual a 0' }
+                })}
+                className="w-full rounded-lg bg-slate-900/80 px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="0.00"
+              />
+              {errors.precio_hora && (
+                <p className="text-xs text-red-300 mt-1">{errors.precio_hora.message}</p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="activa"
+                {...register('activa')}
+                className="w-5 h-5 rounded bg-slate-900 border-white/20 text-emerald-500 focus:ring-2 focus:ring-emerald-500"
+              />
+              <label htmlFor="activa" className="text-sm font-semibold text-emerald-200 cursor-pointer">
+                Cancha activa
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
             <button
               type="button"
-              onClick={() => { reset(); setErrorMessage(""); }}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
+              onClick={() => navigate('/canchas/basquet')}
+              disabled={loading}
+              className="flex-1 rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-white/20 disabled:opacity-50"
             >
-              Limpiar
+              Cancelar
             </button>
-            <Link
-              to="/canchas/basquet"
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-md shadow transition-colors"
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-50"
             >
-              Volver
-            </Link>
+              {loading ? 'Guardando...' : 'Crear Cancha'}
+            </button>
           </div>
         </form>
-      )}
+
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+          <p className="text-xs text-emerald-200">
+            <span className="font-semibold">Nota:</span> Los campos marcados con * son obligatorios.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
