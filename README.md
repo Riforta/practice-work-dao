@@ -193,10 +193,9 @@ TP-DAO---4K1---G22---2025/
 │   │   └── connection.py    # Conexión SQLite
 │   ├── models/              # Modelos de datos
 │   ├── repositories/        # Capa de acceso a datos
-│   ├── services/            # Lógica de negocio
 │   ├── scripts/
+│   ├── services/            # Lógica de negocio
 │   │   └── init_database.py # Script de inicialización
-│   ├── tests/               # Tests unitarios
 │   └── requirements.txt
 │
 └── Frontend/
