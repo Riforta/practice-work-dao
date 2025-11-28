@@ -1,8 +1,4 @@
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import {
-  RectangleStackIcon,
-  ShoppingCartIcon,
-  ChevronDownIcon,
   InboxIcon,
   UserCircleIcon,
   BanknotesIcon,
@@ -20,7 +16,6 @@ export default function Sidebar() {
   // Determinar rol del usuario
   const isAdmin = user?.id_rol === 1;
   const isCliente = user?.id_rol === 2;
-  const isGuest = !user; // Sin autenticar
 
   // Navegación pública (usuarios no autenticados)
   const navigationPublic = [
