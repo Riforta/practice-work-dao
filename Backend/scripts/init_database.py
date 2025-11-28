@@ -515,7 +515,7 @@ def insertar_datos_basicos():
                                     VALUES (?, ?, ?, ?)
                                 """, (turno_id, servicio_id, 1, precio_servicio))
                         
-                        # Crear pago pendiente
+                        # Crear pago iniciado para reservas futuras
                         if turno_id:
                             cursor.execute("""
                                 SELECT COALESCE(SUM(cantidad * precio_unitario_congelado), 0)
@@ -533,7 +533,7 @@ def insertar_datos_basicos():
                                  id_usuario_registro, estado, fecha_creacion, fecha_expiracion)
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """, (turno_id, precio_base, monto_servicios, monto_total, cliente_id,
-                                  empleado_id, 'pendiente', datetime.now().isoformat(), fecha_exp))
+                                  empleado_id, 'iniciado', datetime.now().isoformat(), fecha_exp))
                         
                         reservas_creadas += 1
                     else:
@@ -602,11 +602,11 @@ def insertar_datos_basicos():
             ('Torneo Apertura 2025 - Fútbol 5', 'Fútbol', fecha_inicio_1, fecha_fin_1, 
              5000.0, 8, 'Torneo eliminación directa. Máximo 8 jugadores por equipo.', 'en_curso'),
             ('Copa Primavera - Básquet', 'Básquet', fecha_inicio_2, fecha_fin_2,
-             8000.0, 6, 'Torneo round-robin. Equipos de 5 jugadores.', 'inscripcion_abierta'),
+             8000.0, 6, 'Torneo round-robin. Equipos de 5 jugadores.', 'inscripciones_abiertas'),
             ('Torneo Verano - Paddle', 'Pádel', fecha_inicio_3, fecha_fin_3,
-             3000.0, 12, 'Torneo parejas. Eliminación doble.', 'inscripcion_abierta'),
+             3000.0, 12, 'Torneo parejas. Eliminación doble.', 'inscripciones_abiertas'),
             ('Liga Local - Fútbol 7', 'Fútbol', fecha_inicio_2, fecha_fin_2,
-             7000.0, 10, 'Liga con partidos todos contra todos.', 'inscripcion_abierta'),
+             7000.0, 10, 'Liga con partidos todos contra todos.', 'inscripciones_abiertas'),
         ]
         
         for torneo in torneos:
