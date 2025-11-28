@@ -159,38 +159,15 @@ def crear_tablas():
             )
         """)
         
-        # Tabla Inscripcion
+        # Tabla EquipoXTorneo (relación N:M entre Equipo y Torneo)
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS "Inscripcion" (
-                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-                "id_equipo" INTEGER NOT NULL,
-                "id_torneo" INTEGER NOT NULL,
+            CREATE TABLE IF NOT EXISTS "EquipoXTorneo" (
+                "id_equipo" INTEGER,
+                "id_torneo" INTEGER,
                 "fecha_inscripcion" TEXT DEFAULT CURRENT_TIMESTAMP,
-                "estado" TEXT NOT NULL DEFAULT 'pendiente_pago',
-                UNIQUE ("id_equipo", "id_torneo"),
+                PRIMARY KEY ("id_equipo", "id_torneo"),
                 FOREIGN KEY ("id_equipo") REFERENCES "Equipo"("id") ON DELETE CASCADE,
                 FOREIGN KEY ("id_torneo") REFERENCES "Torneo"("id") ON DELETE CASCADE
-            )
-        """)
-        
-        # Tabla Partido
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS "Partido" (
-                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-                "id_torneo" INTEGER NOT NULL,
-                "id_turno" INTEGER UNIQUE,
-                "id_equipo_local" INTEGER,
-                "id_equipo_visitante" INTEGER,
-                "id_equipo_ganador" INTEGER,
-                "ronda" TEXT,
-                "marcador_local" INTEGER,
-                "marcador_visitante" INTEGER,
-                "estado" TEXT,
-                FOREIGN KEY ("id_torneo") REFERENCES "Torneo"("id") ON DELETE CASCADE,
-                FOREIGN KEY ("id_turno") REFERENCES "Turno"("id") ON DELETE SET NULL,
-                FOREIGN KEY ("id_equipo_local") REFERENCES "Equipo"("id") ON DELETE SET NULL,
-                FOREIGN KEY ("id_equipo_visitante") REFERENCES "Equipo"("id") ON DELETE SET NULL,
-                FOREIGN KEY ("id_equipo_ganador") REFERENCES "Equipo"("id") ON DELETE SET NULL
             )
         """)
         
@@ -199,7 +176,6 @@ def crear_tablas():
             CREATE TABLE IF NOT EXISTS "Pago" (
                 "id" INTEGER PRIMARY KEY AUTOINCREMENT,
                 "id_turno" INTEGER UNIQUE,
-                "id_inscripcion" INTEGER UNIQUE,
                 "monto_turno" REAL,
                 "monto_servicios" REAL DEFAULT 0,
                 "monto_total" REAL NOT NULL,
@@ -212,7 +188,6 @@ def crear_tablas():
                 "fecha_expiracion" TEXT,
                 "fecha_completado" TEXT,
                 FOREIGN KEY ("id_turno") REFERENCES "Turno"("id") ON DELETE CASCADE,
-                FOREIGN KEY ("id_inscripcion") REFERENCES "Inscripcion"("id") ON DELETE CASCADE,
                 FOREIGN KEY ("id_cliente") REFERENCES "Cliente"("id") ON DELETE CASCADE,
                 FOREIGN KEY ("id_usuario_registro") REFERENCES "Usuario"("id") ON DELETE SET NULL
             )
@@ -417,7 +392,7 @@ def mostrar_resumen():
         # Contar registros en cada tabla
         tablas = [
             'Rol', 'Usuario', 'Cliente', 'Cancha', 'ServicioAdicional', 
-            'Turno', 'Torneo', 'Equipo', 'Inscripcion', 'Partido', 'Pago'
+            'Turno', 'Torneo', 'Equipo', 'EquipoMiembro', 'EquipoXTorneo', 'Pago'
         ]
         
         for tabla in tablas:

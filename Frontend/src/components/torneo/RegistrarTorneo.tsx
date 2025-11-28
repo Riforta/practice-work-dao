@@ -6,7 +6,7 @@ import torneosApi from '../../services/torneo.service';
 import turnosApi from '../../services/turnos.service';
 import type { Turno, CanchaRef } from '../../services/turnos.service';
 import equiposService, { type Equipo } from '../../services/equipos.service';
-import inscripcionesApi from '../../services/inscripciones.service';
+import equipoTorneoApi from '../../services/equipoTorneo.service';
 
 type FormValues = {
 	nombre: string;
@@ -197,7 +197,7 @@ export default function RegistrarTorneo() {
 				await torneosApi.assignTurnosToTorneo(torneo.id, selectedTurnos, currentUserId);
 			}
 			if (torneo.id && selectedEquipos.length > 0) {
-				await inscripcionesApi.assignEquiposToTorneo(torneo.id, selectedEquipos);
+				await equipoTorneoApi.assignEquiposToTorneo(torneo.id, selectedEquipos);
 			}
 
 			setSuccess('Torneo creado correctamente. Redirigiendo...');

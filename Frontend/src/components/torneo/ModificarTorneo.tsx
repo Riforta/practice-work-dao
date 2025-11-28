@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import torneosApi, { type Torneo } from '../../services/torneo.service';
 import turnosApi, { type Turno, type CanchaRef } from '../../services/turnos.service';
 import equiposService, { type Equipo } from '../../services/equipos.service';
-import inscripcionesApi, { type Inscripcion } from '../../services/inscripciones.service';
+import equipoTorneoApi, { type EquipoTorneo } from '../../services/equipoTorneo.service';
 
 type FormValues = {
 	nombre: string;
@@ -95,7 +95,6 @@ export default function ModificarTorneo() {
 	const [equipoSearch, setEquipoSearch] = useState('');
 	const [selectedEquipos, setSelectedEquipos] = useState<number[]>([]);
 	const [originalEquipos, setOriginalEquipos] = useState<number[]>([]);
-	const [inscripcionMap, setInscripcionMap] = useState<Record<number, number>>({});
 	const [equipoFeedback, setEquipoFeedback] = useState('');
 
 	useEffect(() => {
@@ -106,13 +105,13 @@ export default function ModificarTorneo() {
 			setEquiposLoading(true);
 			setEquiposError('');
 			try {
-				const [torneoData, turnosData, canchasData, equiposList, inscripcionesList] = await Promise.all([
-					torneosApi.getById(torneoId),
-					turnosApi.list(),
-					turnosApi.listCanchas(),
-					equiposService.getAllEquipos(),
-					inscripcionesApi.listByTorneo(torneoId),
-				]);
+			const [torneoData, turnosData, canchasData, equiposList, equiposTorneoList] = await Promise.all([
+				torneosApi.getById(torneoId),
+				turnosApi.list(),
+				turnosApi.listCanchas(),
+				equiposService.getAllEquipos(),
+				equipoTorneoApi.listarEquiposPorTorneo(torneoId),
+			]);
 				setTorneo(torneoData);
 				reset({
 					nombre: torneoData.nombre,
@@ -134,17 +133,9 @@ export default function ModificarTorneo() {
 					.filter(Boolean);
 				setSelectedTurnos(asignados);
 				setOriginalTurnos(asignados);
-				const inscripcionesPorTorneo = inscripcionesList ?? [];
-				const equiposAsignados = inscripcionesPorTorneo.map((inscripcion: Inscripcion) => inscripcion.id_equipo);
-				setSelectedEquipos(equiposAsignados);
-				setOriginalEquipos(equiposAsignados);
-				const map: Record<number, number> = {};
-				inscripcionesPorTorneo.forEach((inscripcion) => {
-					if (inscripcion.id && inscripcion.id_equipo) {
-						map[inscripcion.id_equipo] = inscripcion.id;
-					}
-				});
-				setInscripcionMap(map);
+			const equiposAsignados = equiposTorneoList.map((et: EquipoTorneo) => et.id_equipo);
+			setSelectedEquipos(equiposAsignados);
+			setOriginalEquipos(equiposAsignados);
 			} catch (err) {
 				console.error(err);
 				setError('No se pudo cargar el torneo.');
@@ -257,35 +248,17 @@ export default function ModificarTorneo() {
 			const equiposAAgregar = selectedEquipos.filter((id) => !originalEquipos.includes(id));
 			const equiposAQuitar = originalEquipos.filter((id) => !selectedEquipos.includes(id));
 
-            console.log('originalEquipos', originalEquipos);
-        console.log('selectedEquipos', selectedEquipos);
-        console.log('equiposAAgregar', equiposAAgregar);
-
 			if (equiposAQuitar.length) {
-				const inscripcionesAEliminar = equiposAQuitar
-					.map((equipoId) => inscripcionMap[equipoId])
-					.filter((inscId): inscId is number => Boolean(inscId));
-				if (inscripcionesAEliminar.length) {
-					await inscripcionesApi.removeMany(inscripcionesAEliminar);
-				}
+				const inscripcionesAEliminar: Array<[number, number]> = equiposAQuitar.map(equipoId => [equipoId, torneoId]);
+				await equipoTorneoApi.desinscribirEquiposMasivo(inscripcionesAEliminar);
 			}
 			if (equiposAAgregar.length) {
-				await inscripcionesApi.assignEquiposToTorneo(torneoId, equiposAAgregar);
+				await equipoTorneoApi.assignEquiposToTorneo(torneoId, equiposAAgregar);
 			}
 
 			setSuccess('Cambios guardados correctamente.');
 			setOriginalTurnos(selectedTurnos);
 			setOriginalEquipos(selectedEquipos);
-			if (equiposAAgregar.length || equiposAQuitar.length) {
-				const nuevasInscripciones = await inscripcionesApi.listByTorneo(torneoId);
-				const mapActualizado: Record<number, number> = {};
-				nuevasInscripciones.forEach((inscripcion) => {
-					if (inscripcion.id && inscripcion.id_equipo) {
-						mapActualizado[inscripcion.id_equipo] = inscripcion.id;
-					}
-				});
-				setInscripcionMap(mapActualizado);
-			}
 			setTimeout(() => navigate('/torneos/ConsultarTorneos'), 800);
 		} catch (err) {
 			console.error(err);

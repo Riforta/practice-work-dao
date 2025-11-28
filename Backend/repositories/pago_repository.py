@@ -15,14 +15,14 @@ class PagoRepository:
             cursor.execute(
                 """
                 INSERT INTO Pago (
-                    id_turno, id_inscripcion, monto_turno, monto_servicios, monto_total,
+                    id_turno, monto_turno, monto_servicios, monto_total,
                     id_cliente, id_usuario_registro, estado, metodo_pago, id_gateway_externo,
                     fecha_creacion, fecha_expiracion, fecha_completado
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    pago.id_turno, pago.id_inscripcion, pago.monto_turno, pago.monto_servicios,
+                    pago.id_turno, pago.monto_turno, pago.monto_servicios,
                     pago.monto_total, pago.id_cliente, pago.id_usuario_registro, pago.estado,
                     pago.metodo_pago, pago.id_gateway_externo, pago.fecha_creacion,
                     pago.fecha_expiracion, pago.fecha_completado
@@ -59,17 +59,18 @@ class PagoRepository:
         finally:
             conn.close()
 
-    @staticmethod
-    def obtener_por_inscripcion(id_inscripcion: int) -> Optional[Pago]:
-        """Obtiene el pago asociado a una inscripción específica"""
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Pago WHERE id_inscripcion = ? ORDER BY id DESC LIMIT 1", (id_inscripcion,))
-            row = cursor.fetchone()
-            return Pago.from_db_row(row) if row else None
-        finally:
-            conn.close()
+    # MÉTODO DESHABILITADO: La tabla Inscripcion ya no existe
+    # @staticmethod
+    # def obtener_por_inscripcion(id_inscripcion: int) -> Optional[Pago]:
+    #     """Obtiene el pago asociado a una inscripción específica"""
+    #     conn = get_connection()
+    #     try:
+    #         cursor = conn.cursor()
+    #         cursor.execute("SELECT * FROM Pago WHERE id_inscripcion = ? ORDER BY id DESC LIMIT 1", (id_inscripcion,))
+    #         row = cursor.fetchone()
+    #         return Pago.from_db_row(row) if row else None
+    #     finally:
+    #         conn.close()
 
     @staticmethod
     def listar_por_cliente(id_cliente: int) -> List[Pago]:
@@ -78,6 +79,17 @@ class PagoRepository:
         try:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM Pago WHERE id_cliente = ? ORDER BY fecha_creacion DESC", (id_cliente,))
+            return [Pago.from_db_row(r) for r in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    @staticmethod
+    def listar_todos() -> List[Pago]:
+        """Lista todos los pagos del sistema (para administradores)"""
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Pago ORDER BY fecha_creacion DESC")
             return [Pago.from_db_row(r) for r in cursor.fetchall()]
         finally:
             conn.close()
@@ -111,14 +123,14 @@ class PagoRepository:
             cursor.execute(
                 """
                 UPDATE Pago
-                SET id_turno = ?, id_inscripcion = ?, monto_turno = ?, monto_servicios = ?,
+                SET id_turno = ?, monto_turno = ?, monto_servicios = ?,
                     monto_total = ?, id_cliente = ?, id_usuario_registro = ?, estado = ?,
                     metodo_pago = ?, id_gateway_externo = ?, fecha_creacion = ?,
                     fecha_expiracion = ?, fecha_completado = ?
                 WHERE id = ?
                 """,
                 (
-                    pago.id_turno, pago.id_inscripcion, pago.monto_turno, pago.monto_servicios,
+                    pago.id_turno, pago.monto_turno, pago.monto_servicios,
                     pago.monto_total, pago.id_cliente, pago.id_usuario_registro, pago.estado,
                     pago.metodo_pago, pago.id_gateway_externo, pago.fecha_creacion,
                     pago.fecha_expiracion, pago.fecha_completado, pago.id

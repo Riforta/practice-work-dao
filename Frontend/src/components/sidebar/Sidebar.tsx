@@ -8,6 +8,7 @@ import {
   BanknotesIcon,
   HomeIcon,
   CalendarIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -37,8 +38,8 @@ export default function Sidebar() {
   // Navegación admin (usuarios con rol administrador)
   const navigationAdmin = [
     { name: 'Inicio', href: '/', icon: HomeIcon, current: false },
-    { name: 'Reservas', href: '/reservas', icon: RectangleStackIcon, current: false },
     { name: 'Canchas', href: '/canchas', icon: InboxIcon, current: false },
+    { name: 'Clientes', href: '/clientes', icon: UsersIcon, current: false },
     { name: 'Equipos', href: '/equipos', icon: UserCircleIcon, current: false },
     { name: 'Pagos', href: '/pagos', icon: BanknotesIcon, current: false },
     { name: 'Torneos', href: '/torneos', icon: UserCircleIcon, current: false },

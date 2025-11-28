@@ -41,8 +41,39 @@ const getById = async (id: number): Promise<Cliente> => {
   return normalizeCliente(response.data);
 };
 
+const create = async (data: Omit<Cliente, 'id'>): Promise<Cliente> => {
+  const payload = {
+    nombre: data.nombre,
+    apellido: data.apellido || null,
+    dni: data.dni || null,
+    telefono: data.telefono || null,
+    email: data.email || null,
+  };
+  const response = await http.post(`${endpoint}/`, payload);
+  return normalizeCliente(response.data);
+};
+
+const update = async (id: number, data: Partial<Omit<Cliente, 'id'>>): Promise<Cliente> => {
+  const payload: Record<string, any> = {};
+  if (data.nombre !== undefined) payload.nombre = data.nombre;
+  if (data.apellido !== undefined) payload.apellido = data.apellido || null;
+  if (data.dni !== undefined) payload.dni = data.dni || null;
+  if (data.telefono !== undefined) payload.telefono = data.telefono || null;
+  if (data.email !== undefined) payload.email = data.email || null;
+  
+  const response = await http.put(`${endpoint}/${id}`, payload);
+  return normalizeCliente(response.data);
+};
+
+const remove = async (id: number): Promise<void> => {
+  await http.delete(`${endpoint}/${id}`);
+};
+
 export default {
   list,
   searchByName,
   getById,
+  create,
+  update,
+  remove,
 };
